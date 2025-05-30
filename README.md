@@ -14,7 +14,7 @@ Run the application:
 
 Open your browser to http://localhost:7860
 
-The application now includes all the features we discussed:
+The application now includes:
 
 - [x] Name-based prompt management (required unique names)
 - [x] Category organization with tree view
