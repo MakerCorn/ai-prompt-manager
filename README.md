@@ -6,11 +6,11 @@ Save the code as prompt_manager.py
 
 Install dependencies:
 
-    bashpip install gradio requests pandas
+    pip install gradio requests pandas
 
 Run the application:
 
-    bash python prompt_manager.py
+    python prompt_manager.py
 
 Open your browser to http://localhost:7860
 
