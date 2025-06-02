@@ -1,78 +1,27 @@
 import gradio as gr
-import sqlite3
 import json
 import requests
-import os
-from datetime import datetime
-from typing import List, Dict, Optional, Tuple
-import pandas as pd
+import sqlite3
+from typing import Dict, Optional, List
+from prompt_data_manager import PromptDataManager
 
 class AIPromptManager:
     def __init__(self, db_path: str = "prompts.db"):
         self.db_path = db_path
-        self.init_database()
+        self.data = PromptDataManager(db_path)
+        self.init_database = self.data.init_database
+        self.add_prompt = self.data.add_prompt
+        self.update_prompt = self.data.update_prompt
+        self.delete_prompt = self.data.delete_prompt
+        self.get_all_prompts = self.data.get_all_prompts
+        self.get_enhancement_prompts = self.data.get_enhancement_prompts
+        self.get_categories = self.data.get_categories
+        self.search_prompts = self.data.search_prompts
+        self.get_prompts_by_category = self.data.get_prompts_by_category
+        self.get_prompt_by_name = self.data.get_prompt_by_name
+        
         self.config = self.load_config()
         self.enhancement_config = self.load_enhancement_config()
-        
-    def init_database(self):
-        """Initialize SQLite database with required tables"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Create prompts table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS prompts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE,
-                title TEXT NOT NULL,
-                content TEXT NOT NULL,
-                category TEXT DEFAULT 'Uncategorized',
-                tags TEXT,
-                is_enhancement_prompt BOOLEAN DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Create config table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS config (
-                key TEXT PRIMARY KEY,
-                value TEXT
-            )
-        ''')
-        
-        # Add enhancement_prompt column if it doesn't exist (for existing databases)
-        cursor.execute("PRAGMA table_info(prompts)")
-        columns = [column[1] for column in cursor.fetchall()]
-        if 'is_enhancement_prompt' not in columns:
-            cursor.execute('ALTER TABLE prompts ADD COLUMN is_enhancement_prompt BOOLEAN DEFAULT 0')
-        
-        # Add name column if it doesn't exist (for existing databases)
-        if 'name' not in columns:
-            cursor.execute('ALTER TABLE prompts ADD COLUMN name TEXT')
-            # Populate name field with title for existing records
-            cursor.execute('UPDATE prompts SET name = title WHERE name IS NULL')
-            # Make name field unique after populating
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS prompts_new (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL UNIQUE,
-                    title TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    category TEXT DEFAULT 'Uncategorized',
-                    tags TEXT,
-                    is_enhancement_prompt BOOLEAN DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-            cursor.execute('INSERT INTO prompts_new SELECT * FROM prompts')
-            cursor.execute('DROP TABLE prompts')
-            cursor.execute('ALTER TABLE prompts_new RENAME TO prompts')
-        
-        conn.commit()
-        conn.close()
     
     def save_config(self, service_type: str, api_endpoint: str, api_key: str, model_name: str) -> str:
         """Save AI service configuration"""
@@ -93,7 +42,7 @@ class AIPromptManager:
         self.config = config
         return "Configuration saved successfully!"
     
-    def save_enhancement_config(self, service_type: str, api_endpoint: str, api_key: str, model_name: str, enhancement_prompt_name: str = None, set_as_default: bool = False) -> str:
+    def save_enhancement_config(self, service_type: str, api_endpoint: str, api_key: str, model_name: str, enhancement_prompt_name: Optional[str] = None, set_as_default: bool = False) -> str:
         """Save enhancement service configuration"""
         config = {
             'service_type': service_type,
@@ -162,241 +111,6 @@ class AIPromptManager:
                 'enhancement_prompt_name': None
             }
     
-    def add_prompt(self, name: str, title: str, content: str, category: str, tags: str, is_enhancement_prompt: bool = False) -> str:
-        """Add a new prompt to the database"""
-        if not name.strip():
-            return "Error: Name is required!"
-        if not title.strip() or not content.strip():
-            return "Error: Title and content are required!"
-        
-        name = name.strip()
-        category = category.strip() or "Uncategorized"
-        
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Check if name already exists
-        cursor.execute('SELECT id FROM prompts WHERE name = ?', (name,))
-        if cursor.fetchone():
-            conn.close()
-            return f"Error: A prompt with name '{name}' already exists!"
-        
-        cursor.execute('''
-            INSERT INTO prompts (name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (name, title.strip(), content.strip(), category, tags.strip(), is_enhancement_prompt,
-              datetime.now().isoformat(), datetime.now().isoformat()))
-        conn.commit()
-        conn.close()
-        
-        prompt_type = "Enhancement prompt" if is_enhancement_prompt else "Prompt"
-        return f"{prompt_type} '{name}' added successfully!"
-    
-    def update_prompt(self, original_name: str, new_name: str, title: str, content: str, category: str, tags: str, is_enhancement_prompt: bool = False) -> str:
-        """Update an existing prompt"""
-        if not original_name.strip() or not new_name.strip():
-            return "Error: Original name and new name are required!"
-        if not title.strip() or not content.strip():
-            return "Error: Title and content are required!"
-        
-        original_name = original_name.strip()
-        new_name = new_name.strip()
-        category = category.strip() or "Uncategorized"
-        
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Check if original prompt exists
-        cursor.execute('SELECT id FROM prompts WHERE name = ?', (original_name,))
-        if not cursor.fetchone():
-            conn.close()
-            return f"Error: Prompt '{original_name}' not found!"
-        
-        # Check if new name conflicts with existing prompt (unless it's the same name)
-        if original_name != new_name:
-            cursor.execute('SELECT id FROM prompts WHERE name = ?', (new_name,))
-            if cursor.fetchone():
-                conn.close()
-                return f"Error: A prompt with name '{new_name}' already exists!"
-        
-        cursor.execute('''
-            UPDATE prompts 
-            SET name=?, title=?, content=?, category=?, tags=?, is_enhancement_prompt=?, updated_at=?
-            WHERE name=?
-        ''', (new_name, title.strip(), content.strip(), category, tags.strip(), is_enhancement_prompt,
-              datetime.now().isoformat(), original_name))
-        
-        if cursor.rowcount > 0:
-            conn.commit()
-            conn.close()
-            return f"Prompt updated successfully!"
-        else:
-            conn.close()
-            return "Error: Prompt not found!"
-    
-    def delete_prompt(self, name: str) -> str:
-        """Delete a prompt from the database by name"""
-        if not name.strip():
-            return "Error: Name is required!"
-        
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM prompts WHERE name = ?', (name.strip(),))
-        
-        if cursor.rowcount > 0:
-            conn.commit()
-            conn.close()
-            return f"Prompt '{name}' deleted successfully!"
-        else:
-            conn.close()
-            return f"Error: Prompt '{name}' not found!"
-    
-    def get_all_prompts(self, include_enhancement_prompts: bool = True) -> List[Dict]:
-        """Get all prompts from the database"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        if include_enhancement_prompts:
-            cursor.execute('''
-                SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts ORDER BY category, name
-            ''')
-        else:
-            cursor.execute('''
-                SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts WHERE is_enhancement_prompt = 0 ORDER BY category, name
-            ''')
-        
-        prompts = []
-        for row in cursor.fetchall():
-            prompts.append({
-                'id': row[0],
-                'name': row[1],
-                'title': row[2],
-                'content': row[3],
-                'category': row[4],
-                'tags': row[5],
-                'is_enhancement_prompt': bool(row[6]) if row[6] is not None else False,
-                'created_at': row[7],
-                'updated_at': row[8]
-            })
-        
-        conn.close()
-        return prompts
-    
-    def get_enhancement_prompts(self) -> List[Dict]:
-        """Get only enhancement prompts"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-            FROM prompts WHERE is_enhancement_prompt = 1 ORDER BY name
-        ''')
-        
-        prompts = []
-        for row in cursor.fetchall():
-            prompts.append({
-                'id': row[0],
-                'name': row[1],
-                'title': row[2],
-                'content': row[3],
-                'category': row[4],
-                'tags': row[5],
-                'is_enhancement_prompt': bool(row[6]),
-                'created_at': row[7],
-                'updated_at': row[8]
-            })
-        
-        conn.close()
-        return prompts
-    
-    def get_categories(self) -> List[str]:
-        """Get all unique categories"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        cursor.execute('SELECT DISTINCT category FROM prompts ORDER BY category')
-        categories = [row[0] for row in cursor.fetchall()]
-        conn.close()
-        return categories
-    
-    def search_prompts(self, search_term: str, include_enhancement_prompts: bool = True) -> List[Dict]:
-        """Search prompts by name, title, content, or tags"""
-        if not search_term.strip():
-            return self.get_all_prompts(include_enhancement_prompts)
-        
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        if include_enhancement_prompts:
-            cursor.execute('''
-                SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts 
-                WHERE name LIKE ? OR title LIKE ? OR content LIKE ? OR tags LIKE ?
-                ORDER BY category, name
-            ''', (f'%{search_term}%', f'%{search_term}%', f'%{search_term}%', f'%{search_term}%'))
-        else:
-            cursor.execute('''
-                SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts 
-                WHERE (name LIKE ? OR title LIKE ? OR content LIKE ? OR tags LIKE ?) AND is_enhancement_prompt = 0
-                ORDER BY category, name
-            ''', (f'%{search_term}%', f'%{search_term}%', f'%{search_term}%', f'%{search_term}%'))
-        
-        prompts = []
-        for row in cursor.fetchall():
-            prompts.append({
-                'id': row[0],
-                'name': row[1],
-                'title': row[2],
-                'content': row[3],
-                'category': row[4],
-                'tags': row[5],
-                'is_enhancement_prompt': bool(row[6]) if row[6] is not None else False,
-                'created_at': row[7],
-                'updated_at': row[8]
-            })
-        
-        conn.close()
-        return prompts
-    
-    def get_prompts_by_category(self, category: str = None, include_enhancement_prompts: bool = True) -> List[Dict]:
-        """Get prompts filtered by category"""
-        if not category or category == "All":
-            return self.get_all_prompts(include_enhancement_prompts)
-        
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        if include_enhancement_prompts:
-            cursor.execute('''
-                SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts WHERE category = ?
-                ORDER BY name
-            ''', (category,))
-        else:
-            cursor.execute('''
-                SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts WHERE category = ? AND is_enhancement_prompt = 0
-                ORDER BY name
-            ''', (category,))
-        
-        prompts = []
-        for row in cursor.fetchall():
-            prompts.append({
-                'id': row[0],
-                'name': row[1],
-                'title': row[2],
-                'content': row[3],
-                'category': row[4],
-                'tags': row[5],
-                'is_enhancement_prompt': bool(row[6]) if row[6] is not None else False,
-                'created_at': row[7],
-                'updated_at': row[8]
-            })
-        
-        conn.close()
-        return prompts
-    
     def format_prompts_for_display(self, prompts: List[Dict]) -> str:
         """Format prompts for tree view display"""
         if not prompts:
@@ -437,35 +151,6 @@ class AIPromptManager:
                 output.append("")
         
         return "\n".join(output)
-    
-    def get_prompt_by_name(self, name: str) -> Optional[Dict]:
-        """Get a specific prompt by name"""
-        if not name.strip():
-            return None
-            
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-            FROM prompts WHERE name = ?
-        ''', (name.strip(),))
-        
-        row = cursor.fetchone()
-        conn.close()
-        
-        if row:
-            return {
-                'id': row[0],
-                'name': row[1],
-                'title': row[2],
-                'content': row[3],
-                'category': row[4],
-                'tags': row[5],
-                'is_enhancement_prompt': bool(row[6]) if row[6] is not None else False,
-                'created_at': row[7],
-                'updated_at': row[8]
-            }
-        return None
     
     def call_ai_service(self, prompt_text: str, config: Dict) -> str:
         """Call AI service with given configuration"""
@@ -525,8 +210,10 @@ class AIPromptManager:
                     
         except requests.exceptions.RequestException as e:
             return f"Error connecting to AI service: {str(e)}"
-        except Exception as e:
-            return f"Error calling AI service: {str(e)}"
+        except json.JSONDecodeError as e:
+            return f"Error decoding response from AI service: {str(e)}"
+        except KeyError as e:
+            return f"Error parsing AI service response: missing key {str(e)}"
     
     def execute_prompt(self, prompt_text: str) -> str:
         """Execute a prompt against the configured AI service"""
@@ -538,7 +225,7 @@ class AIPromptManager:
         
         return self.call_ai_service(prompt_text, self.config)
     
-    def enhance_prompt(self, original_prompt: str, enhancement_prompt_name: str = None) -> str:
+    def enhance_prompt(self, original_prompt: str, enhancement_prompt_name: Optional[str] = None) -> str:
         """Enhance a prompt using the enhancement service and prompt"""
         if not original_prompt.strip():
             return "Error: No original prompt provided!"
@@ -566,7 +253,8 @@ Please improve the following prompt by:
 Original prompt:
 {original_prompt}
 
-Please provide only the enhanced prompt as your response, without any explanations or additional text."""
+Please provide only the enhanced prompt as your response, without any explanations or additional text.
+"""
         
         # Replace placeholder with original prompt
         full_enhancement_prompt = enhancement_template.replace("{original_prompt}", original_prompt)
@@ -578,10 +266,13 @@ prompt_manager = AIPromptManager()
 
 # Gradio interface functions
 def save_configuration(service_type, api_endpoint, api_key, model_name):
-    return prompt_manager.save_config(service_type, api_endpoint, api_key, model_name)
+    """Save the AI service configuration to the database"""
+    result = prompt_manager.save_config(service_type, api_endpoint, api_key, model_name)
+    return (result,)
 
 def save_enhancement_configuration(service_type, api_endpoint, api_key, model_name, enhancement_prompt_name, set_as_default):
-    return prompt_manager.save_enhancement_config(service_type, api_endpoint, api_key, model_name, enhancement_prompt_name, set_as_default)
+    result = prompt_manager.save_enhancement_config(service_type, api_endpoint, api_key, model_name, enhancement_prompt_name, set_as_default)
+    return (result,)
 
 def add_new_prompt(name, title, content, category, tags, is_enhancement_prompt):
     result = prompt_manager.add_prompt(name, title, content, category, tags, is_enhancement_prompt)
@@ -693,99 +384,6 @@ def create_interface():
         """)
         
         with gr.Tabs():
-            # Configuration Tab
-            with gr.TabItem("⚙️ Configuration"):
-                gr.Markdown("### Primary AI Service Configuration")
-                
-                with gr.Row():
-                    service_type = gr.Dropdown(
-                        choices=["openai", "lmstudio", "ollama", "llamacpp"],
-                        value=config.get('service_type', 'openai'),
-                        label="Service Type"
-                    )
-                    model_name = gr.Textbox(
-                        value=config.get('model_name', 'gpt-3.5-turbo'),
-                        label="Model Name",
-                        placeholder="e.g., gpt-3.5-turbo, llama2"
-                    )
-                
-                api_endpoint = gr.Textbox(
-                    value=config.get('api_endpoint', 'http://localhost:1234/v1'),
-                    label="API Endpoint",
-                    placeholder="http://localhost:1234/v1"
-                )
-                
-                api_key = gr.Textbox(
-                    value=config.get('api_key', ''),
-                    label="API Key (optional)",
-                    type="password",
-                    placeholder="Enter API key if required"
-                )
-                
-                config_save_btn = gr.Button("💾 Save Configuration", variant="primary")
-                config_status = gr.Textbox(label="Status", interactive=False)
-                
-                gr.Markdown("---")
-                gr.Markdown("### Enhancement Service Configuration")
-                gr.Markdown("Configure a separate AI service specifically for prompt enhancement (can be the same or different from primary service)")
-                
-                with gr.Row():
-                    enh_service_type = gr.Dropdown(
-                        choices=["openai", "lmstudio", "ollama", "llamacpp"],
-                        value=enhancement_config.get('service_type', 'openai'),
-                        label="Enhancement Service Type"
-                    )
-                    enh_model_name = gr.Textbox(
-                        value=enhancement_config.get('model_name', 'gpt-4'),
-                        label="Enhancement Model Name",
-                        placeholder="e.g., gpt-4, claude-3-sonnet"
-                    )
-                
-                enh_api_endpoint = gr.Textbox(
-                    value=enhancement_config.get('api_endpoint', 'http://localhost:1234/v1'),
-                    label="Enhancement API Endpoint",
-                    placeholder="http://localhost:1234/v1"
-                )
-                
-                enh_api_key = gr.Textbox(
-                    value=enhancement_config.get('api_key', ''),
-                    label="Enhancement API Key (optional)",
-                    type="password",
-                    placeholder="Enter API key if required"
-                )
-                
-                enh_prompt_dropdown = gr.Dropdown(
-                    choices=enhancement_choices,
-                    value=enhancement_config.get('enhancement_prompt_name'),
-                    label="Default Enhancement Prompt (optional)",
-                    info="Select a stored enhancement prompt, or leave blank to use default"
-                )
-                
-                with gr.Row():
-                    enh_config_save_btn = gr.Button("💾 Save Enhancement Config", variant="primary")
-                    set_as_default_btn = gr.Button("⭐ Save & Set as Default", variant="secondary")
-                
-                enh_config_status = gr.Textbox(label="Enhancement Config Status", interactive=False)
-                
-                # Event handlers for configuration
-                config_save_btn.click(
-                    save_configuration,
-                    inputs=[service_type, api_endpoint, api_key, model_name],
-                    outputs=config_status
-                )
-                
-                enh_config_save_btn.click(
-                    lambda *args: save_enhancement_configuration(*args, False),
-                    inputs=[enh_service_type, enh_api_endpoint, enh_api_key, enh_model_name, enh_prompt_dropdown],
-                    outputs=enh_config_status
-                )
-                
-                set_as_default_btn.click(
-                    lambda *args: save_enhancement_configuration(*args, True),
-                    inputs=[enh_service_type, enh_api_endpoint, enh_api_key, enh_model_name, enh_prompt_dropdown],
-                    outputs=enh_config_status
-                )
-            
             # Prompt Management Tab
             with gr.TabItem("📝 Prompt Management"):
                 gr.Markdown("### Add/Edit Prompts")
@@ -1013,6 +611,99 @@ def create_interface():
                     save_enhanced_as_new,
                     inputs=[enhanced_prompt, save_enhanced_name],
                     outputs=enhancement_status
+                )
+            
+            # Configuration Tab (moved to last)
+            with gr.TabItem("⚙️ Configuration"):
+                gr.Markdown("### Primary AI Service Configuration")
+                
+                with gr.Row():
+                    service_type = gr.Dropdown(
+                        choices=["openai", "lmstudio", "ollama", "llamacpp"],
+                        value=config.get('service_type', 'openai'),
+                        label="Service Type"
+                    )
+                    model_name = gr.Textbox(
+                        value=config.get('model_name', 'gpt-3.5-turbo'),
+                        label="Model Name",
+                        placeholder="e.g., gpt-3.5-turbo, llama2"
+                    )
+                
+                api_endpoint = gr.Textbox(
+                    value=config.get('api_endpoint', 'http://localhost:1234/v1'),
+                    label="API Endpoint",
+                    placeholder="http://localhost:1234/v1"
+                )
+                
+                api_key = gr.Textbox(
+                    value=config.get('api_key', ''),
+                    label="API Key (optional)",
+                    type="password",
+                    placeholder="Enter API key if required"
+                )
+                
+                config_save_btn = gr.Button("💾 Save Configuration", variant="primary")
+                config_status = gr.Textbox(label="Status", interactive=False)
+                
+                gr.Markdown("---")
+                gr.Markdown("### Enhancement Service Configuration")
+                gr.Markdown("Configure a separate AI service specifically for prompt enhancement (can be the same or different from primary service)")
+                
+                with gr.Row():
+                    enh_service_type = gr.Dropdown(
+                        choices=["openai", "lmstudio", "ollama", "llamacpp"],
+                        value=enhancement_config.get('service_type', 'openai'),
+                        label="Enhancement Service Type"
+                    )
+                    enh_model_name = gr.Textbox(
+                        value=enhancement_config.get('model_name', 'gpt-4'),
+                        label="Enhancement Model Name",
+                        placeholder="e.g., gpt-4, claude-3-sonnet"
+                    )
+                
+                enh_api_endpoint = gr.Textbox(
+                    value=enhancement_config.get('api_endpoint', 'http://localhost:1234/v1'),
+                    label="Enhancement API Endpoint",
+                    placeholder="http://localhost:1234/v1"
+                )
+                
+                enh_api_key = gr.Textbox(
+                    value=enhancement_config.get('api_key', ''),
+                    label="Enhancement API Key (optional)",
+                    type="password",
+                    placeholder="Enter API key if required"
+                )
+                
+                enh_prompt_dropdown = gr.Dropdown(
+                    choices=enhancement_choices,
+                    value=enhancement_config.get('enhancement_prompt_name'),
+                    label="Default Enhancement Prompt (optional)",
+                    info="Select a stored enhancement prompt, or leave blank to use default"
+                )
+                
+                with gr.Row():
+                    enh_config_save_btn = gr.Button("💾 Save Enhancement Config", variant="primary")
+                    set_as_default_btn = gr.Button("⭐ Save & Set as Default", variant="secondary")
+                
+                enh_config_status = gr.Textbox(label="Enhancement Config Status", interactive=False)
+                
+                # Event handlers for configuration
+                config_save_btn.click(
+                    save_configuration,
+                    inputs=[service_type, api_endpoint, api_key, model_name],
+                    outputs=config_status
+                )
+                
+                enh_config_save_btn.click(
+                    lambda *args: save_enhancement_configuration(*args, False),
+                    inputs=[enh_service_type, enh_api_endpoint, enh_api_key, enh_model_name, enh_prompt_dropdown],
+                    outputs=enh_config_status
+                )
+                
+                set_as_default_btn.click(
+                    lambda *args: save_enhancement_configuration(*args, True),
+                    inputs=[enh_service_type, enh_api_endpoint, enh_api_key, enh_model_name, enh_prompt_dropdown],
+                    outputs=enh_config_status
                 )
         
         gr.Markdown("""
