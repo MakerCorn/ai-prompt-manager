@@ -14,11 +14,13 @@ from typing import Dict, Optional, List, Tuple
 from urllib.parse import urlparse, parse_qs
 from prompt_data_manager import PromptDataManager
 from auth_manager import AuthManager, User, Tenant
+from api_token_manager import APITokenManager
 
 class AIPromptManager:
     def __init__(self, db_path: str = "prompts.db"):
         self.db_path = db_path
         self.auth_manager = AuthManager(db_path)
+        self.api_token_manager = APITokenManager(db_path)
         self.current_user = None
         self.current_tenant = None
         
@@ -370,6 +372,47 @@ Please provide only the enhanced prompt as your response, without any explanatio
             return []
         
         return self.auth_manager.get_tenant_users(tenant_id)
+    
+    # API Token management functions
+    def create_api_token(self, name: str, expires_days: Optional[int] = None) -> Tuple[bool, str, Optional[str]]:
+        """Create API token for current user"""
+        if not self.current_user:
+            return False, "User not authenticated", None
+        
+        return self.api_token_manager.create_api_token(
+            self.current_user.id, 
+            self.current_user.tenant_id, 
+            name, 
+            expires_days
+        )
+    
+    def get_user_api_tokens(self) -> List:
+        """Get all API tokens for current user"""
+        if not self.current_user:
+            return []
+        
+        return self.api_token_manager.get_user_tokens(self.current_user.id)
+    
+    def revoke_api_token(self, token_id: str) -> Tuple[bool, str]:
+        """Revoke API token"""
+        if not self.current_user:
+            return False, "User not authenticated"
+        
+        return self.api_token_manager.revoke_token(self.current_user.id, token_id)
+    
+    def revoke_all_api_tokens(self) -> Tuple[bool, str]:
+        """Revoke all API tokens for current user"""
+        if not self.current_user:
+            return False, "User not authenticated"
+        
+        return self.api_token_manager.revoke_all_tokens(self.current_user.id)
+    
+    def get_api_token_stats(self) -> Dict:
+        """Get API token statistics for current user"""
+        if not self.current_user:
+            return {}
+        
+        return self.api_token_manager.get_token_stats(self.current_user.id)
 
 # Initialize the prompt manager
 prompt_manager = AIPromptManager()
@@ -593,6 +636,103 @@ def save_enhancement_configuration(service_type, api_endpoint, api_key, model_na
     """Save enhancement configuration"""
     return prompt_manager.save_enhancement_config(service_type, api_endpoint, api_key, model_name, enhancement_prompt_name)
 
+# API Token management functions
+def create_new_api_token(token_name, expires_days_str):
+    """Create new API token"""
+    if not token_name.strip():
+        return "Error: Token name is required", "", gr.update()
+    
+    expires_days = None
+    if expires_days_str and expires_days_str.strip():
+        try:
+            expires_days = int(expires_days_str)
+            if expires_days <= 0:
+                return "Error: Expiration days must be positive", "", gr.update()
+        except ValueError:
+            return "Error: Invalid expiration days", "", gr.update()
+    
+    success, message, token = prompt_manager.create_api_token(token_name.strip(), expires_days)
+    
+    if success:
+        # Refresh token list
+        tokens = prompt_manager.get_user_api_tokens()
+        token_display = format_tokens_display(tokens)
+        
+        return message, token if token else "", gr.update(value=token_display)
+    else:
+        return message, "", gr.update()
+
+def revoke_api_token_by_id(token_id):
+    """Revoke specific API token"""
+    if not token_id:
+        return "Error: No token selected", gr.update()
+    
+    success, message = prompt_manager.revoke_api_token(token_id)
+    
+    # Refresh token list
+    tokens = prompt_manager.get_user_api_tokens()
+    token_display = format_tokens_display(tokens)
+    
+    return message, gr.update(value=token_display)
+
+def revoke_all_api_tokens():
+    """Revoke all API tokens"""
+    success, message = prompt_manager.revoke_all_api_tokens()
+    
+    # Refresh token list
+    tokens = prompt_manager.get_user_api_tokens()
+    token_display = format_tokens_display(tokens)
+    
+    return message, gr.update(value=token_display)
+
+def refresh_api_tokens():
+    """Refresh API token display"""
+    tokens = prompt_manager.get_user_api_tokens()
+    token_display = format_tokens_display(tokens)
+    stats = prompt_manager.get_api_token_stats()
+    
+    stats_text = f"📊 **Token Statistics:**\n"
+    stats_text += f"• Active Tokens: {stats.get('total_active', 0)}\n"
+    stats_text += f"• Never Expire: {stats.get('never_expire', 0)}\n"
+    stats_text += f"• Will Expire: {stats.get('will_expire', 0)}\n"
+    stats_text += f"• Used Tokens: {stats.get('used_tokens', 0)}"
+    
+    return gr.update(value=token_display), stats_text
+
+def format_tokens_display(tokens):
+    """Format tokens for display"""
+    if not tokens:
+        return "No API tokens found. Create your first token to get started with API access."
+    
+    display_lines = ["🔑 **Your API Tokens:**\n"]
+    
+    for token in tokens:
+        # Format expiration
+        if token.expires_at:
+            exp_str = f"⏰ Expires: {token.expires_at.strftime('%Y-%m-%d %H:%M')}"
+            # Check if expired
+            from datetime import datetime
+            if token.expires_at < datetime.now():
+                exp_str += " (EXPIRED)"
+        else:
+            exp_str = "♾️ Never expires"
+        
+        # Format last used
+        if token.last_used:
+            used_str = f"🕒 Last used: {token.last_used.strftime('%Y-%m-%d %H:%M')}"
+        else:
+            used_str = "📝 Never used"
+        
+        display_lines.append(f"**{token.name}**")
+        display_lines.append(f"  🆔 ID: `{token.id[:16]}...`")
+        display_lines.append(f"  🔍 Preview: `{token.token_prefix}...`")
+        display_lines.append(f"  {exp_str}")
+        display_lines.append(f"  {used_str}")
+        display_lines.append(f"  📅 Created: {token.created_at.strftime('%Y-%m-%d %H:%M')}")
+        display_lines.append("")
+    
+    return "\n".join(display_lines)
+
 # Admin functions
 def admin_create_tenant(name, subdomain, max_users):
     """Create new tenant"""
@@ -795,6 +935,177 @@ def create_interface():
                                 save_enhanced_btn = gr.Button("💾 Save Enhanced Prompt", variant="secondary")
                     
                     enhancement_status = gr.Textbox(label="Enhancement Status", interactive=False)
+                
+                # Account Settings Tab
+                with gr.TabItem("👤 Account Settings"):
+                    gr.Markdown("### Account & API Management")
+                    
+                    with gr.Tabs():
+                        with gr.TabItem("🔑 API Tokens"):
+                            gr.Markdown("### API Token Management")
+                            gr.Markdown("Create secure API tokens to access your prompts programmatically. These tokens allow external applications to retrieve your prompts via REST API.")
+                            
+                            with gr.Row():
+                                with gr.Column(scale=1):
+                                    gr.Markdown("#### Create New Token")
+                                    
+                                    token_name = gr.Textbox(
+                                        label="Token Name",
+                                        placeholder="e.g., My App Integration",
+                                        info="Give your token a descriptive name"
+                                    )
+                                    
+                                    token_expires_days = gr.Textbox(
+                                        label="Expires in Days (optional)",
+                                        placeholder="30",
+                                        info="Leave empty for tokens that never expire"
+                                    )
+                                    
+                                    with gr.Row():
+                                        create_token_btn = gr.Button("🔑 Create Token", variant="primary")
+                                        revoke_all_btn = gr.Button("🗑️ Revoke All", variant="stop")
+                                        refresh_tokens_btn = gr.Button("🔄 Refresh")
+                                    
+                                    token_creation_status = gr.Textbox(label="Status", interactive=False)
+                                    
+                                    with gr.Group():
+                                        gr.Markdown("#### ⚠️ New Token")
+                                        gr.Markdown("**Save this token immediately! You won't be able to see it again.**")
+                                        new_token_display = gr.Textbox(
+                                            label="Your New API Token",
+                                            interactive=True,
+                                            info="Copy this token and store it securely"
+                                        )
+                                
+                                with gr.Column(scale=2):
+                                    gr.Markdown("#### Your API Tokens")
+                                    
+                                    api_tokens_display = gr.Textbox(
+                                        label="Active Tokens",
+                                        lines=15,
+                                        value="Login to view your API tokens...",
+                                        interactive=False
+                                    )
+                                    
+                                    token_stats_display = gr.Markdown("Token statistics will appear here...")
+                                    
+                                    with gr.Row():
+                                        revoke_token_id = gr.Textbox(
+                                            label="Token ID to Revoke",
+                                            placeholder="Enter token ID (first 16 characters)",
+                                            info="Copy the ID from the token list above"
+                                        )
+                                        revoke_single_btn = gr.Button("🗑️ Revoke Token", variant="secondary")
+                        
+                        with gr.TabItem("📖 API Documentation"):
+                            gr.Markdown('''
+                            ### 🚀 API Documentation
+                            
+                            Use your API tokens to access prompts programmatically via REST API.
+                            
+                            #### Base URL
+                            ```
+                            http://localhost:7860/api
+                            ```
+                            
+                            #### Authentication
+                            Include your API token in the Authorization header:
+                            ```bash
+                            Authorization: Bearer apm_your_token_here
+                            ```
+                            
+                            #### Available Endpoints
+                            
+                            **📝 Get All Prompts**
+                            ```bash
+                            GET /api/prompts
+                            curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/prompts
+                            ```
+                            
+                            **🔍 Get Prompt by Name**
+                            ```bash
+                            GET /api/prompts/name/{prompt_name}
+                            curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/prompts/name/my-prompt
+                            ```
+                            
+                            **🆔 Get Prompt by ID**
+                            ```bash
+                            GET /api/prompts/{prompt_id}
+                            curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/prompts/123
+                            ```
+                            
+                            **📊 Search Prompts**
+                            ```bash
+                            GET /api/search?q=keyword
+                            curl -H "Authorization: Bearer apm_your_token" "http://localhost:7860/api/search?q=creative"
+                            ```
+                            
+                            **📁 Get Categories**
+                            ```bash
+                            GET /api/categories
+                            curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/categories
+                            ```
+                            
+                            **📈 Get Statistics**
+                            ```bash
+                            GET /api/stats
+                            curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/stats
+                            ```
+                            
+                            #### Query Parameters
+                            - `page`: Page number (default: 1)
+                            - `page_size`: Items per page (default: 50, max: 100)
+                            - `category`: Filter by category
+                            - `include_enhancement`: Include enhancement prompts (default: true)
+                            
+                            #### Example Response
+                            ```json
+                            {
+                              "prompts": [
+                                {
+                                  "id": 1,
+                                  "name": "creative-writing",
+                                  "title": "Creative Writing Assistant",
+                                  "content": "You are a creative writing assistant...",
+                                  "category": "Writing",
+                                  "tags": "creative,writing",
+                                  "is_enhancement_prompt": false,
+                                  "user_id": "user-123",
+                                  "created_at": "2025-01-08T10:00:00",
+                                  "updated_at": "2025-01-08T10:00:00"
+                                }
+                              ],
+                              "total": 1,
+                              "page": 1,
+                              "page_size": 50
+                            }
+                            ```
+                            
+                            #### Security Notes
+                            - 🔒 Keep your API tokens secure and never commit them to version control
+                            - 🔄 Rotate tokens regularly for better security
+                            - ⏰ Use expiring tokens for temporary integrations
+                            - 🚫 Revoke unused tokens immediately
+                            
+                            #### Rate Limiting
+                            - Default: 100 requests per minute per token
+                            - Contact admin for higher limits if needed
+                            ''')
+                            
+                        with gr.TabItem("👤 Profile"):
+                            gr.Markdown("### User Profile")
+                            
+                            profile_info = gr.Markdown("Login to view your profile information...")
+                            
+                            gr.Markdown("### Change Password")
+                            
+                            with gr.Column():
+                                current_password = gr.Textbox(label="Current Password", type="password")
+                                new_password = gr.Textbox(label="New Password", type="password")
+                                confirm_password = gr.Textbox(label="Confirm New Password", type="password")
+                                
+                                change_password_btn = gr.Button("🔒 Change Password", variant="primary")
+                                password_status = gr.Textbox(label="Status", interactive=False)
                 
                 # Configuration Tab
                 with gr.TabItem("⚙️ Configuration"):
@@ -1061,6 +1372,29 @@ def create_interface():
             save_enhancement_configuration,
             inputs=[enh_service_type, enh_api_endpoint, enh_api_key, enh_model_name, enh_prompt_dropdown],
             outputs=enh_config_status
+        )
+        
+        # Event handlers for API token management
+        create_token_btn.click(
+            create_new_api_token,
+            inputs=[token_name, token_expires_days],
+            outputs=[token_creation_status, new_token_display, api_tokens_display]
+        )
+        
+        refresh_tokens_btn.click(
+            refresh_api_tokens,
+            outputs=[api_tokens_display, token_stats_display]
+        )
+        
+        revoke_single_btn.click(
+            revoke_api_token_by_id,
+            inputs=[revoke_token_id],
+            outputs=[token_creation_status, api_tokens_display]
+        )
+        
+        revoke_all_btn.click(
+            revoke_all_api_tokens,
+            outputs=[token_creation_status, api_tokens_display]
         )
         
         # Event handlers for admin functions

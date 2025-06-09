@@ -18,7 +18,10 @@ dependencies = [
     "psycopg2-binary (>=2.9.10,<3.0.0)",
     "python-dotenv (>=1.1.0,<2.0.0)",
     "pyjwt (>=2.10.1,<3.0.0)",
-    "cryptography (>=43.0.3,<44.0.0)"
+    "cryptography (>=43.0.3,<44.0.0)",
+    "fastapi (>=0.115.6,<1.0.0)",
+    "uvicorn[standard] (>=0.34.0,<1.0.0)",
+    "pydantic (>=2.10.3,<3.0.0)"
 ]
 
 [tool.poetry]
@@ -32,7 +35,10 @@ packages = [
     { include = "prompt_manager.py" }, 
     { include = "prompt_data_manager.py" },
     { include = "auth_manager.py" },
-    { include = "prompt_manager_mt.py" }
+    { include = "prompt_manager_mt.py" },
+    { include = "api_token_manager.py" },
+    { include = "api_endpoints.py" },
+    { include = "run_mt_with_api.py" }
 ]
 
 [tool.poetry.dependencies]
@@ -43,3 +49,6 @@ psycopg2-binary = ">=2.9.10,<3.0.0"
 python-dotenv = ">=1.1.0,<2.0.0"
 pyjwt = ">=2.10.1,<3.0.0"
 cryptography = ">=43.0.3,<44.0.0"
+fastapi = ">=0.115.6,<1.0.0"
+uvicorn = {extras = ["standard"], version = ">=0.34.0,<1.0.0"}
+pydantic = ">=2.10.3,<3.0.0"

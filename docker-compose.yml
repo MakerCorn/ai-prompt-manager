@@ -15,11 +15,11 @@ services:
     networks:
       - prompt_network
 
-  # AI Prompt Manager Application
+  # AI Prompt Manager Application with API
   app:
     build: .
     ports:
-      - "7860:7860"
+      - "7860:7860"  # Web UI and API endpoints
     environment:
       # Database Configuration (uncomment for PostgreSQL)
       # DB_TYPE: postgres
@@ -29,9 +29,9 @@ services:
       DB_TYPE: sqlite
       DB_PATH: /app/data/prompts.db
       
-      # Authentication
+      # Authentication & Security
       SECRET_KEY: change-this-secret-key-in-production
-      LOCAL_DEV_MODE: "true"
+      LOCAL_DEV_MODE: "false"  # Set to false for production
       
       # SSO Configuration (configure if needed)
       SSO_ENABLED: "false"
