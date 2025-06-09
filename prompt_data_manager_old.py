@@ -466,76 +466,78 @@ class PromptDataManager:
     def get_prompts_by_category(self, category: Optional[str] = None, include_enhancement_prompts: bool = True) -> List[Dict]:
         if not category or category == "All":
             return self.get_all_prompts(include_enhancement_prompts)
-        if not self.tenant_id:
-            return []
-            
         conn = self.get_conn()
         cursor = conn.cursor()
-        
         if self.db_type == "postgres":
             if include_enhancement_prompts:
                 cursor.execute('''
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                    FROM prompts WHERE tenant_id = %s AND category = %s
+                    SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    FROM prompts WHERE category = %s
                     ORDER BY name
-                ''', (self.tenant_id, category))
+                ''', (category,))
             else:
                 cursor.execute('''
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                    FROM prompts WHERE tenant_id = %s AND category = %s AND is_enhancement_prompt = FALSE
+                    SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    FROM prompts WHERE category = %s AND is_enhancement_prompt = FALSE
                     ORDER BY name
-                ''', (self.tenant_id, category))
+                ''', (category,))
         else:
             if include_enhancement_prompts:
                 cursor.execute('''
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                    FROM prompts WHERE tenant_id = ? AND category = ?
+                    SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    FROM prompts WHERE category = ?
                     ORDER BY name
-                ''', (self.tenant_id, category))
+                ''', (category,))
             else:
                 cursor.execute('''
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                    FROM prompts WHERE tenant_id = ? AND category = ? AND is_enhancement_prompt = 0
+                    SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    FROM prompts WHERE category = ? AND is_enhancement_prompt = 0
                     ORDER BY name
-                ''', (self.tenant_id, category))
-        
+                ''', (category,))
         prompts = []
         for row in cursor.fetchall():
-            prompts.append({
-                'id': row[0],
-                'tenant_id': row[1],
-                'user_id': row[2],
-                'name': row[3],
-                'title': row[4],
-                'content': row[5],
-                'category': row[6],
-                'tags': row[7],
-                'is_enhancement_prompt': bool(row[8]) if row[8] is not None else False,
-                'created_at': row[9],
-                'updated_at': row[10]
-            })
+            if self.db_type == "postgres":
+                prompts.append({
+                    'id': row['id'],
+                    'name': row['name'],
+                    'title': row['title'],
+                    'content': row['content'],
+                    'category': row['category'],
+                    'tags': row['tags'],
+                    'is_enhancement_prompt': bool(row['is_enhancement_prompt']) if row['is_enhancement_prompt'] is not None else False,
+                    'created_at': row['created_at'],
+                    'updated_at': row['updated_at']
+                })
+            else:
+                prompts.append({
+                    'id': row[0],
+                    'name': row[1],
+                    'title': row[2],
+                    'content': row[3],
+                    'category': row[4],
+                    'tags': row[5],
+                    'is_enhancement_prompt': bool(row[6]) if row[6] is not None else False,
+                    'created_at': row[7],
+                    'updated_at': row[8]
+                })
         conn.close()
         return prompts
 
     def get_prompt_by_name(self, name: str) -> Optional[Dict]:
-        if not name.strip() or not self.tenant_id:
+        if not name.strip():
             return None
-            
         conn = self.get_conn()
         cursor = conn.cursor()
-        
         if self.db_type == "postgres":
             cursor.execute('''
-                SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts WHERE name = %s AND tenant_id = %s
-            ''', (name.strip(), self.tenant_id))
+                SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                FROM prompts WHERE name = %s
+            ''', (name.strip(),))
             row = cursor.fetchone()
             conn.close()
             if row:
                 return {
                     'id': row['id'],
-                    'tenant_id': row['tenant_id'],
-                    'user_id': row['user_id'],
                     'name': row['name'],
                     'title': row['title'],
                     'content': row['content'],
@@ -547,78 +549,21 @@ class PromptDataManager:
                 }
         else:
             cursor.execute('''
-                SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts WHERE name = ? AND tenant_id = ?
-            ''', (name.strip(), self.tenant_id))
+                SELECT id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                FROM prompts WHERE name = ?
+            ''', (name.strip(),))
             row = cursor.fetchone()
             conn.close()
             if row:
                 return {
                     'id': row[0],
-                    'tenant_id': row[1],
-                    'user_id': row[2],
-                    'name': row[3],
-                    'title': row[4],
-                    'content': row[5],
-                    'category': row[6],
-                    'tags': row[7],
-                    'is_enhancement_prompt': bool(row[8]) if row[8] is not None else False,
-                    'created_at': row[9],
-                    'updated_at': row[10]
+                    'name': row[1],
+                    'title': row[2],
+                    'content': row[3],
+                    'category': row[4],
+                    'tags': row[5],
+                    'is_enhancement_prompt': bool(row[6]) if row[6] is not None else False,
+                    'created_at': row[7],
+                    'updated_at': row[8]
                 }
         return None
-
-    def save_config(self, key: str, value: str) -> bool:
-        """Save configuration for tenant/user"""
-        if not self.tenant_id:
-            return False
-            
-        conn = self.get_conn()
-        cursor = conn.cursor()
-        
-        try:
-            if self.db_type == "postgres":
-                cursor.execute('''
-                    INSERT INTO config (tenant_id, user_id, key, value) 
-                    VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (tenant_id, user_id, key) 
-                    DO UPDATE SET value = EXCLUDED.value
-                ''', (self.tenant_id, self.user_id, key, value))
-            else:
-                cursor.execute('''
-                    INSERT OR REPLACE INTO config (tenant_id, user_id, key, value) 
-                    VALUES (?, ?, ?, ?)
-                ''', (self.tenant_id, self.user_id, key, value))
-            
-            conn.commit()
-            conn.close()
-            return True
-        except Exception:
-            conn.close()
-            return False
-
-    def get_config(self, key: str) -> Optional[str]:
-        """Get configuration for tenant/user"""
-        if not self.tenant_id:
-            return None
-            
-        conn = self.get_conn()
-        cursor = conn.cursor()
-        
-        try:
-            if self.db_type == "postgres":
-                cursor.execute('SELECT value FROM config WHERE tenant_id = %s AND user_id = %s AND key = %s', 
-                             (self.tenant_id, self.user_id, key))
-            else:
-                cursor.execute('SELECT value FROM config WHERE tenant_id = ? AND user_id = ? AND key = ?', 
-                             (self.tenant_id, self.user_id, key))
-            
-            result = cursor.fetchone()
-            conn.close()
-            
-            if result:
-                return result[0] if not self.db_type == "postgres" else result['value']
-            return None
-        except Exception:
-            conn.close()
-            return None
