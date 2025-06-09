@@ -10,7 +10,7 @@ permissions:
   packages: write
 
 jobs:
-  create-release:
+  build-and-release:
     runs-on: ubuntu-latest
     
     steps:
@@ -18,6 +18,99 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies and build package
+        run: |
+          poetry install --no-interaction
+          poetry build
+
+      - name: Create release distribution
+        run: |
+          # Create comprehensive release package
+          mkdir -p ai-prompt-manager-${{ github.ref_name }}
+          
+          # Copy built packages
+          cp dist/* ai-prompt-manager-${{ github.ref_name }}/
+          
+          # Copy essential files
+          cp README.md ai-prompt-manager-${{ github.ref_name }}/
+          cp LICENSE ai-prompt-manager-${{ github.ref_name }}/
+          cp CHANGELOG.md ai-prompt-manager-${{ github.ref_name }}/
+          cp .env.example ai-prompt-manager-${{ github.ref_name }}/
+          cp docker-compose.yml ai-prompt-manager-${{ github.ref_name }}/
+          cp docker-compose.prod.yml ai-prompt-manager-${{ github.ref_name }}/
+          cp Dockerfile ai-prompt-manager-${{ github.ref_name }}/
+          
+          # Copy source files
+          cp *.py ai-prompt-manager-${{ github.ref_name }}/
+          cp pyproject.toml ai-prompt-manager-${{ github.ref_name }}/
+          cp poetry.lock ai-prompt-manager-${{ github.ref_name }}/
+          
+          # Create installation script
+          cat > ai-prompt-manager-${{ github.ref_name }}/install.sh << 'EOF'
+          #!/bin/bash
+          echo "🚀 AI Prompt Manager ${{ github.ref_name }} Installation"
+          echo "================================================="
+          
+          # Check Python version
+          python_version=$(python3 --version 2>&1 | sed 's/.* \([0-9]\.[0-9]*\).*/\1/')
+          required_version="3.12"
+          if [ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1)" != "$required_version" ]; then
+              echo "❌ Python 3.12+ is required. Found: $python_version"
+              exit 1
+          fi
+          
+          # Check if Poetry is installed
+          if ! command -v poetry &> /dev/null; then
+              echo "📦 Installing Poetry..."
+              curl -sSL https://install.python-poetry.org | python3 -
+              export PATH="$HOME/.local/bin:$PATH"
+          fi
+          
+          # Install dependencies
+          echo "📚 Installing dependencies..."
+          poetry install --no-interaction
+          
+          # Copy environment file
+          if [ ! -f .env ]; then
+              echo "⚙️ Creating .env configuration file..."
+              cp .env.example .env
+              echo "✅ Please edit .env file to configure your deployment"
+          fi
+          
+          echo ""
+          echo "✅ AI Prompt Manager ${{ github.ref_name }} installed successfully!"
+          echo ""
+          echo "🚀 Quick Start Commands:"
+          echo "  poetry run python run.py                    # Multi-tenant mode"
+          echo "  poetry run python run.py --single-user      # Single-user mode" 
+          echo "  poetry run python run.py --with-api         # Multi-tenant + API"
+          echo "  poetry run python run.py --help             # Show all options"
+          echo ""
+          echo "🐳 Docker Commands:"
+          echo "  docker-compose up -d                        # Development"
+          echo "  docker-compose -f docker-compose.prod.yml up -d  # Production"
+          echo ""
+          echo "📖 Full Documentation: README.md"
+          echo "🔧 Configuration Guide: .env.example"
+          EOF
+          
+          chmod +x ai-prompt-manager-${{ github.ref_name }}/install.sh
+          
+          # Create archives
+          tar -czf ai-prompt-manager-${{ github.ref_name }}.tar.gz ai-prompt-manager-${{ github.ref_name }}/
+          zip -r ai-prompt-manager-${{ github.ref_name }}.zip ai-prompt-manager-${{ github.ref_name }}/
 
       - name: Generate changelog
         id: changelog
@@ -29,18 +122,19 @@ jobs:
           fi
           
           # Generate changelog
-          echo "## What's Changed" > CHANGELOG.md
-          echo "" >> CHANGELOG.md
+          echo "## What's Changed" > RELEASE_CHANGELOG.md
+          echo "" >> RELEASE_CHANGELOG.md
           
           # Get commits since last tag
-          git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD >> CHANGELOG.md
+          git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD >> RELEASE_CHANGELOG.md
           
           # Set output for later use
           echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          cat RELEASE_CHANGELOG.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,31 +142,75 @@ jobs:
           tag_name: ${{ github.ref_name }}
           release_name: AI Prompt Manager ${{ github.ref_name }}
           body: |
-            # AI Prompt Manager ${{ github.ref_name }}
+            # 🚀 AI Prompt Manager ${{ github.ref_name }}
             
-            🐳 **Docker Image**: `ghcr.io/${{ github.repository }}:${{ github.ref_name }}`
+            ## 📦 Installation Options
             
-            ## Features
-            - 🔐 Multi-tenant authentication with SSO/ADFS support
-            - 🚀 LangWatch prompt optimization integration
-            - 🔑 Secure API token management
-            - 📊 REST API with OpenAPI documentation
-            - 🛡️ Admin panel for tenant and user management
-            - 🗄️ SQLite and PostgreSQL database support
+            ### Option 1: Download Release Package (Recommended)
+            1. Download `ai-prompt-manager-${{ github.ref_name }}.tar.gz` or `.zip` from the assets below
+            2. Extract the archive: `tar -xzf ai-prompt-manager-${{ github.ref_name }}.tar.gz`
+            3. Run the installer: `cd ai-prompt-manager-${{ github.ref_name }} && chmod +x install.sh && ./install.sh`
+            4. Start the application: `poetry run python run.py`
             
-            ## Quick Start
+            ### Option 2: Docker Deployment
             ```bash
-            # Run with Docker
-            docker run -p 7860:7860 ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            # Development
+            docker-compose up -d
             
-            # Or with docker-compose
+            # Production
             docker-compose -f docker-compose.prod.yml up -d
             ```
             
-            ## Default Credentials (Development)
-            - Email: admin@localhost
-            - Password: admin123
-            - Tenant: localhost
+            ### Option 3: Poetry Installation
+            ```bash
+            git clone https://github.com/${{ github.repository }}.git
+            cd ai-prompt-manager
+            git checkout ${{ github.ref_name }}
+            poetry install
+            poetry run python run.py
+            ```
+            
+            ## 🌟 Features
+            - 🔐 **Unified Architecture**: Single codebase supporting both single-user and multi-tenant modes
+            - 🚀 **Universal Launcher**: Environment-based configuration with `run.py`
+            - 🔑 **Multi-tenant Authentication**: SSO/ADFS support with role-based access control
+            - 🤖 **AI Integration**: LangWatch prompt optimization and token cost estimation
+            - 📊 **REST API**: Comprehensive API with OpenAPI documentation
+            - 🛡️ **Admin Panel**: Tenant and user management interface
+            - 🗄️ **Database Flexibility**: SQLite for development, PostgreSQL for production
+            - 🐳 **Docker Ready**: Production-ready containerization
+            
+            ## 🚀 Quick Start Commands
+            ```bash
+            # Multi-tenant mode (default)
+            python run.py
+            
+            # Single-user mode
+            python run.py --single-user
+            
+            # Multi-tenant with API
+            python run.py --with-api
+            
+            # Custom configuration
+            MULTITENANT_MODE=true ENABLE_API=true python run.py
+            ```
+            
+            ## 🔐 Default Development Credentials
+            - **Email**: admin@localhost
+            - **Password**: admin123  
+            - **Tenant**: localhost
+            
+            ## 🌐 Access URLs
+            - **Web Interface**: http://localhost:7860
+            - **API Documentation**: http://localhost:7860/api/docs
+            - **API Reference**: http://localhost:7860/api/redoc
+            
+            ## 📋 Package Contents
+            - **Source Code**: All Python modules and configuration files
+            - **Documentation**: README.md, CHANGELOG.md, and configuration guides
+            - **Docker Support**: Dockerfile and docker-compose configurations
+            - **Installation Script**: Automated setup with `install.sh`
+            - **Built Packages**: Python wheel and source distribution
             
             ${{ steps.changelog.outputs.CHANGELOG }}
             
@@ -82,27 +220,42 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Update Docker Compose files with new tag
-        run: |
-          # Update production docker-compose to use the new tag
-          sed -i "s|ghcr.io/OWNER/REPO:latest|ghcr.io/${{ github.repository }}:${{ github.ref_name }}|g" docker-compose.prod.yml
-          
-          # Update README examples
-          sed -i "s|ghcr.io/OWNER/REPO:v1.0.0|ghcr.io/${{ github.repository }}:${{ github.ref_name }}|g" README.md
-
-      - name: Create Pull Request for version updates
-        uses: peter-evans/create-pull-request@v5
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: update container references to ${{ github.ref_name }}"
-          title: "Update container references to ${{ github.ref_name }}"
-          body: |
-            This PR updates the container image references to use the newly released version ${{ github.ref_name }}.
-            
-            Changes:
-            - Updated docker-compose.prod.yml to use ${{ github.ref_name }}
-            - Updated README.md examples with new version
-            
-            This is an automated PR created after the ${{ github.ref_name }} release.
-          branch: update-container-refs-${{ github.ref_name }}
-          base: main
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ai-prompt-manager-${{ github.ref_name }}.tar.gz
+          asset_name: ai-prompt-manager-${{ github.ref_name }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Release Assets (ZIP)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ai-prompt-manager-${{ github.ref_name }}.zip
+          asset_name: ai-prompt-manager-${{ github.ref_name }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload Python Wheel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/ai_prompt_manager-0.1.0-py3-none-any.whl
+          asset_name: ai_prompt_manager-${{ github.ref_name }}-py3-none-any.whl
+          asset_content_type: application/zip
+
+      - name: Upload Source Distribution
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/ai-prompt-manager-0.1.0.tar.gz
+          asset_name: ai-prompt-manager-${{ github.ref_name }}-source.tar.gz
+          asset_content_type: application/gzip

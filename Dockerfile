@@ -6,8 +6,12 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     LOCAL_DEV_MODE=false \
+    MULTITENANT_MODE=true \
+    ENABLE_API=true \
     DB_TYPE=sqlite \
-    DB_PATH=/app/data/prompts.db
+    DB_PATH=/app/data/prompts.db \
+    SERVER_HOST=0.0.0.0 \
+    SERVER_PORT=7860
 
 # Set work directory
 WORKDIR /app
@@ -38,5 +42,5 @@ EXPOSE 7860
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:7860/api/health || exit 1
 
-# Default to multi-tenant version with API
-CMD ["python", "run_mt_with_api.py"]
+# Use unified launcher (defaults to multi-tenant mode with API enabled via env vars)
+CMD ["python", "run.py"]

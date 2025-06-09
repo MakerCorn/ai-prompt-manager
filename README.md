@@ -1,15 +1,46 @@
 # AI Prompt Manager
 
-A comprehensive AI prompt management system with multi-tenant architecture, featuring authentication, token cost estimation, prompt optimization, and secure API access.
+A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments. Features advanced authentication, real-time token cost estimation, AI-powered prompt optimization, and secure API access.
+
+## 📋 Table of Contents
+
+- [🌟 Key Features](#-key-features)
+- [🚀 Quick Start](#-quick-start)
+- [⚙️ Configuration](#️-configuration)
+- [🧮 Token Calculator Guide](#-token-calculator-guide)
+- [📝 Prompt Management](#-prompt-management)
+- [🔑 API Access](#-api-access)
+- [🏢 Multi-Tenant Features](#-multi-tenant-features)
+- [🚀 Development](#-development)
+- [🔒 Production Deployment](#-production-deployment)
+- [📚 Additional Resources](#-additional-resources)
+- [📄 License](#-license)
 
 ## 🌟 Key Features
 
-- 🔐 **Multi-Tenant Security** - Complete data isolation between organizations
-- 🧮 **Token Calculator** - Real-time cost estimation for AI model usage
-- 🚀 **LangWatch Integration** - AI-powered prompt optimization
-- 🔑 **Secure API** - RESTful endpoints with token-based authentication
-- 🛡️ **SSO/ADFS Support** - Enterprise authentication integration
-- 📊 **Admin Dashboard** - Comprehensive tenant and user management
+### 🏗️ **Unified Architecture**
+- **Single Codebase**: Supports both single-user and multi-tenant modes
+- **Environment-Based Configuration**: Switch modes via environment variables
+- **Backward Compatible**: Existing installations continue working unchanged
+
+### 🔐 **Security & Authentication**
+- **Multi-Tenant Isolation**: Complete data separation between organizations
+- **SSO/ADFS Integration**: Enterprise authentication with Microsoft Azure AD
+- **Role-Based Access**: Admin, User, and Read-only permission levels
+- **JWT Session Management**: Secure, stateless authentication tokens
+- **API Token System**: Secure programmatic access with expiring tokens
+
+### 🧮 **Advanced AI Features**
+- **Token Calculator**: Real-time cost estimation for all major AI models
+- **LangWatch Integration**: AI-powered prompt optimization and suggestions
+- **Multi-Provider Support**: OpenAI, Claude, Gemini, LM Studio, Ollama, Llama.cpp
+- **Enhancement Engine**: Improve prompts using different AI models
+
+### 🔌 **Developer Experience**
+- **REST API**: Comprehensive API with interactive documentation
+- **Docker Support**: Production-ready containerization
+- **Database Flexibility**: SQLite for development, PostgreSQL for production
+- **Comprehensive Testing**: Full test suite with isolation verification
 
 ---
 
@@ -27,15 +58,25 @@ A comprehensive AI prompt management system with multi-tenant architecture, feat
 git clone <repository-url>
 cd ai-prompt-manager
 poetry install
+
+# Copy and customize configuration
+cp .env.example .env
+# Edit .env file for your specific setup
 ```
 
 2. **Launch Application**
 ```bash
-# Multi-tenant version with API (recommended)
-poetry run python run_mt_with_api.py
+# Universal launcher with smart defaults (recommended)
+poetry run python run.py
 
-# Single-user version
-poetry run python prompt_manager.py
+# Command line mode selection
+poetry run python run.py --single-user     # Single-user mode
+poetry run python run.py --with-api        # Multi-tenant + API
+poetry run python run.py --single-user --with-api  # Single-user + API
+
+# Custom server configuration
+poetry run python run.py --port 8080 --host 127.0.0.1
+python run.py --help  # See all options
 ```
 
 3. **Access Application**
@@ -49,6 +90,92 @@ docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:latest
 
 # With PostgreSQL
 docker-compose up -d
+```
+
+---
+
+## ⚙️ Configuration
+
+### Application Modes
+
+The unified AI Prompt Manager supports multiple deployment modes controlled by environment variables:
+
+#### Environment Variables
+
+Create a `.env` file or set these environment variables:
+
+```bash
+# Application Mode
+MULTITENANT_MODE=true          # Enable multi-tenant mode (default: true)
+ENABLE_API=false               # Enable REST API endpoints (default: false)
+
+# Server Configuration  
+SERVER_HOST=0.0.0.0           # Server host (default: 0.0.0.0)
+SERVER_PORT=7860              # Server port (default: 7860)
+
+# Database Configuration
+DB_TYPE=sqlite                # Database type: sqlite or postgres (default: sqlite)
+DB_PATH=prompts.db           # SQLite database path (default: prompts.db)
+POSTGRES_DSN=postgresql://... # PostgreSQL connection string (if using postgres)
+
+# Development
+DEBUG=false                   # Enable debug mode (default: false)
+LOCAL_DEV_MODE=true          # Enable local development features (default: false)
+```
+
+#### Mode Combinations
+
+1. **Single-User Mode** (Legacy compatibility)
+   ```bash
+   MULTITENANT_MODE=false
+   ENABLE_API=false
+   ```
+
+2. **Multi-Tenant Mode** (Recommended)
+   ```bash
+   MULTITENANT_MODE=true
+   ENABLE_API=false
+   ```
+
+3. **Multi-Tenant with API** (Full featured)
+   ```bash
+   MULTITENANT_MODE=true
+   ENABLE_API=true
+   ```
+
+### Quick Mode Examples
+
+**Using Command Line Arguments:**
+```bash
+# Single-user mode (no authentication)
+python run.py --single-user
+
+# Multi-tenant mode with API
+python run.py --with-api
+
+# Single-user mode with API
+python run.py --single-user --with-api
+
+# Custom server settings
+python run.py --port 8080 --host 127.0.0.1
+
+# Debug mode with public sharing
+python run.py --debug --share
+```
+
+**Using Environment Variables:**
+```bash
+# Single-user mode
+MULTITENANT_MODE=false python run.py
+
+# Multi-tenant with API
+ENABLE_API=true python run.py
+
+# Production mode with PostgreSQL
+DB_TYPE=postgres POSTGRES_DSN="postgresql://user:pass@localhost/prompts" python run.py
+
+# Full configuration
+MULTITENANT_MODE=true ENABLE_API=true SERVER_PORT=8080 DEBUG=false python run.py
 ```
 
 ---
@@ -225,28 +352,60 @@ curl -H "Authorization: Bearer apm_abc123..." \
 
 ### Environment Setup
 
-Create `.env` file with your settings:
+Create a `.env` file with your settings:
 
 ```env
-# Database
-DB_TYPE=sqlite              # or postgres
-DB_PATH=prompts.db
-POSTGRES_DSN=postgresql://user:pass@host:port/db
+# Application Mode
+MULTITENANT_MODE=true          # Enable multi-tenant mode (default: true)
+ENABLE_API=false               # Enable REST API endpoints (default: false)
 
-# Authentication
-SECRET_KEY=your-secure-secret-key
-LOCAL_DEV_MODE=true
+# Server Configuration  
+SERVER_HOST=0.0.0.0           # Server host (default: 0.0.0.0)
+SERVER_PORT=7860              # Server port (default: 7860)
 
-# SSO (optional)
+# Database Configuration
+DB_TYPE=sqlite                # Database type: sqlite or postgres (default: sqlite)
+DB_PATH=prompts.db           # SQLite database path (default: prompts.db)
+POSTGRES_DSN=postgresql://user:pass@localhost:5432/dbname
+
+# Authentication & Security
+SECRET_KEY=your-secure-secret-key    # JWT signing secret (auto-generated if not set)
+LOCAL_DEV_MODE=true                 # Enable local development features (default: false)
+
+# SSO/ADFS Integration (optional)
 SSO_ENABLED=false
-SSO_CLIENT_ID=your-client-id
+SSO_CLIENT_ID=your-application-id
 SSO_CLIENT_SECRET=your-client-secret
-SSO_AUTHORITY=https://login.microsoftonline.com/tenant-id
+SSO_AUTHORITY=https://login.microsoftonline.com/your-tenant-id
+SSO_REDIRECT_URI=http://localhost:7860/auth/callback
 
-# LangWatch (optional)
+# AI Service Integration (optional)
 LANGWATCH_API_KEY=your-langwatch-api-key
 LANGWATCH_PROJECT_ID=ai-prompt-manager
+
+# Development & Debugging
+DEBUG=false                   # Enable debug mode (default: false)
 ```
+
+### Complete Environment Variable Reference
+
+| Variable | Description | Default | Command Line Override |
+|----------|-------------|---------|----------------------|
+| `MULTITENANT_MODE` | Enable multi-tenant architecture | `true` | `--single-user` / `--multi-tenant` |
+| `ENABLE_API` | Enable REST API endpoints | `false` | `--with-api` |
+| `SERVER_HOST` | Server bind address | `0.0.0.0` | `--host HOST` |
+| `SERVER_PORT` | Server port | `7860` | `--port PORT` |
+| `DB_TYPE` | Database type (sqlite/postgres) | `sqlite` | - |
+| `DB_PATH` | SQLite database file path | `prompts.db` | - |
+| `POSTGRES_DSN` | PostgreSQL connection string | - | - |
+| `SECRET_KEY` | JWT signing secret | auto-generated | - |
+| `LOCAL_DEV_MODE` | Enable development features | `true` | - |
+| `SSO_ENABLED` | Enable SSO authentication | `false` | - |
+| `SSO_CLIENT_ID` | SSO application ID | - | - |
+| `SSO_CLIENT_SECRET` | SSO client secret | - | - |
+| `SSO_AUTHORITY` | SSO authority URL | - | - |
+| `DEBUG` | Enable debug logging | `false` | `--debug` |
+| `GRADIO_SHARE` | Enable public sharing | `false` | `--share` |
 
 ### Database Options
 
@@ -304,14 +463,22 @@ For local development:
 # Install dependencies
 poetry install
 
-# Run applications
-poetry run python prompt_manager.py          # Single-user
-poetry run python run_mt.py                  # Multi-tenant
-poetry run python run_mt_with_api.py         # Multi-tenant + API
+# Run application in different modes
+python run.py                                # Default: Multi-tenant
+python run.py --single-user                  # Single-user mode
+python run.py --with-api                     # Multi-tenant + API
+python run.py --single-user --with-api       # Single-user + API
+
+# Development options
+python run.py --debug                        # Enable debug mode
+python run.py --share                        # Enable public sharing
+python run.py --port 8080                    # Custom port
+python run.py --help                         # Show all options
 
 # Testing
-poetry run python test_mt_install.py         # Multi-tenant setup
-poetry run python test_langwatch_integration.py  # LangWatch
+python test_mt_install.py                    # Multi-tenant setup
+python test_langwatch_integration.py         # LangWatch features
+python test_standalone_api.py                # API integration
 ```
 
 ### Docker Development
@@ -321,6 +488,12 @@ poetry run python test_langwatch_integration.py  # LangWatch
 docker build -t ai-prompt-manager .
 docker run -p 7860:7860 ai-prompt-manager
 
+# With environment variables
+docker run -p 7860:7860 \
+  -e MULTITENANT_MODE=false \
+  -e ENABLE_API=true \
+  ai-prompt-manager
+
 # With PostgreSQL
 docker-compose up -d
 ```
@@ -328,12 +501,82 @@ docker-compose up -d
 ### Architecture
 
 **Core Components:**
-- `prompt_manager_mt.py` - Multi-tenant web interface
-- `prompt_data_manager.py` - Database abstraction
+- `prompt_manager.py` - Unified web interface (single-user + multi-tenant)
+- `prompt_data_manager.py` - Database abstraction with tenant isolation
 - `auth_manager.py` - Authentication and user management
 - `token_calculator.py` - Token estimation engine
 - `langwatch_optimizer.py` - Prompt optimization
 - `api_endpoints.py` - REST API implementation
+- `api_token_manager.py` - Secure API token management
+
+### Database Schema
+
+**Multi-Tenant Architecture:**
+```
+tenants
+├── id (UUID)
+├── name
+├── subdomain  
+├── max_users
+├── is_active
+└── created_at
+
+users
+├── id (UUID)
+├── tenant_id (FK)
+├── email (unique per tenant)
+├── password_hash
+├── first_name, last_name
+├── role (admin|user|readonly)
+├── sso_id (optional)
+├── is_active
+├── created_at
+└── last_login
+
+prompts
+├── id
+├── tenant_id (FK) - ensures tenant isolation
+├── user_id (FK) - tracks ownership
+├── name (unique per tenant)
+├── title, content, category, tags
+├── is_enhancement_prompt
+├── created_at
+└── updated_at
+
+config
+├── id
+├── tenant_id (FK)
+├── user_id (FK)
+├── key, value - stores user/tenant settings
+└── created_at
+
+api_tokens
+├── id (UUID)
+├── user_id (FK)
+├── tenant_id (FK)
+├── name
+├── token_hash
+├── token_prefix
+├── expires_at (optional)
+├── last_used
+└── created_at
+```
+
+### Security Architecture
+
+**Multi-Layer Security:**
+- **PBKDF2 Password Hashing**: Secure password storage with salt
+- **JWT Session Tokens**: Stateless authentication with expiration
+- **Tenant Row-Level Security**: Complete data isolation between organizations
+- **Role-Based Access Control**: Granular permission system
+- **API Token Management**: Secure programmatic access
+- **Session Validation**: Automatic token validation and renewal
+
+**Data Isolation:**
+- All database queries include tenant_id filtering
+- Users cannot access data outside their tenant
+- Admin users can manage their tenant only
+- Complete separation of configurations and prompts
 
 ---
 
@@ -356,9 +599,20 @@ docker-compose up -d
 # Set environment variables
 export SECRET_KEY="your-production-secret-key"
 export SSO_ENABLED="true"
+export MULTITENANT_MODE="true"
+export ENABLE_API="true"
 
 # Deploy with published images
 docker-compose -f docker-compose.prod.yml up -d
+
+# Single command with all options
+docker run -p 7860:7860 \
+  -e MULTITENANT_MODE=true \
+  -e ENABLE_API=true \
+  -e SECRET_KEY="your-production-secret" \
+  -e DB_TYPE=postgres \
+  -e POSTGRES_DSN="postgresql://user:pass@db:5432/prompts" \
+  ghcr.io/makercorn/ai-prompt-manager:latest
 ```
 
 **Available Images:**
@@ -371,15 +625,60 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ### Testing
 
+**Comprehensive Test Suite:**
 ```bash
-# API integration
-poetry run python test_standalone_api.py
+# Install test dependencies
+poetry install --with dev
 
-# Multi-tenant setup
-poetry run python test_mt_install.py
+# Core functionality tests
+python test_mt_install.py           # Multi-tenant setup
+python test_standalone_api.py       # API integration
+python test_langwatch_integration.py # LangWatch features
+python test_api_integration.py      # Full API test suite
 
-# LangWatch features
-poetry run python test_langwatch_integration.py
+# Component testing
+python -c "
+from prompt_data_manager import PromptDataManager
+from auth_manager import AuthManager
+
+# Test database initialization  
+auth = AuthManager('test.db')
+data = PromptDataManager('test.db', tenant_id='test', user_id='test')
+print('✅ All components working correctly!')
+
+# Cleanup
+import os
+os.remove('test.db')
+"
+
+# Multi-tenant isolation testing
+python -c "
+from auth_manager import AuthManager
+auth = AuthManager('test_isolation.db')
+
+# Create two tenants
+tenant1_id = auth.create_tenant('Company A', 'company-a', 100)[1]
+tenant2_id = auth.create_tenant('Company B', 'company-b', 50)[1] 
+
+print('✅ Tenant isolation test passed')
+"
+
+# Test different launcher modes
+python run.py --help                         # Show all options
+MULTITENANT_MODE=false python run.py &       # Start in single-user mode
+sleep 2 && pkill -f "python run.py"          # Stop test server
+```
+
+**Docker Testing:**
+```bash
+# Test Docker build
+docker build -t ai-prompt-manager-test .
+docker run --rm -p 7860:7860 ai-prompt-manager-test
+
+# Test with PostgreSQL
+docker-compose -f docker-compose.yml up -d
+# Wait for services to start
+docker-compose logs ai-prompt-manager
 ```
 
 ### CI/CD Pipeline
@@ -390,11 +689,79 @@ poetry run python test_langwatch_integration.py
 
 **📋 Setup Guide:** See [GITHUB_WORKFLOWS_SETUP.md](GITHUB_WORKFLOWS_SETUP.md) for complete workflow configuration instructions.
 
+### Troubleshooting
+
+**Common Issues and Solutions:**
+
+**🔧 Database Connection Issues**
+```bash
+# SQLite permission errors
+chmod 664 prompts.db
+chown user:group prompts.db
+
+# PostgreSQL connection errors
+psql -h localhost -U username -d dbname  # Test connection
+export POSTGRES_DSN="postgresql://user:pass@host:port/db"
+```
+
+**🔐 Authentication Problems**
+```bash
+# Reset admin password (emergency)
+python -c "
+from auth_manager import AuthManager
+auth = AuthManager('prompts.db')
+auth.create_user('tenant-id', 'admin@localhost', 'newpassword', 'Admin', 'User', 'admin')
+"
+
+# Check tenant configuration
+python -c "
+from auth_manager import AuthManager
+auth = AuthManager('prompts.db')
+tenants = auth.get_all_tenants()
+for t in tenants: print(f'Tenant: {t.name} ({t.subdomain})')
+"
+```
+
+**🌐 Network and Port Issues**
+```bash
+# Check if port is in use
+lsof -i :7860
+netstat -tulpn | grep 7860
+
+# Test application startup
+python run.py --single-user --debug
+```
+
+**🐳 Docker Issues**
+```bash
+# Check container logs
+docker logs ai-prompt-manager
+
+# Test database connectivity
+docker exec -it ai-prompt-manager python -c "
+from prompt_data_manager import PromptDataManager
+data = PromptDataManager('prompts.db')
+print('Database connection successful')
+"
+```
+
+**🚨 Emergency Recovery**
+```bash
+# Backup database
+cp prompts.db prompts.db.backup
+
+# Reset to clean state (CAUTION: Loses all data)
+rm prompts.db
+python -c "from auth_manager import AuthManager; AuthManager('prompts.db')"
+```
+
 ### Support
 
-- 📖 **Documentation**: Comprehensive guides and API reference
-- 🐛 **Issues**: Report bugs and request features
+- 📖 **Documentation**: Comprehensive guides and API reference in this README
+- 🐛 **Issues**: Report bugs and request features via GitHub Issues
 - 💬 **Community**: Join discussions and share prompts
+- 🔧 **Troubleshooting**: See troubleshooting section above for common solutions
+- 📋 **Testing**: Use provided test scripts to verify functionality
 
 ---
 

@@ -1,6 +1,12 @@
 """
+Non-Commercial License
+
+Copyright (c) 2025 MakerCorn
+
 LangWatch Prompt Optimization Integration
 Provides prompt optimization capabilities using LangWatch libraries
+
+This software is licensed for non-commercial use only. See LICENSE file for details.
 """
 
 import os

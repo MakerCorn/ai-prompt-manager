@@ -1,6 +1,12 @@
 """
+Non-Commercial License
+
+Copyright (c) 2025 MakerCorn
+
 API Token Management System
 Handles creation, validation, and management of API tokens for user authentication
+
+This software is licensed for non-commercial use only. See LICENSE file for details.
 """
 
 import os

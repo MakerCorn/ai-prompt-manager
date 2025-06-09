@@ -1,0 +1,194 @@
+name: Build and Publish Package
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*.*.*" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install project
+        run: poetry install --no-interaction
+
+      - name: Build package
+        run: |
+          poetry build
+          ls -la dist/
+
+      - name: Create distribution archive
+        run: |
+          # Create a comprehensive distribution package
+          mkdir -p ai-prompt-manager-dist
+          
+          # Copy built packages
+          cp dist/* ai-prompt-manager-dist/
+          
+          # Copy essential files
+          cp README.md ai-prompt-manager-dist/
+          cp LICENSE ai-prompt-manager-dist/
+          cp .env.example ai-prompt-manager-dist/
+          cp docker-compose.yml ai-prompt-manager-dist/
+          cp docker-compose.prod.yml ai-prompt-manager-dist/
+          cp Dockerfile ai-prompt-manager-dist/
+          
+          # Copy source files
+          cp *.py ai-prompt-manager-dist/
+          cp pyproject.toml ai-prompt-manager-dist/
+          cp poetry.lock ai-prompt-manager-dist/
+          
+          # Create installation script
+          cat > ai-prompt-manager-dist/install.sh << 'EOF'
+          #!/bin/bash
+          echo "🚀 AI Prompt Manager Installation Script"
+          echo "========================================"
+          
+          # Check if Poetry is installed
+          if ! command -v poetry &> /dev/null; then
+              echo "📦 Installing Poetry..."
+              curl -sSL https://install.python-poetry.org | python3 -
+              export PATH="$HOME/.local/bin:$PATH"
+          fi
+          
+          # Install dependencies
+          echo "📚 Installing dependencies..."
+          poetry install --no-interaction
+          
+          # Copy environment file
+          if [ ! -f .env ]; then
+              echo "⚙️ Creating .env configuration file..."
+              cp .env.example .env
+              echo "✅ Please edit .env file to configure your deployment"
+          fi
+          
+          echo ""
+          echo "✅ Installation complete!"
+          echo ""
+          echo "🚀 Quick Start:"
+          echo "  poetry run python run.py                    # Multi-tenant mode"
+          echo "  poetry run python run.py --single-user      # Single-user mode"
+          echo "  poetry run python run.py --with-api         # Multi-tenant + API"
+          echo "  poetry run python run.py --help             # Show all options"
+          echo ""
+          echo "🐳 Docker:"
+          echo "  docker-compose up -d                        # Development"
+          echo "  docker-compose -f docker-compose.prod.yml up -d  # Production"
+          echo ""
+          echo "📖 Documentation: README.md"
+          EOF
+          
+          chmod +x ai-prompt-manager-dist/install.sh
+          
+          # Create archive
+          tar -czf ai-prompt-manager-${{ github.ref_name || 'latest' }}.tar.gz ai-prompt-manager-dist/
+          zip -r ai-prompt-manager-${{ github.ref_name || 'latest' }}.zip ai-prompt-manager-dist/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ai-prompt-manager-package-${{ github.ref_name || github.sha }}
+          path: |
+            ai-prompt-manager-*.tar.gz
+            ai-prompt-manager-*.zip
+            dist/*
+          retention-days: 90
+
+      - name: Generate package manifest
+        run: |
+          echo "# AI Prompt Manager Build Manifest" > MANIFEST.md
+          echo "" >> MANIFEST.md
+          echo "**Build Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> MANIFEST.md
+          echo "**Git Commit:** ${{ github.sha }}" >> MANIFEST.md
+          echo "**Git Ref:** ${{ github.ref_name || github.ref }}" >> MANIFEST.md
+          echo "**Python Version:** $(python --version)" >> MANIFEST.md
+          echo "**Poetry Version:** $(poetry --version)" >> MANIFEST.md
+          echo "" >> MANIFEST.md
+          echo "## Package Contents" >> MANIFEST.md
+          echo "" >> MANIFEST.md
+          echo "### Built Distributions" >> MANIFEST.md
+          echo '```' >> MANIFEST.md
+          ls -la dist/ >> MANIFEST.md
+          echo '```' >> MANIFEST.md
+          echo "" >> MANIFEST.md
+          echo "### Source Package Contents" >> MANIFEST.md
+          echo '```' >> MANIFEST.md
+          ls -la ai-prompt-manager-dist/ >> MANIFEST.md
+          echo '```' >> MANIFEST.md
+          echo "" >> MANIFEST.md
+          echo "### Package Checksums" >> MANIFEST.md
+          echo '```' >> MANIFEST.md
+          sha256sum ai-prompt-manager-*.tar.gz ai-prompt-manager-*.zip dist/* >> MANIFEST.md
+          echo '```' >> MANIFEST.md
+
+      - name: Upload manifest
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-manifest-${{ github.ref_name || github.sha }}
+          path: MANIFEST.md
+          retention-days: 90
+
+  test-package:
+    runs-on: ubuntu-latest
+    needs: build-package
+    
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ai-prompt-manager-package-${{ github.ref_name || github.sha }}
+
+      - name: Test package installation
+        run: |
+          # Extract and test the built package
+          tar -xzf ai-prompt-manager-*.tar.gz
+          cd ai-prompt-manager-dist
+          
+          # Install Poetry
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
+          
+          # Test installation
+          chmod +x install.sh
+          ./install.sh
+          
+          # Test launcher help
+          poetry run python run.py --help
+          
+          echo "✅ Package installation test passed!"

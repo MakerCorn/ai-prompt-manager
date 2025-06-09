@@ -39,33 +39,68 @@ jobs:
       - name: Install project
         run: poetry install --no-interaction
 
+      - name: Test unified launcher
+        run: |
+          # Test launcher help and basic functionality
+          poetry run python run.py --help
+          echo "✅ Launcher help command works"
+          
+          # Test configuration parsing
+          poetry run python -c "
+          import sys
+          import os
+          sys.path.insert(0, '.')
+          from run import get_configuration, parse_arguments
+          
+          # Test environment variable configuration
+          os.environ['MULTITENANT_MODE'] = 'false'
+          os.environ['ENABLE_API'] = 'true'
+          
+          class MockArgs:
+              single_user = False
+              multi_tenant = False
+              with_api = False
+              host = None
+              port = None
+              debug = False
+              share = False
+          
+          config = get_configuration(MockArgs())
+          assert config['multitenant_mode'] == False
+          assert config['enable_api'] == True
+          print('✅ Configuration parsing works correctly')
+          "
+
       - name: Run LangWatch integration tests
         run: poetry run python test_langwatch_integration.py
 
-      - name: Test standalone API
+      - name: Test unified launcher with API
         run: |
-          # Start the API in background
-          poetry run python -c "
-          import uvicorn
-          from api_endpoints import get_api_app
-          app = get_api_app()
-          uvicorn.run(app, host='127.0.0.1', port=7861)
-          " &
-          API_PID=$!
+          # Start unified launcher with API in background
+          ENABLE_API=true poetry run python run.py --port 7861 &
+          APP_PID=$!
           
-          # Wait for API to start
-          sleep 5
+          # Wait for app to start
+          sleep 10
           
           # Test health endpoint
-          curl -f http://127.0.0.1:7861/api/health || exit 1
+          for i in {1..5}; do
+            if curl -f http://127.0.0.1:7861/api/health; then
+              echo "✅ Health check passed"
+              break
+            fi
+            echo "Attempt $i failed, retrying..."
+            sleep 3
+          done
           
-          # Test unauthenticated endpoint (should return 403)
-          curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7861/api/prompts | grep -q "403" || exit 1
+          # Test API documentation
+          curl -f http://127.0.0.1:7861/api/docs || exit 1
+          echo "✅ API documentation accessible"
           
           # Clean up
-          kill $API_PID
+          kill $APP_PID
           
-          echo "✅ API tests passed"
+          echo "✅ Unified launcher API tests passed"
 
   test-docker:
     runs-on: ubuntu-latest

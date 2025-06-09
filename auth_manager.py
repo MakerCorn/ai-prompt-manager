@@ -1,5 +1,11 @@
 """
+Non-Commercial License
+
+Copyright (c) 2025 MakerCorn
+
 Authentication and user management system with SSO/ADFS support
+
+This software is licensed for non-commercial use only. See LICENSE file for details.
 """
 
 import os

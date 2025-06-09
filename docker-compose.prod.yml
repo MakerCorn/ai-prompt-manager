@@ -23,9 +23,18 @@ services:
     ports:
       - "7860:7860"  # Web UI and API endpoints
     environment:
+      # Application Mode (unified launcher configuration)
+      MULTITENANT_MODE: ${MULTITENANT_MODE:-true}   # Enable multi-tenant mode with authentication
+      ENABLE_API: ${ENABLE_API:-true}               # Enable REST API endpoints
+      
       # Database Configuration (PostgreSQL for production)
       DB_TYPE: postgres
       POSTGRES_DSN: postgresql://prompt_user:secure_password_change_me@postgres:5432/ai_prompt_manager
+      
+      # Server Configuration
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "7860"
+      DEBUG: ${DEBUG:-false}
       
       # Authentication & Security (Production settings)
       SECRET_KEY: ${SECRET_KEY:-your-production-secret-key-change-this}
@@ -42,10 +51,6 @@ services:
       # LangWatch Optimization (optional)
       LANGWATCH_API_KEY: ${LANGWATCH_API_KEY:-}
       LANGWATCH_PROJECT_ID: ${LANGWATCH_PROJECT_ID:-ai-prompt-manager}
-      
-      # Application
-      SERVER_HOST: "0.0.0.0"
-      SERVER_PORT: "7860"
     
     volumes:
       - app_data:/app/data

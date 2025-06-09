@@ -24,6 +24,10 @@ services:
     ports:
       - "7860:7860"  # Web UI and API endpoints
     environment:
+      # Application Mode (unified launcher configuration)
+      MULTITENANT_MODE: "true"   # Enable multi-tenant mode with authentication
+      ENABLE_API: "true"         # Enable REST API endpoints
+      
       # Database Configuration (uncomment for PostgreSQL)
       # DB_TYPE: postgres
       # POSTGRES_DSN: postgresql://prompt_user:secure_password_change_me@postgres:5432/ai_prompt_manager
@@ -31,6 +35,10 @@ services:
       # SQLite Configuration (default)
       DB_TYPE: sqlite
       DB_PATH: /app/data/prompts.db
+      
+      # Server Configuration
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "7860"
       
       # Authentication & Security
       SECRET_KEY: change-this-secret-key-in-production
@@ -43,10 +51,6 @@ services:
       # SSO_CLIENT_SECRET: your-client-secret
       # SSO_AUTHORITY: https://login.microsoftonline.com/your-tenant
       # SSO_REDIRECT_URI: http://localhost:7860/auth/callback
-      
-      # Application
-      SERVER_HOST: "0.0.0.0"
-      SERVER_PORT: "7860"
     
     volumes:
       - app_data:/app/data

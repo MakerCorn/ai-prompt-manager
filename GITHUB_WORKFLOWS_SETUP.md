@@ -20,16 +20,16 @@ Complete guide for setting up automated Docker builds and deployments using GitH
 This project includes three automated GitHub workflows:
 
 1. **🧪 Test and Validation** (`test.yml`) - Runs tests on every push and PR
-2. **🐳 Docker Image Build** (`docker-image.yml`) - Builds and publishes Docker images
-3. **📦 Release Management** (`release.yml`) - Creates releases and updates documentation
+2. **📦 Package Build** (`build-package.yml`) - Builds and publishes package artifacts
+3. **🚀 Release Management** (`release.yml`) - Creates releases with downloadable packages
 
 ### Workflow Triggers
 
 | Workflow | Trigger | Action |
 |----------|---------|--------|
-| **Test** | PR to `main`, Push to `main` | Run tests, validate code |
-| **Docker Build** | Push to `main`, Version tags | Build and push images |
-| **Release** | Version tags (`v*.*.*`) | Create GitHub release |
+| **Test** | PR to `main`, Push to `main` | Run tests, validate unified launcher |
+| **Package Build** | Push to `main`, Version tags | Build Python packages and distributions |
+| **Release** | Version tags (`v*.*.*`) | Create GitHub release with downloadable assets |
 
 ---
 
@@ -38,9 +38,10 @@ This project includes three automated GitHub workflows:
 Before setting up workflows, ensure you have:
 
 - [x] GitHub repository with admin access
-- [x] Docker Hub account (optional, using GitHub Container Registry)
 - [x] Basic understanding of GitHub Actions
-- [x] Project files including `Dockerfile` and `pyproject.toml`
+- [x] Project files including `pyproject.toml`, `poetry.lock`, and source code
+- [x] Poetry configuration for Python package management
+- [x] Docker files for containerization (optional)
 
 ---
 
@@ -260,15 +261,15 @@ jobs:
 
 </details>
 
-### 3. **Docker Build Workflow (`docker-image.yml`)**
+### 3. **Package Build Workflow (`build-package.yml`)**
 
-This workflow builds and publishes Docker images to GitHub Container Registry.
+This workflow builds Python packages and creates distribution archives for releases.
 
 <details>
-<summary>📄 View complete docker-image.yml configuration</summary>
+<summary>📄 View complete build-package.yml configuration</summary>
 
 ```yaml
-name: Build and Push Docker Image
+name: Build and Publish Package
 
 on:
   push:
@@ -277,79 +278,68 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
-  build-and-push:
+  build-package:
     runs-on: ubuntu-latest
-    
     permissions:
       contents: read
       packages: write
-      attestations: write
-      id-token: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          python-version: '3.12'
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            # set latest tag for default branch
-            type=ref,event=branch
-            type=ref,event=pr
-            # set version tags for releases
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            # set edge tag for main branch
-            type=edge,branch=main
-            # set latest tag for main branch
-            type=raw,value=latest,enable={{is_default_branch}}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
-      - name: Build and push Docker image
-        id: push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+      - name: Install dependencies
+        run: poetry install --no-interaction
 
-      - name: Generate artifact attestation
-        if: github.event_name != 'pull_request'
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
-
-      - name: Update README with new image tags
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Build package
         run: |
-          echo "📦 **Latest Build:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "🏷️ **Available Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          poetry build
+          ls -la dist/
+
+      - name: Create distribution archive
+        run: |
+          mkdir -p ai-prompt-manager-dist
+          cp dist/* ai-prompt-manager-dist/
+          cp README.md LICENSE .env.example ai-prompt-manager-dist/
+          cp docker-compose.yml docker-compose.prod.yml Dockerfile ai-prompt-manager-dist/
+          cp *.py pyproject.toml poetry.lock ai-prompt-manager-dist/
+          
+          # Create installation script
+          cat > ai-prompt-manager-dist/install.sh << 'EOF'
+          #!/bin/bash
+          echo "🚀 AI Prompt Manager Installation Script"
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry install --no-interaction
+          cp .env.example .env
+          echo "✅ Installation complete! Run: poetry run python run.py"
+          EOF
+          
+          chmod +x ai-prompt-manager-dist/install.sh
+          tar -czf ai-prompt-manager-latest.tar.gz ai-prompt-manager-dist/
+          zip -r ai-prompt-manager-latest.zip ai-prompt-manager-dist/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ai-prompt-manager-package
+          path: |
+            ai-prompt-manager-*.tar.gz
+            ai-prompt-manager-*.zip
+            dist/*
+          retention-days: 90
 ```
 
 </details>
@@ -435,7 +425,7 @@ jobs:
             poetry install
             
             # Run the application
-            poetry run python run_mt_with_api.py
+            poetry run python run.py --with-api
             ```
             
             ## 📚 Documentation

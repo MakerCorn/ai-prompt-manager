@@ -36,11 +36,10 @@ packages = [
     { include = "prompt_manager.py" }, 
     { include = "prompt_data_manager.py" },
     { include = "auth_manager.py" },
-    { include = "prompt_manager_mt.py" },
     { include = "api_token_manager.py" },
     { include = "api_endpoints.py" },
     { include = "langwatch_optimizer.py" },
-    { include = "run_mt_with_api.py" },
+    { include = "run.py" },
     { include = "token_calculator.py" }
 ]
 

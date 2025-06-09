@@ -1,6 +1,12 @@
 """
+Non-Commercial License
+
+Copyright (c) 2025 MakerCorn
+
 REST API endpoints for AI Prompt Manager
 Provides programmatic access to prompts via secure API tokens
+
+This software is licensed for non-commercial use only. See LICENSE file for details.
 """
 
 from fastapi import FastAPI, HTTPException, Depends, Header, Query
