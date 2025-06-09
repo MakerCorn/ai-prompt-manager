@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for production
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ai_prompt_manager
+      POSTGRES_USER: prompt_user
+      POSTGRES_PASSWORD: secure_password_change_me
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - prompt_network
+    restart: unless-stopped
+
+  # AI Prompt Manager Application with API (Production)
+  app:
+    # Use latest stable release from GitHub Container Registry
+    image: ghcr.io/OWNER/REPO:latest
+    ports:
+      - "7860:7860"  # Web UI and API endpoints
+    environment:
+      # Database Configuration (PostgreSQL for production)
+      DB_TYPE: postgres
+      POSTGRES_DSN: postgresql://prompt_user:secure_password_change_me@postgres:5432/ai_prompt_manager
+      
+      # Authentication & Security (Production settings)
+      SECRET_KEY: ${SECRET_KEY:-your-production-secret-key-change-this}
+      LOCAL_DEV_MODE: "false"
+      
+      # SSO Configuration (configure as needed)
+      SSO_ENABLED: ${SSO_ENABLED:-false}
+      ADFS_ENABLED: ${ADFS_ENABLED:-false}
+      SSO_CLIENT_ID: ${SSO_CLIENT_ID:-}
+      SSO_CLIENT_SECRET: ${SSO_CLIENT_SECRET:-}
+      SSO_AUTHORITY: ${SSO_AUTHORITY:-}
+      SSO_REDIRECT_URI: ${SSO_REDIRECT_URI:-http://localhost:7860/auth/callback}
+      
+      # LangWatch Optimization (optional)
+      LANGWATCH_API_KEY: ${LANGWATCH_API_KEY:-}
+      LANGWATCH_PROJECT_ID: ${LANGWATCH_PROJECT_ID:-ai-prompt-manager}
+      
+      # Application
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "7860"
+    
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      - postgres
+    networks:
+      - prompt_network
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+  app_data:
+
+networks:
+  prompt_network:
+    driver: bridge

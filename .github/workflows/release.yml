@@ -1,0 +1,108 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git tag --sort=-version:refname | sed -n '2p')
+          if [ -z "$PREVIOUS_TAG" ]; then
+            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          
+          # Generate changelog
+          echo "## What's Changed" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          # Get commits since last tag
+          git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD >> CHANGELOG.md
+          
+          # Set output for later use
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: AI Prompt Manager ${{ github.ref_name }}
+          body: |
+            # AI Prompt Manager ${{ github.ref_name }}
+            
+            🐳 **Docker Image**: `ghcr.io/${{ github.repository }}:${{ github.ref_name }}`
+            
+            ## Features
+            - 🔐 Multi-tenant authentication with SSO/ADFS support
+            - 🚀 LangWatch prompt optimization integration
+            - 🔑 Secure API token management
+            - 📊 REST API with OpenAPI documentation
+            - 🛡️ Admin panel for tenant and user management
+            - 🗄️ SQLite and PostgreSQL database support
+            
+            ## Quick Start
+            ```bash
+            # Run with Docker
+            docker run -p 7860:7860 ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            
+            # Or with docker-compose
+            docker-compose -f docker-compose.prod.yml up -d
+            ```
+            
+            ## Default Credentials (Development)
+            - Email: admin@localhost
+            - Password: admin123
+            - Tenant: localhost
+            
+            ${{ steps.changelog.outputs.CHANGELOG }}
+            
+            ---
+            
+            **🔐 Secure • 🏢 Multi-Tenant • 🚀 Scalable • 🤖 AI-Powered • 🔌 API-Ready**
+          draft: false
+          prerelease: false
+
+      - name: Update Docker Compose files with new tag
+        run: |
+          # Update production docker-compose to use the new tag
+          sed -i "s|ghcr.io/OWNER/REPO:latest|ghcr.io/${{ github.repository }}:${{ github.ref_name }}|g" docker-compose.prod.yml
+          
+          # Update README examples
+          sed -i "s|ghcr.io/OWNER/REPO:v1.0.0|ghcr.io/${{ github.repository }}:${{ github.ref_name }}|g" README.md
+
+      - name: Create Pull Request for version updates
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update container references to ${{ github.ref_name }}"
+          title: "Update container references to ${{ github.ref_name }}"
+          body: |
+            This PR updates the container image references to use the newly released version ${{ github.ref_name }}.
+            
+            Changes:
+            - Updated docker-compose.prod.yml to use ${{ github.ref_name }}
+            - Updated README.md examples with new version
+            
+            This is an automated PR created after the ${{ github.ref_name }} release.
+          branch: update-container-refs-${{ github.ref_name }}
+          base: main

@@ -1,9 +1,11 @@
 """
-MIT License
+Non-Commercial License
 
 Copyright (c) 2025 MakerCorn
 
 Multi-tenant AI Prompt Manager with authentication, SSO/ADFS support, and admin interface.
+
+This software is licensed for non-commercial use only. See LICENSE file for details.
 """
 
 import gradio as gr
@@ -15,6 +17,8 @@ from urllib.parse import urlparse, parse_qs
 from prompt_data_manager import PromptDataManager
 from auth_manager import AuthManager, User, Tenant
 from api_token_manager import APITokenManager
+from langwatch_optimizer import langwatch_optimizer
+from token_calculator import token_calculator
 
 class AIPromptManager:
     def __init__(self, db_path: str = "prompts.db"):
@@ -413,6 +417,43 @@ Please provide only the enhanced prompt as your response, without any explanatio
             return {}
         
         return self.api_token_manager.get_token_stats(self.current_user.id)
+    
+    # LangWatch optimization functions
+    def optimize_prompt_with_langwatch(self, prompt_text: str, context: Optional[str] = None, 
+                                     target_model: str = "gpt-4") -> Tuple[bool, str, Dict]:
+        """Optimize prompt using LangWatch"""
+        if not self.current_user:
+            return False, "Error: User not authenticated!", {}
+        
+        if not prompt_text.strip():
+            return False, "Error: No prompt provided for optimization!", {}
+        
+        try:
+            result = langwatch_optimizer.optimize_prompt(
+                original_prompt=prompt_text,
+                context=context,
+                target_model=target_model
+            )
+            
+            if result.success:
+                optimization_data = {
+                    "optimized_prompt": result.optimized_prompt,
+                    "original_prompt": result.original_prompt,
+                    "score": result.optimization_score,
+                    "suggestions": result.suggestions,
+                    "reasoning": result.reasoning,
+                    "timestamp": result.timestamp.isoformat()
+                }
+                return True, "Prompt optimized successfully!", optimization_data
+            else:
+                return False, f"Optimization failed: {result.error_message}", {}
+                
+        except Exception as e:
+            return False, f"Error during optimization: {str(e)}", {}
+    
+    def get_langwatch_status(self) -> Dict:
+        """Get LangWatch optimization service status"""
+        return langwatch_optimizer.get_status()
 
 # Initialize the prompt manager
 prompt_manager = AIPromptManager()
@@ -636,6 +677,116 @@ def save_enhancement_configuration(service_type, api_endpoint, api_key, model_na
     """Save enhancement configuration"""
     return prompt_manager.save_enhancement_config(service_type, api_endpoint, api_key, model_name, enhancement_prompt_name)
 
+# LangWatch optimization functions
+def optimize_prompt_langwatch(prompt_text, context, target_model):
+    """Optimize prompt using LangWatch"""
+    if not prompt_text.strip():
+        return (
+            gr.update(visible=False),  # Hide results
+            "Error: Please enter a prompt to optimize",
+            "", 0, "", "", ""
+        )
+    
+    success, message, optimization_data = prompt_manager.optimize_prompt_with_langwatch(
+        prompt_text, context, target_model
+    )
+    
+    if success:
+        return (
+            gr.update(visible=True),  # Show results
+            message,
+            optimization_data["optimized_prompt"],
+            optimization_data["score"],
+            "\n".join(optimization_data["suggestions"]),
+            optimization_data["reasoning"],
+            ""  # Clear optimization status
+        )
+    else:
+        return (
+            gr.update(visible=False),  # Hide results
+            message,
+            "", 0, "", "", ""
+        )
+
+def accept_optimization(optimized_prompt):
+    """Accept the optimized prompt"""
+    if not optimized_prompt:
+        return "", "No optimization to accept"
+    
+    return optimized_prompt, "✅ Optimization accepted! The prompt content has been updated."
+
+def retry_optimization(prompt_text, context, target_model):
+    """Retry the optimization"""
+    return optimize_prompt_langwatch(prompt_text, context, target_model)
+
+def reject_optimization():
+    """Reject the optimization"""
+    return (
+        gr.update(visible=False),  # Hide results
+        "❌ Optimization rejected. Original prompt unchanged."
+    )
+
+def get_langwatch_status_display():
+    """Get LangWatch status for display"""
+    status = prompt_manager.get_langwatch_status()
+    
+    if status["available"]:
+        return "✅ LangWatch Ready"
+    elif not status["library_installed"]:
+        return "⚠️ LangWatch library not installed"
+    elif not status["api_key_set"]:
+        return "⚠️ LangWatch API key not configured"
+    else:
+        return "❌ LangWatch not available"
+
+# Token Calculator function
+def calculate_token_estimate(prompt_text, model, max_completion_tokens):
+    """Calculate token estimate for prompt"""
+    if not prompt_text or not prompt_text.strip():
+        return "Enter some prompt content to calculate tokens..."
+    
+    try:
+        # Get token estimate
+        estimate = token_calculator.estimate_tokens(
+            text=prompt_text,
+            model=model,
+            max_completion_tokens=int(max_completion_tokens) if max_completion_tokens else 1000
+        )
+        
+        # Format the results
+        result_lines = [
+            f"🧮 **Token Estimate for {estimate.model_name}**",
+            f"",
+            f"📝 **Prompt Tokens:** {estimate.prompt_tokens:,}",
+            f"💬 **Max Completion Tokens:** {estimate.max_completion_tokens:,}",
+            f"📊 **Total Tokens:** {estimate.total_tokens:,}",
+            f"⚙️ **Tokenizer:** {estimate.tokenizer_used}",
+        ]
+        
+        # Add cost estimate if available
+        if estimate.cost_estimate is not None:
+            result_lines.extend([
+                f"",
+                f"💰 **Estimated Cost:** ${estimate.cost_estimate:.4f} {estimate.currency}",
+                f"   • Input: ${(estimate.prompt_tokens / 1000) * token_calculator.MODEL_PRICING.get(estimate.model_name.lower(), {}).get('input', 0):.4f}",
+                f"   • Output: ${(estimate.max_completion_tokens / 1000) * token_calculator.MODEL_PRICING.get(estimate.model_name.lower(), {}).get('output', 0):.4f}"
+            ])
+        
+        # Add complexity analysis
+        analysis = token_calculator.analyze_prompt_complexity(prompt_text)
+        if analysis.get("suggestions"):
+            result_lines.extend([
+                f"",
+                f"⚠️ **Suggestions:**"
+            ])
+            for suggestion in analysis["suggestions"]:
+                result_lines.append(f"   • {suggestion}")
+        
+        return "\n".join(result_lines)
+        
+    except Exception as e:
+        return f"❌ Error calculating tokens: {str(e)}"
+
 # API Token management functions
 def create_new_api_token(token_name, expires_days_str):
     """Create new API token"""
@@ -825,6 +976,103 @@ def create_interface():
                                 lines=6,
                                 placeholder="Enter your AI prompt here..."
                             )
+                            
+                            # Token Calculator Section
+                            with gr.Group():
+                                gr.Markdown("#### 🧮 Token Calculator")
+                                gr.Markdown("Estimate token consumption and cost for your prompt")
+                                
+                                with gr.Row():
+                                    with gr.Column(scale=2):
+                                        calc_model = gr.Dropdown(
+                                            choices=token_calculator.get_supported_models(),
+                                            value="gpt-4",
+                                            label="Target Model",
+                                            info="Select the AI model for accurate token calculation"
+                                        )
+                                    with gr.Column(scale=1):
+                                        max_completion_tokens = gr.Number(
+                                            label="Max Completion Tokens",
+                                            value=1000,
+                                            minimum=1,
+                                            maximum=8000,
+                                            info="Expected response length"
+                                        )
+                                
+                                with gr.Row():
+                                    with gr.Column(scale=1):
+                                        calculate_tokens_btn = gr.Button("🧮 Calculate Tokens", variant="secondary")
+                                    with gr.Column(scale=3):
+                                        token_calc_status = gr.Textbox(
+                                            label="Token Estimation",
+                                            interactive=False,
+                                            placeholder="Token count and cost estimate will appear here..."
+                                        )
+                            
+                            # LangWatch Optimization Section
+                            with gr.Group():
+                                gr.Markdown("#### 🚀 LangWatch Optimization")
+                                gr.Markdown("Enhance your prompt using AI-powered optimization")
+                                
+                                with gr.Row():
+                                    with gr.Column(scale=2):
+                                        optimization_context = gr.Textbox(
+                                            label="Optimization Context (Optional)",
+                                            placeholder="Describe the purpose or goal of this prompt...",
+                                            lines=2
+                                        )
+                                    with gr.Column(scale=1):
+                                        target_model = gr.Dropdown(
+                                            choices=["gpt-4", "gpt-3.5-turbo", "claude-3", "gemini-pro"],
+                                            value="gpt-4",
+                                            label="Target Model"
+                                        )
+                                
+                                with gr.Row():
+                                    optimize_btn = gr.Button("🚀 Optimize with LangWatch", variant="secondary")
+                                    langwatch_status = gr.Textbox(
+                                        label="LangWatch Status", 
+                                        interactive=False,
+                                        scale=2
+                                    )
+                                
+                                # Optimization Results Display
+                                with gr.Row(visible=False) as optimization_results:
+                                    with gr.Column():
+                                        gr.Markdown("#### Optimization Results")
+                                        
+                                        with gr.Row():
+                                            optimization_score = gr.Number(
+                                                label="Optimization Score",
+                                                precision=1,
+                                                interactive=False
+                                            )
+                                            optimization_suggestions = gr.Textbox(
+                                                label="Suggestions",
+                                                lines=3,
+                                                interactive=False
+                                            )
+                                        
+                                        optimized_prompt_display = gr.Textbox(
+                                            label="Optimized Prompt",
+                                            lines=6,
+                                            interactive=False
+                                        )
+                                        
+                                        optimization_reasoning = gr.Textbox(
+                                            label="Optimization Reasoning",
+                                            lines=2,
+                                            interactive=False
+                                        )
+                                        
+                                        # Action buttons for optimization results
+                                        with gr.Row():
+                                            accept_optimization_btn = gr.Button("✅ Accept", variant="primary")
+                                            retry_optimization_btn = gr.Button("🔄 Retry", variant="secondary")
+                                            reject_optimization_btn = gr.Button("❌ Reject", variant="stop")
+                                
+                                optimization_status = gr.Textbox(label="Optimization Status", interactive=False)
+                            
                             prompt_tags = gr.Textbox(label="Tags (comma-separated)", placeholder="creative, writing, analysis")
                             is_enhancement_prompt = gr.Checkbox(
                                 label="Enhancement Prompt", 
@@ -1235,6 +1483,9 @@ def create_interface():
         ).then(
             lambda: gr.update(visible=True),
             outputs=logout_btn
+        ).then(
+            get_langwatch_status_display,
+            outputs=langwatch_status
         )
         
         logout_btn.click(
@@ -1282,6 +1533,44 @@ def create_interface():
         clear_btn.click(
             lambda: ("", "", "", "", "", False, ""),
             outputs=[prompt_name, prompt_title, prompt_content, prompt_category, prompt_tags, is_enhancement_prompt, prompt_status]
+        )
+        
+        # Event handler for token calculator
+        calculate_tokens_btn.click(
+            calculate_token_estimate,
+            inputs=[prompt_content, calc_model, max_completion_tokens],
+            outputs=token_calc_status
+        )
+        
+        # Event handlers for LangWatch optimization
+        optimize_btn.click(
+            optimize_prompt_langwatch,
+            inputs=[prompt_content, optimization_context, target_model],
+            outputs=[optimization_results, optimization_status, optimized_prompt_display, 
+                    optimization_score, optimization_suggestions, optimization_reasoning, 
+                    langwatch_status]
+        )
+        
+        accept_optimization_btn.click(
+            accept_optimization,
+            inputs=[optimized_prompt_display],
+            outputs=[prompt_content, optimization_status]
+        ).then(
+            lambda: gr.update(visible=False),
+            outputs=optimization_results
+        )
+        
+        retry_optimization_btn.click(
+            retry_optimization,
+            inputs=[prompt_content, optimization_context, target_model],
+            outputs=[optimization_results, optimization_status, optimized_prompt_display,
+                    optimization_score, optimization_suggestions, optimization_reasoning,
+                    langwatch_status]
+        )
+        
+        reject_optimization_btn.click(
+            reject_optimization,
+            outputs=[optimization_results, optimization_status]
         )
         
         # Event handlers for library
