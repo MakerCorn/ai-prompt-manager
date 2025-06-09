@@ -1,142 +1,235 @@
 # AI Prompt Manager
 
-A comprehensive AI prompt management system with both single-user and multi-tenant architectures, featuring authentication, SSO/ADFS support, and admin capabilities.
+A comprehensive AI prompt management system with multi-tenant architecture, featuring authentication, token cost estimation, prompt optimization, and secure API access.
 
-## Development Commands
+## 🌟 Key Features
 
-**Install dependencies:**
+- 🔐 **Multi-Tenant Security** - Complete data isolation between organizations
+- 🧮 **Token Calculator** - Real-time cost estimation for AI model usage
+- 🚀 **LangWatch Integration** - AI-powered prompt optimization
+- 🔑 **Secure API** - RESTful endpoints with token-based authentication
+- 🛡️ **SSO/ADFS Support** - Enterprise authentication integration
+- 📊 **Admin Dashboard** - Comprehensive tenant and user management
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.12+
+- Poetry (recommended) or pip
+- Optional: PostgreSQL for production
+
+### Installation
+
+1. **Clone and Setup**
 ```bash
+git clone <repository-url>
+cd ai-prompt-manager
 poetry install
 ```
 
-**Run the original single-user application:**
+2. **Launch Application**
 ```bash
+# Multi-tenant version with API (recommended)
+poetry run python run_mt_with_api.py
+
+# Single-user version
 poetry run python prompt_manager.py
 ```
 
-**Run the multi-tenant application:**
-```bash
-poetry run python run_mt.py
-```
+3. **Access Application**
+- Open browser to `http://localhost:7860`
+- Login with: `admin@localhost` / `admin123` (multi-tenant)
 
-**Run the multi-tenant application with API endpoints:**
+### Docker Deployment
 ```bash
-poetry run python run_mt_with_api.py
-```
-
-**Test multi-tenant installation:**
-```bash
-poetry run python test_mt_install.py
-```
-
-**Docker build and run (Multi-tenant with API):**
-```bash
-# Build locally
-docker build -t ai-prompt-manager .
-docker run -p 7860:7860 ai-prompt-manager
-
-# Or use pre-built image from GitHub Container Registry
+# Quick start
 docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:latest
-```
 
-**Docker compose for multi-tenant with PostgreSQL:**
-
-```bash
+# With PostgreSQL
 docker-compose up -d
 ```
 
-**Available Container Images:**
+---
 
-- **Latest**: `ghcr.io/OWNER/REPO:latest` (automatically built from main branch)
-- **Tagged Releases**: `ghcr.io/OWNER/REPO:v1.0.0` (built from version tags)
-- **Branch Builds**: `ghcr.io/OWNER/REPO:main` (specific branch builds)
+## 🧮 Token Calculator Guide
 
-**Docker containers include:**
+### What are Tokens?
 
-- Multi-tenant web interface with authentication
-- Complete REST API with OpenAPI documentation  
-- SQLite database (or PostgreSQL with docker-compose)
-- Health checks and secure token management
-- LangWatch prompt optimization capabilities
+**Tokens** are the basic units that AI models use to process text. Understanding tokens is crucial for:
+- **Cost Control**: AI services charge based on token usage
+- **Performance**: More tokens = longer processing time
+- **Limits**: Models have maximum token limits per request
 
-## Architecture
+### How Tokenization Works
 
-This is a Gradio-based web application for managing AI prompts with both single-user and multi-tenant architectures:
+- **Words aren't tokens**: "Hello world" = 2 tokens, but "artificial intelligence" = 4 tokens
+- **Subwords**: Long words are split (e.g., "understanding" = 2-3 tokens)
+- **Special characters**: Punctuation and symbols count as tokens
+- **Languages vary**: Non-English text may use more tokens
 
-### Single-User Version
+### Using the Token Calculator
 
-- `prompt_manager.py` - Original single-user application
-- `prompt_data_manager.py` - Database abstraction layer
+#### 1. **Access the Calculator**
+- Navigate to **Prompt Management** tab after logging in
+- Find the **🧮 Token Calculator** section below the prompt content area
 
-### Multi-Tenant Version
+#### 2. **Calculate Token Costs**
 
-- `prompt_manager_mt.py` - Multi-tenant application with authentication
-- `auth_manager.py` - Authentication, user management, and SSO/ADFS support
-- `prompt_data_manager.py` - Enhanced with tenant-aware data isolation
-- `api_token_manager.py` - Secure API token management system
-- `api_endpoints.py` - REST API endpoints for programmatic access
-- `langwatch_optimizer.py` - LangWatch prompt optimization integration
-- `run_mt.py` - Multi-tenant application launcher
-- `run_mt_with_api.py` - Combined web UI and API server launcher
+1. **Enter your prompt** in the "Prompt Content" field
+2. **Select target AI model** from the dropdown:
+   - `gpt-4` - Most accurate, higher cost
+   - `gpt-3.5-turbo` - Fast and economical
+   - `claude-3-opus` - High-quality reasoning
+   - `gemini-pro` - Google's model
+3. **Set max completion tokens** - Expected response length (500-2000 typical)
+4. **Click "🧮 Calculate Tokens"**
 
-### Database Architecture
+#### 3. **Understanding Results**
 
-- **Single-User**: SQLite with local `prompts.db` file
-- **Multi-Tenant**: SQLite or PostgreSQL with tenant isolation
-- Database selection controlled by `.env` file with `DB_TYPE` and connection parameters
+The calculator provides:
+```
+🧮 Token Estimate for gpt-4
 
-### Multi-Tenant Features
+📝 Prompt Tokens: 45        ← Your input text
+💬 Max Completion Tokens: 1,000  ← Expected response
+📊 Total Tokens: 1,045     ← Combined usage
+⚙️ Tokenizer: gpt-4        ← Method used
 
-- **Authentication**: Email/password + SSO/ADFS support with JWT sessions
-- **Tenant Isolation**: Complete data separation between organizations
-- **User Management**: Role-based access (admin, user, readonly)
-- **Admin Interface**: Tenant and user management for administrators
-- **Data Security**: Row-level security and encrypted sessions
-- **API Access**: Secure REST API with token-based authentication
-- **Token Management**: Create, manage, and revoke API tokens with expiration
-- **LangWatch Integration**: AI-powered prompt optimization with accept/reject workflow
+💰 Estimated Cost: $0.0615 USD
+   • Input: $0.0014         ← Cost for your prompt
+   • Output: $0.0600        ← Cost for AI response
 
-### Key Features Architecture
+⚠️ Suggestions:
+   • Large prompt may be expensive
+   • Consider breaking into smaller prompts
+```
 
-- **Name-based prompt system**: All prompts require unique names (per tenant in MT)
-- **Tenant-aware data access**: All operations respect tenant boundaries
-- **Dual AI service configuration**: Separate configs for primary execution and prompt enhancement
-- **Category-based organization**: Tree view display with category grouping
-- **Enhancement system**: Uses different AI models to improve existing prompts
+#### 4. **Cost Optimization Tips**
 
-### Data Flow
+**Reduce Costs:**
+- ✅ Use shorter, more focused prompts
+- ✅ Choose appropriate models (GPT-3.5 for simple tasks)
+- ✅ Set reasonable completion token limits
+- ✅ Remove repetitive content
 
-**Single-User:**
+**Performance Tips:**
+- ⚡ Shorter prompts = faster responses
+- ⚡ Fewer tokens = less processing time
+- ⚡ Structure prompts clearly for better results
 
-1. `PromptDataManager` handles all database operations
-2. `AIPromptManager` wraps data operations and adds AI service integration
-3. Gradio interface functions bridge UI events to business logic
+#### 5. **Model Comparison**
 
-**Multi-Tenant:**
+| Model | Best For | Cost | Speed | Quality |
+|-------|----------|------|-------|---------|
+| `gpt-4` | Complex reasoning, code | $$$ | Slower | Highest |
+| `gpt-3.5-turbo` | General tasks, chat | $ | Fast | Good |
+| `claude-3-opus` | Analysis, writing | $$$ | Moderate | Excellent |
+| `claude-3-haiku` | Simple tasks | $ | Fast | Good |
+| `gemini-pro` | Multimodal, research | $$ | Moderate | Very Good |
 
-1. `AuthManager` handles authentication and user/tenant management
-2. `PromptDataManager` initialized with tenant/user context for data isolation
-3. `AIPromptManager` wraps authenticated operations
-4. Gradio interface includes authentication flow and role-based access
-5. AI service calls support OpenAI, LM Studio, Ollama, and Llama.cpp APIs
+### Token Calculator Features
 
-## Multi-Tenant Configuration
+- **Real-time Estimation**: Instant cost calculation as you type
+- **Multi-Model Support**: Accurate tokenization for all major AI providers
+- **Cost Breakdown**: Separate input/output cost analysis
+- **Optimization Suggestions**: Automatic recommendations for efficiency
+- **Complexity Analysis**: Detects repetitive or overly long content
 
-### Local Development
+---
 
-Default credentials for testing:
+## 📝 Prompt Management
 
-- **Email**: admin@localhost
-- **Password**: admin123  
-- **Tenant**: localhost
+### Creating Prompts
 
-### Environment Configuration
+1. **Navigate to Prompt Management** tab
+2. **Fill in prompt details:**
+   - **Name**: Unique identifier (required)
+   - **Title**: Descriptive title
+   - **Category**: Organization (e.g., "Writing", "Analysis")
+   - **Content**: Your AI prompt text
+   - **Tags**: Comma-separated keywords
 
-Configure via `.env` file:
+3. **Estimate costs** using the Token Calculator
+4. **Optimize if needed** with LangWatch integration
+5. **Save prompt** with "➕ Add Prompt"
+
+### LangWatch Optimization
+
+Improve your prompts with AI-powered suggestions:
+
+1. **Add optimization context** - Describe your prompt's purpose
+2. **Select target model** - Choose your intended AI model
+3. **Click "🚀 Optimize with LangWatch"**
+4. **Review suggestions** - See score, reasoning, and improvements
+5. **Accept, retry, or reject** - Choose the best version
+
+### Prompt Library
+
+- **Browse all prompts** in organized tree view
+- **Search by keywords** - Name, title, content, or tags
+- **Filter by category** - Organize by type or purpose
+- **Quick actions** - Load, edit, or delete prompts
+
+---
+
+## 🔑 API Access
+
+### Setting Up API Access
+
+1. **Navigate to Account Settings → API Tokens**
+2. **Create new token:**
+   - Enter descriptive name
+   - Set expiration (optional, 30 days recommended)
+   - Click "🔑 Create Token"
+3. **Copy token immediately** - You won't see it again!
+
+### Using the API
+
+**Base URL:** `http://localhost:7860/api`
+
+**Authentication:**
+```bash
+Authorization: Bearer apm_your_token_here
+```
+
+**Common Endpoints:**
+```bash
+# List all prompts
+GET /api/prompts
+
+# Get specific prompt
+GET /api/prompts/name/my-prompt-name
+
+# Search prompts
+GET /api/search?q=creative
+
+# Get categories
+GET /api/categories
+```
+
+**Example Usage:**
+```bash
+curl -H "Authorization: Bearer apm_abc123..." \
+     http://localhost:7860/api/prompts
+```
+
+**Interactive Documentation:**
+- Swagger UI: `http://localhost:7860/api/docs`
+- ReDoc: `http://localhost:7860/api/redoc`
+
+---
+
+## ⚙️ Configuration
+
+### Environment Setup
+
+Create `.env` file with your settings:
 
 ```env
 # Database
-DB_TYPE=sqlite  # or postgres
+DB_TYPE=sqlite              # or postgres
 DB_PATH=prompts.db
 POSTGRES_DSN=postgresql://user:pass@host:port/db
 
@@ -150,363 +243,166 @@ SSO_CLIENT_ID=your-client-id
 SSO_CLIENT_SECRET=your-client-secret
 SSO_AUTHORITY=https://login.microsoftonline.com/tenant-id
 
-# LangWatch Optimization (optional)
+# LangWatch (optional)
 LANGWATCH_API_KEY=your-langwatch-api-key
 LANGWATCH_PROJECT_ID=ai-prompt-manager
 ```
 
-## Database Configuration
+### Database Options
 
-Configure via `.env` file:
+**SQLite (Development):**
+- Zero setup required
+- File-based storage
+- Single-user friendly
 
-- SQLite: `DB_TYPE=sqlite` and `DB_PATH=prompts.db`
-- PostgreSQL: `DB_TYPE=postgres` and `POSTGRES_DSN=connection_string`
+**PostgreSQL (Production):**
+- Better performance
+- Multi-user support
+- Enterprise features
 
-## AI Service Integration
+### AI Service Integration
 
-The application supports multiple AI services with unified interface:
+Supported AI providers:
+- **OpenAI** (GPT-4, GPT-3.5-turbo)
+- **LM Studio** (Local models)
+- **Ollama** (Self-hosted)
+- **Llama.cpp** (Local inference)
 
-- OpenAI-compatible (including LM Studio)
-- Ollama native API
-- Llama.cpp server API
+Configure in the application's AI Service Settings.
 
-Each service type has specific payload formatting in `call_ai_service()` method.
+---
 
-## Features
+## 🏢 Multi-Tenant Features
 
-### 🔐 Authentication & Security (Multi-Tenant)
+### For Organizations
 
-- **Email/Password Authentication**: Secure user login with hashed passwords
-- **SSO/ADFS Support**: Integration with Microsoft Azure AD and other SAML providers
-- **JWT Session Management**: Secure, expiring session tokens
-- **Role-Based Access Control**: Admin, User, and Read-only roles
-- **Tenant Isolation**: Complete data separation between organizations
+- **Complete Data Isolation** - Each tenant's data is separate
+- **User Management** - Add users with different roles
+- **Admin Dashboard** - Monitor usage and manage tenants
+- **SSO Integration** - Connect with existing authentication
 
-### 🏢 Multi-Tenant Architecture
+### User Roles
 
-- **Tenant Management**: Create and manage multiple organizations
-- **User Management**: Per-tenant user creation and role assignment
-- **Data Isolation**: Prompts, configurations, and users are tenant-specific
-- **Scalable Design**: Supports SQLite for development and PostgreSQL for production
+- **Admin**: Full system access, user management
+- **User**: Create and manage prompts, API access
+- **Readonly**: View prompts only, no modifications
 
-### 🛡️ Admin Features
+### Default Credentials
 
-- **System Administration**: Comprehensive admin panel for tenant and user management
-- **User Analytics**: View and manage users across all tenants
-- **Tenant Configuration**: Set user limits and manage tenant settings
-- **Audit Capabilities**: Track user creation and tenant activity
-
-### 🚀 Enhanced Prompt Management
-
-- **Tenant-Aware Prompts**: All prompts are isolated to your organization (MT)
-- **User Attribution**: Track which user created each prompt (MT)
-- **Enhanced Search**: Find prompts within your tenant's workspace
-- **Category Organization**: Organize prompts by category within your tenant
-- **AI Service Integration**: Support for multiple AI providers
-- **Prompt Enhancement**: Use different models to improve existing prompts
-
-### 🔑 API Features (Multi-Tenant)
-
-- **Secure Token System**: Generate cryptographically secure API tokens
-- **Token Expiration**: Set custom expiration times for enhanced security
-- **Token Management**: View, revoke, and manage all your tokens
-- **REST API Endpoints**: Programmatic access to all your prompts
-- **OpenAPI Documentation**: Interactive API documentation and testing
-- **Rate Limiting**: Built-in protection against abuse
-
-### 🚀 LangWatch Optimization (Multi-Tenant)
-
-- **AI-Powered Optimization**: Enhance prompts using LangWatch intelligence
-- **Context-Aware**: Provide optimization context for better results
-- **Model-Specific**: Optimize for different target AI models
-- **Visual Feedback**: See optimization score and detailed suggestions
-- **Accept/Reject Workflow**: Review and approve optimizations before applying
-- **Retry Capability**: Re-run optimization with different parameters
-
-## Quick Start
-
-### Prerequisites
-
-- Python 3.12+
-- Poetry (recommended) or pip
-- Optional: PostgreSQL for production deployment
-
-### Installation
-
-1. **Clone and Setup**
-
-```bash
-git clone <repository-url>
-cd ai-prompt-manager
-cp .env.example .env
-```
-
-2. **Install Dependencies**
-
-```bash
-# Using Poetry (recommended)
-poetry install
-
-# Or using pip
-pip install -r requirements.txt
-```
-
-3. **Configure Environment**
-Edit `.env` file with your settings
-
-4. **Launch Application**
-
-```bash
-# Multi-tenant version with API (recommended)
-poetry run python run_mt_with_api.py
-
-# Or multi-tenant version without API
-poetry run python run_mt.py
-
-# Or original single-user version
-poetry run python prompt_manager.py
-```
-
-## Default Credentials (Multi-Tenant)
-
-For local development, the system automatically creates:
-
+For local development:
 - **Tenant**: `localhost`
-- **Admin User**: `admin@localhost`
+- **Email**: `admin@localhost`
 - **Password**: `admin123`
 
-## Usage
+---
 
-### 1. Login (Multi-Tenant)
+## 🚀 Development
 
-- Access the application at `http://localhost:7860`
-- Use email/password or SSO to authenticate
-- Admin users see additional admin panel
-
-### 2. Prompt Management
-
-- Create, edit, and delete prompts within your tenant
-- Organize prompts by category and tags
-- All prompts are isolated to your organization (MT)
-
-### 3. AI Service Configuration
-
-- Configure per-user AI service settings (MT) or global settings (single-user)
-- Support for OpenAI, LM Studio, Ollama, and Llama.cpp
-- Separate enhancement service configuration
-
-### 4. Admin Functions (Admin Only - Multi-Tenant)
-
-- **Tenant Management**: Create new organizations
-- **User Management**: Add users to tenants with appropriate roles
-- **System Overview**: Monitor tenant and user activity
-
-### 5. API Usage (Multi-Tenant with API)
-
-- **Token Creation**: Generate secure API tokens in Account Settings
-- **API Documentation**: Access interactive docs at `/api/docs`
-- **Programmatic Access**: Use REST endpoints for automation
-- **Token Security**: Manage token expiration and revocation
-
-### 6. LangWatch Optimization (Multi-Tenant)
-
-- **Optimize Prompts**: Use the LangWatch optimization section in Prompt Management
-- **Provide Context**: Add context about your prompt's purpose for better results
-- **Review Results**: Examine optimization score, suggestions, and reasoning
-- **Accept/Reject**: Choose to accept the optimized version or keep the original
-- **Retry**: Try optimization again with different context or target model
-
-## Production Deployment
-
-### Security Checklist
-
-- [ ] Change default SECRET_KEY
-- [ ] Set LOCAL_DEV_MODE=false
-- [ ] Use PostgreSQL database
-- [ ] Configure HTTPS/TLS
-- [ ] Set up SSO/ADFS properly
-- [ ] Configure firewall rules
-- [ ] Set up backup procedures
-- [ ] Monitor application logs
-
-### Docker Deployment
-
-**Development (with local build):**
+### Development Commands
 
 ```bash
+# Install dependencies
+poetry install
+
+# Run applications
+poetry run python prompt_manager.py          # Single-user
+poetry run python run_mt.py                  # Multi-tenant
+poetry run python run_mt_with_api.py         # Multi-tenant + API
+
+# Testing
+poetry run python test_mt_install.py         # Multi-tenant setup
+poetry run python test_langwatch_integration.py  # LangWatch
+```
+
+### Docker Development
+
+```bash
+# Build and run
+docker build -t ai-prompt-manager .
+docker run -p 7860:7860 ai-prompt-manager
+
+# With PostgreSQL
 docker-compose up -d
 ```
 
-**Production (with published images):**
+### Architecture
+
+**Core Components:**
+- `prompt_manager_mt.py` - Multi-tenant web interface
+- `prompt_data_manager.py` - Database abstraction
+- `auth_manager.py` - Authentication and user management
+- `token_calculator.py` - Token estimation engine
+- `langwatch_optimizer.py` - Prompt optimization
+- `api_endpoints.py` - REST API implementation
+
+---
+
+## 🔒 Production Deployment
+
+### Security Checklist
+
+- [ ] Change default `SECRET_KEY`
+- [ ] Set `LOCAL_DEV_MODE=false`
+- [ ] Use PostgreSQL database
+- [ ] Configure HTTPS/TLS
+- [ ] Set up proper SSO/ADFS
+- [ ] Configure firewall rules
+- [ ] Implement backup procedures
+- [ ] Monitor application logs
+
+### Production Docker
 
 ```bash
 # Set environment variables
 export SECRET_KEY="your-production-secret-key"
 export SSO_ENABLED="true"
-export SSO_CLIENT_ID="your-sso-client-id"
 
-# Deploy with production settings
+# Deploy with published images
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
 **Available Images:**
+- `ghcr.io/makercorn/ai-prompt-manager:latest` - Latest build
+- `ghcr.io/makercorn/ai-prompt-manager:v1.0.0` - Tagged releases
 
-- `ghcr.io/OWNER/REPO:latest` - Latest development build
-- `ghcr.io/OWNER/REPO:v1.0.0` - Stable tagged releases
-- `ghcr.io/OWNER/REPO:main` - Main branch builds
+---
 
-**Production Configuration:**
+## 📚 Additional Resources
 
-```yaml
-# Production docker-compose.prod.yml uses:
-environment:
-  DB_TYPE: postgres
-  POSTGRES_DSN: postgresql://prompt_user:password@postgres:5432/ai_prompt_manager
-  SECRET_KEY: ${SECRET_KEY}
-  LOCAL_DEV_MODE: "false"
-```
-
-## API Reference (Multi-Tenant)
-
-### Authentication
-
-All API endpoints require a valid API token in the Authorization header:
+### Testing
 
 ```bash
-Authorization: Bearer apm_your_token_here
-```
-
-### Base URL
-```
-http://localhost:7860/api
-```
-
-### Key Endpoints
-
-**📝 List All Prompts**
-
-```bash
-GET /api/prompts
-curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/prompts
-```
-
-**🔍 Get Prompt by Name**
-
-```bash
-GET /api/prompts/name/{prompt_name}
-curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/prompts/name/my-prompt
-```
-
-**🆔 Get Prompt by ID**
-
-```bash
-GET /api/prompts/{prompt_id}
-curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/prompts/123
-```
-
-**📊 Search Prompts**
-
-```bash
-GET /api/search?q=keyword
-curl -H "Authorization: Bearer apm_your_token" "http://localhost:7860/api/search?q=creative"
-```
-
-**📁 Get Categories**
-
-```bash
-GET /api/categories
-curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/categories
-```
-
-**📈 Get Statistics**
-
-```bash
-GET /api/stats
-curl -H "Authorization: Bearer apm_your_token" http://localhost:7860/api/stats
-```
-
-### Interactive Documentation
-
-- **Swagger UI**: http://localhost:7860/api/docs
-- **ReDoc**: http://localhost:7860/api/redoc
-
-### Example Response
-
-```json
-{
-  "prompts": [
-    {
-      "id": 1,
-      "name": "creative-writing",
-      "title": "Creative Writing Assistant",
-      "content": "You are a creative writing assistant...",
-      "category": "Writing",
-      "tags": "creative,writing",
-      "is_enhancement_prompt": false,
-      "user_id": "user-123",
-      "created_at": "2025-01-08T10:00:00",
-      "updated_at": "2025-01-08T10:00:00"
-    }
-  ],
-  "total": 1,
-  "page": 1,
-  "page_size": 50
-}
-```
-
-## Testing
-
-**Test API integration:**
-
-```bash
+# API integration
 poetry run python test_standalone_api.py
-```
 
-**Test multi-tenant setup:**
-
-```bash
+# Multi-tenant setup
 poetry run python test_mt_install.py
-```
 
-**Test LangWatch optimization:**
-
-```bash
+# LangWatch features
 poetry run python test_langwatch_integration.py
 ```
 
-## CI/CD Pipeline
+### CI/CD Pipeline
 
-The project includes automated GitHub workflows:
+- **Automated Testing** - Python tests, Docker builds, integration tests
+- **Docker Publishing** - GitHub Container Registry with multi-tag strategy  
+- **Release Management** - Automated releases with changelog generation
 
-**🔄 Continuous Integration:**
+**📋 Setup Guide:** See [GITHUB_WORKFLOWS_SETUP.md](GITHUB_WORKFLOWS_SETUP.md) for complete workflow configuration instructions.
 
-- **Test and Validation**: Runs Python tests, Docker builds, and integration tests on every PR
-- **Multi-platform Testing**: Tests both Python application and Docker containers
-- **Code Quality**: Syntax checking and import validation
+### Support
 
-**🚀 Continuous Deployment:**
+- 📖 **Documentation**: Comprehensive guides and API reference
+- 🐛 **Issues**: Report bugs and request features
+- 💬 **Community**: Join discussions and share prompts
 
-- **Docker Image Building**: Automatically builds and pushes images to GitHub Container Registry
-- **Multi-tag Strategy**: Creates `latest`, branch-specific, and version tags
-- **Security**: Uses GitHub's built-in GITHUB_TOKEN for authentication
+---
 
-**📦 Release Management:**
-
-- **Automated Releases**: Creates GitHub releases when version tags are pushed
-- **Changelog Generation**: Automatically generates release notes from commits
-- **Container Updates**: Updates documentation with new image versions
-
-**Workflow Triggers:**
-
-- `main` branch pushes → Build and push `latest` image
-- Version tags (v*.*.*) → Build versioned image and create release
-- Pull requests → Run tests and build validation (no push)
-
-## License
+## 📄 License
 
 **Non-Commercial License** - This software is licensed for non-commercial use only.
 
-### License Summary
+### Usage Rights
 - ✅ **Personal use** - Individual, educational, and research purposes
 - ✅ **Non-profit organizations** - For non-commercial activities  
 - ✅ **Academic institutions** - Research and educational use
@@ -520,4 +416,4 @@ See the [LICENSE](LICENSE) file for complete details.
 
 ---
 
-**🔐 Secure • 🏢 Multi-Tenant • 🚀 Scalable • 🤖 AI-Powered • 🔌 API-Ready**
+**🔐 Secure • 🧮 Cost-Aware • 🚀 Optimized • 🤖 AI-Powered • 🔌 API-Ready**
