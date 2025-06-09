@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -31,7 +31,7 @@ jobs:
 
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -116,7 +116,7 @@ jobs:
           zip -r ai-prompt-manager-${{ github.ref_name || 'latest' }}.zip ai-prompt-manager-dist/
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ai-prompt-manager-package-${{ github.ref_name || github.sha }}
           path: |
@@ -153,7 +153,7 @@ jobs:
           echo '```' >> MANIFEST.md
 
       - name: Upload manifest
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-manifest-${{ github.ref_name || github.sha }}
           path: MANIFEST.md
@@ -165,12 +165,12 @@ jobs:
     
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Download package artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ai-prompt-manager-package-${{ github.ref_name || github.sha }}
 
