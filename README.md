@@ -1,4 +1,4 @@
-# Instruere AI Prompt Manager
+# Instruere - AI Prompt Manager
 
 A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments. Features advanced authentication, real-time token cost estimation, AI-powered prompt optimization, and secure API access.
 
