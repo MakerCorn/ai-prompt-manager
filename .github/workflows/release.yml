@@ -137,6 +137,18 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
+          # Check if this is actually a tag release
+          if [[ "${{ github.ref_name }}" != v*.*.* ]]; then
+            echo "⚠️ This is not a version tag release (ref: ${{ github.ref_name }})"
+            echo "Skipping changelog generation for non-tag releases"
+            echo "CHANGELOG=## Manual Release
+
+This release was created manually or from a non-tag ref.
+
+Please refer to the commit history for changes." >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
           # Get the previous tag
           PREVIOUS_TAG=$(git tag --sort=-version:refname | sed -n '2p')
           if [ -z "$PREVIOUS_TAG" ]; then
@@ -160,15 +172,101 @@ jobs:
             echo "- Release ${{ github.ref_name }}" >> RELEASE_CHANGELOG.md
           fi
           
-          # Set output using a safer method
-          {
-            echo 'CHANGELOG<<CHANGELOG_EOF'
-            cat RELEASE_CHANGELOG.md
-            echo 'CHANGELOG_EOF'
-          } >> "$GITHUB_OUTPUT"
+          # Save changelog for use in release body
+          # No need for GitHub output, we'll use the file directly
+          echo "📝 Changelog saved to RELEASE_CHANGELOG.md"
           
           echo "Generated changelog:"
           cat RELEASE_CHANGELOG.md
+
+      - name: Create release body
+        run: |
+          cat > RELEASE_BODY.md << 'EOF'
+          # 🚀 AI Prompt Manager ${{ github.ref_name }}
+          
+          ## 📦 Installation Options
+          
+          ### Option 1: Download Release Package (Recommended)
+          1. Download `ai-prompt-manager-${{ github.ref_name }}.tar.gz` or `.zip` from the assets below
+          2. Extract the archive: `tar -xzf ai-prompt-manager-${{ github.ref_name }}.tar.gz`
+          3. Run the installer: `cd ai-prompt-manager-${{ github.ref_name }} && chmod +x install.sh && ./install.sh`
+          4. Start the application: `poetry run python run.py`
+          
+          ### Option 2: Docker Deployment
+          ```bash
+          # Development
+          docker-compose up -d
+          
+          # Production
+          docker-compose -f docker-compose.prod.yml up -d
+          ```
+          
+          ### Option 3: Poetry Installation
+          ```bash
+          git clone https://github.com/${{ github.repository }}.git
+          cd ai-prompt-manager
+          git checkout ${{ github.ref_name }}
+          poetry install
+          poetry run python run.py
+          ```
+          
+          ## 🌟 Features
+          - 🔐 **Unified Architecture**: Single codebase supporting both single-user and multi-tenant modes
+          - 🚀 **Universal Launcher**: Environment-based configuration with `run.py`
+          - 🔑 **Multi-tenant Authentication**: SSO/ADFS support with role-based access control
+          - 🤖 **AI Integration**: LangWatch prompt optimization and token cost estimation
+          - 📊 **REST API**: Comprehensive API with OpenAPI documentation
+          - 🛡️ **Admin Panel**: Tenant and user management interface
+          - 🗄️ **Database Flexibility**: SQLite for development, PostgreSQL for production
+          - 🐳 **Docker Ready**: Production-ready containerization
+          
+          ## 🚀 Quick Start Commands
+          ```bash
+          # Multi-tenant mode (default)
+          python run.py
+          
+          # Single-user mode
+          python run.py --single-user
+          
+          # Multi-tenant with API
+          python run.py --with-api
+          
+          # Custom configuration
+          MULTITENANT_MODE=true ENABLE_API=true python run.py
+          ```
+          
+          ## 🔐 Default Development Credentials
+          - **Email**: admin@localhost
+          - **Password**: admin123  
+          - **Tenant**: localhost
+          
+          ## 🌐 Access URLs
+          - **Web Interface**: http://localhost:7860
+          - **API Documentation**: http://localhost:7860/api/docs
+          - **API Reference**: http://localhost:7860/api/redoc
+          
+          ## 📋 Package Contents
+          - **Source Code**: All Python modules and configuration files
+          - **Documentation**: README.md, CHANGELOG.md, and configuration guides
+          - **Docker Support**: Dockerfile and docker-compose configurations
+          - **Installation Script**: Automated setup with `install.sh`
+          - **Built Packages**: Python wheel and source distribution
+          
+          EOF
+          
+          # Append changelog if it exists
+          if [ -f "RELEASE_CHANGELOG.md" ]; then
+            echo "" >> RELEASE_BODY.md
+            cat RELEASE_CHANGELOG.md >> RELEASE_BODY.md
+          fi
+          
+          # Add footer
+          cat >> RELEASE_BODY.md << 'EOF'
+          
+          ---
+          
+          **🔐 Secure • 🏢 Multi-Tenant • 🚀 Scalable • 🤖 AI-Powered • 🔌 API-Ready**
+          EOF
 
       - name: Create Release
         id: create_release
@@ -178,82 +276,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: AI Prompt Manager ${{ github.ref_name }}
-          body: |
-            # 🚀 AI Prompt Manager ${{ github.ref_name }}
-            
-            ## 📦 Installation Options
-            
-            ### Option 1: Download Release Package (Recommended)
-            1. Download `ai-prompt-manager-${{ github.ref_name }}.tar.gz` or `.zip` from the assets below
-            2. Extract the archive: `tar -xzf ai-prompt-manager-${{ github.ref_name }}.tar.gz`
-            3. Run the installer: `cd ai-prompt-manager-${{ github.ref_name }} && chmod +x install.sh && ./install.sh`
-            4. Start the application: `poetry run python run.py`
-            
-            ### Option 2: Docker Deployment
-            ```bash
-            # Development
-            docker-compose up -d
-            
-            # Production
-            docker-compose -f docker-compose.prod.yml up -d
-            ```
-            
-            ### Option 3: Poetry Installation
-            ```bash
-            git clone https://github.com/${{ github.repository }}.git
-            cd ai-prompt-manager
-            git checkout ${{ github.ref_name }}
-            poetry install
-            poetry run python run.py
-            ```
-            
-            ## 🌟 Features
-            - 🔐 **Unified Architecture**: Single codebase supporting both single-user and multi-tenant modes
-            - 🚀 **Universal Launcher**: Environment-based configuration with `run.py`
-            - 🔑 **Multi-tenant Authentication**: SSO/ADFS support with role-based access control
-            - 🤖 **AI Integration**: LangWatch prompt optimization and token cost estimation
-            - 📊 **REST API**: Comprehensive API with OpenAPI documentation
-            - 🛡️ **Admin Panel**: Tenant and user management interface
-            - 🗄️ **Database Flexibility**: SQLite for development, PostgreSQL for production
-            - 🐳 **Docker Ready**: Production-ready containerization
-            
-            ## 🚀 Quick Start Commands
-            ```bash
-            # Multi-tenant mode (default)
-            python run.py
-            
-            # Single-user mode
-            python run.py --single-user
-            
-            # Multi-tenant with API
-            python run.py --with-api
-            
-            # Custom configuration
-            MULTITENANT_MODE=true ENABLE_API=true python run.py
-            ```
-            
-            ## 🔐 Default Development Credentials
-            - **Email**: admin@localhost
-            - **Password**: admin123  
-            - **Tenant**: localhost
-            
-            ## 🌐 Access URLs
-            - **Web Interface**: http://localhost:7860
-            - **API Documentation**: http://localhost:7860/api/docs
-            - **API Reference**: http://localhost:7860/api/redoc
-            
-            ## 📋 Package Contents
-            - **Source Code**: All Python modules and configuration files
-            - **Documentation**: README.md, CHANGELOG.md, and configuration guides
-            - **Docker Support**: Dockerfile and docker-compose configurations
-            - **Installation Script**: Automated setup with `install.sh`
-            - **Built Packages**: Python wheel and source distribution
-            
-            ${{ steps.changelog.outputs.CHANGELOG }}
-            
-            ---
-            
-            **🔐 Secure • 🏢 Multi-Tenant • 🚀 Scalable • 🤖 AI-Powered • 🔌 API-Ready**
+          body_path: RELEASE_BODY.md
           draft: false
           prerelease: false
           files: |
