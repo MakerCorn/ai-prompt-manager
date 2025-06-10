@@ -300,6 +300,77 @@ class UIComponents:
                 )
         
         return search_input, filter_dropdown
+    
+    @staticmethod
+    def create_prompt_card(prompt_data: Dict[str, Any], selectable: bool = True) -> gr.HTML:
+        """Create a prompt card component for the builder"""
+        prompt_id = prompt_data.get('id', '')
+        name = prompt_data.get('name', 'Untitled')
+        title = prompt_data.get('title', '')
+        category = prompt_data.get('category', 'General')
+        preview = prompt_data.get('preview', '')
+        length = prompt_data.get('length', 0)
+        is_enhancement = prompt_data.get('is_enhancement', False)
+        
+        # Determine card styling based on type
+        card_class = "enhancement-prompt-card" if is_enhancement else "regular-prompt-card"
+        icon = "⚡" if is_enhancement else "📄"
+        
+        # Build the card HTML
+        card_html = f"""
+        <div class="prompt-card {card_class}" data-prompt-id="{prompt_id}" {'draggable="true"' if selectable else ''}>
+            <div class="prompt-card-header">
+                <span class="prompt-icon">{icon}</span>
+                <h4 class="prompt-name">{name}</h4>
+                <span class="prompt-category">{category}</span>
+            </div>
+            <div class="prompt-card-body">
+                <p class="prompt-title">{title}</p>
+                <p class="prompt-preview">{preview}</p>
+                <div class="prompt-meta">
+                    <span class="prompt-length">{length} chars</span>
+                    {'<span class="enhancement-badge">Enhancement</span>' if is_enhancement else ''}
+                </div>
+            </div>
+        </div>
+        """
+        
+        return gr.HTML(card_html)
+    
+    @staticmethod
+    def create_drop_zone(zone_type: str = "add", message_key: str = "builder.drag.add") -> gr.HTML:
+        """Create a drag-and-drop zone"""
+        message = t(message_key)
+        
+        drop_zone_html = f"""
+        <div class="drop-zone drop-zone-{zone_type}" data-zone-type="{zone_type}">
+            <div class="drop-zone-content">
+                <div class="drop-zone-icon">📥</div>
+                <p class="drop-zone-message">{message}</p>
+            </div>
+        </div>
+        """
+        
+        return gr.HTML(drop_zone_html)
+    
+    @staticmethod
+    def create_template_selector() -> gr.Radio:
+        """Create template selector for prompt combination"""
+        from prompt_builder import prompt_builder
+        
+        templates = prompt_builder.get_combination_templates()
+        choices = []
+        
+        for key, template in templates.items():
+            label = f"{template['icon']} {template['name']}"
+            choices.append((label, key))
+        
+        return gr.Radio(
+            choices=choices,
+            value="sequential",
+            label=t("builder.template"),
+            elem_classes=["template-selector"]
+        )
 
 class ResponsiveCSS:
     """
@@ -604,10 +675,245 @@ class ResponsiveCSS:
             }
         }
         
+        /* Prompt Builder Styles */
+        .prompt-card {
+            background: white;
+            border: 2px solid var(--neutral-200);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .prompt-card:hover {
+            border-color: var(--primary-500);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .prompt-card.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+        
+        .prompt-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .prompt-icon {
+            font-size: 1.2rem;
+        }
+        
+        .prompt-name {
+            font-weight: 600;
+            margin: 0;
+            flex: 1;
+            color: var(--neutral-800);
+        }
+        
+        .prompt-category {
+            background: var(--primary-100);
+            color: var(--primary-700);
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .prompt-title {
+            font-size: 0.9rem;
+            color: var(--neutral-600);
+            margin: 0.25rem 0;
+        }
+        
+        .prompt-preview {
+            font-size: 0.85rem;
+            color: var(--neutral-500);
+            margin: 0.5rem 0;
+            line-height: 1.4;
+        }
+        
+        .prompt-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--neutral-400);
+        }
+        
+        .enhancement-badge {
+            background: var(--warning-100);
+            color: var(--warning-700);
+            padding: 0.125rem 0.375rem;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+        }
+        
+        .enhancement-prompt-card {
+            border-color: var(--warning-300);
+            background: var(--warning-50);
+        }
+        
+        .enhancement-prompt-card:hover {
+            border-color: var(--warning-500);
+        }
+        
+        /* Drop Zone Styles */
+        .drop-zone {
+            border: 2px dashed var(--neutral-300);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+            background: var(--neutral-50);
+            transition: var(--transition);
+        }
+        
+        .drop-zone.drag-over {
+            border-color: var(--primary-500);
+            background: var(--primary-50);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        
+        .drop-zone-content {
+            pointer-events: none;
+        }
+        
+        .drop-zone-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.6;
+        }
+        
+        .drop-zone-message {
+            color: var(--neutral-600);
+            margin: 0;
+            font-weight: 500;
+        }
+        
+        /* Builder Layout */
+        .builder-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--neutral-200);
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .builder-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--neutral-100);
+        }
+        
+        .builder-header h3 {
+            margin: 0;
+            color: var(--neutral-800);
+        }
+        
+        .available-prompts {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+        }
+        
+        .selected-prompts {
+            min-height: 200px;
+            border: 2px dashed var(--neutral-300);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+        }
+        
+        .selected-prompts.has-items {
+            border-style: solid;
+            border-color: var(--primary-300);
+            background: var(--primary-50);
+        }
+        
+        /* Template Selector */
+        .template-selector {
+            background: var(--neutral-50);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--neutral-200);
+        }
+        
+        .template-selector label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            margin: 0.25rem 0;
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .template-selector label:hover {
+            border-color: var(--primary-500);
+            background: var(--primary-50);
+        }
+        
+        .template-selector input:checked + label {
+            border-color: var(--primary-600);
+            background: var(--primary-100);
+            font-weight: 600;
+        }
+        
+        /* Preview Area */
+        .preview-area {
+            background: var(--neutral-50);
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        /* Sortable Styles */
+        .sortable-item {
+            position: relative;
+        }
+        
+        .sortable-item .sort-handle {
+            position: absolute;
+            left: -1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: grab;
+            opacity: 0;
+            transition: var(--transition);
+            color: var(--neutral-400);
+        }
+        
+        .sortable-item:hover .sort-handle {
+            opacity: 1;
+        }
+        
+        .sortable-item .sort-handle:active {
+            cursor: grabbing;
+        }
+        
         /* Accessibility improvements */
         .modern-button:focus,
         .modern-input input:focus,
-        .modern-input textarea:focus {
+        .modern-input textarea:focus,
+        .prompt-card:focus {
             outline: 2px solid var(--primary-500) !important;
             outline-offset: 2px !important;
         }
@@ -618,16 +924,22 @@ class ResponsiveCSS:
                 transition: none !important;
                 animation: none !important;
             }
+            
+            .prompt-card:hover {
+                transform: none !important;
+            }
         }
         
         /* Print styles */
         @media print {
             .modern-button,
-            .action-bar {
+            .action-bar,
+            .drop-zone {
                 display: none !important;
             }
             
-            .ui-card {
+            .ui-card,
+            .prompt-card {
                 border: 1px solid #000 !important;
                 box-shadow: none !important;
                 page-break-inside: avoid !important;

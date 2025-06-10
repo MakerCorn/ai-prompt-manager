@@ -23,6 +23,7 @@ from token_calculator import token_calculator
 from i18n import i18n, t
 from ui_components import UIComponents, ModernTheme, ResponsiveCSS, create_modern_interface
 from text_translator import text_translator
+from prompt_builder import prompt_builder
 
 class AIPromptManager:
     def __init__(self, db_path: str = "prompts.db"):
@@ -846,6 +847,135 @@ def revoke_all_api_tokens():
     
     return message, gr.update(value=token_display)
 
+# Prompt Builder functions
+def load_available_prompts():
+    """Load available prompts for the builder"""
+    if not prompt_manager.current_user:
+        return "<div class='available-prompts'><p>Please login to view available prompts</p></div>"
+    
+    data_manager = prompt_manager.get_data_manager()
+    if not data_manager:
+        return "<div class='available-prompts'><p>No data manager available</p></div>"
+    
+    try:
+        available_prompts = prompt_builder.get_available_prompts(data_manager)
+        
+        if not available_prompts:
+            return "<div class='available-prompts'><p>No prompts available. Create some prompts first!</p></div>"
+        
+        # Generate HTML for available prompts
+        html_cards = []
+        for prompt in available_prompts:
+            card_html = f"""
+            <div class="prompt-card" data-prompt-id="{prompt['id']}" draggable="true">
+                <div class="prompt-card-header">
+                    <span class="prompt-icon">{'⚡' if prompt['is_enhancement'] else '📄'}</span>
+                    <h4 class="prompt-name">{prompt['name']}</h4>
+                    <span class="prompt-category">{prompt['category']}</span>
+                </div>
+                <div class="prompt-card-body">
+                    <p class="prompt-title">{prompt.get('title', '')}</p>
+                    <p class="prompt-preview">{prompt['preview']}</p>
+                    <div class="prompt-meta">
+                        <span class="prompt-length">{prompt['length']} chars</span>
+                        {'<span class="enhancement-badge">Enhancement</span>' if prompt['is_enhancement'] else ''}
+                    </div>
+                </div>
+            </div>
+            """
+            html_cards.append(card_html)
+        
+        return f"<div class='available-prompts'>{''.join(html_cards)}</div>"
+        
+    except Exception as e:
+        return f"<div class='available-prompts'><p>Error loading prompts: {str(e)}</p></div>"
+
+def update_builder_preview(selected_prompts, template, custom_separator, add_numbers):
+    """Update the preview of combined prompts"""
+    if not selected_prompts:
+        return t("builder.preview.empty")
+    
+    try:
+        # Convert template value if needed
+        template_key = template if isinstance(template, str) else "sequential"
+        
+        # Prepare custom options
+        custom_options = {
+            "separator": custom_separator.replace("\\n", "\n") if custom_separator else "\n\n",
+            "add_numbers": add_numbers
+        }
+        
+        preview = prompt_builder.get_combination_preview(selected_prompts, template_key)
+        return preview
+        
+    except Exception as e:
+        return f"{t('builder.preview.error')}: {str(e)}"
+
+def combine_selected_prompts(selected_prompts, template, custom_separator, add_numbers):
+    """Combine selected prompts and return result"""
+    if not selected_prompts:
+        return f"{t('builder.error.no_prompts')}", {}, []
+    
+    try:
+        # Convert template value if needed
+        template_key = template if isinstance(template, str) else "sequential"
+        
+        # Prepare custom options
+        custom_options = {
+            "separator": custom_separator.replace("\\n", "\n") if custom_separator else "\n\n",
+            "add_numbers": add_numbers
+        }
+        
+        success, error_message, combined_data = prompt_builder.combine_prompts(
+            selected_prompts, template_key, custom_options
+        )
+        
+        if success:
+            return f"✅ {t('status.success')}: Combined {len(selected_prompts)} prompts successfully!", combined_data, []
+        else:
+            return f"❌ {error_message}", {}, selected_prompts
+            
+    except Exception as e:
+        return f"❌ {t('builder.error.combination')}: {str(e)}", {}, selected_prompts
+
+def clear_selected_prompts():
+    """Clear the selected prompts"""
+    drop_zone_html = f"""
+    <div class="drop-zone drop-zone-selected" data-zone-type="selected">
+        <div class="drop-zone-content">
+            <div class="drop-zone-icon">📥</div>
+            <p class="drop-zone-message">{t("builder.drag.add")}</p>
+        </div>
+    </div>
+    """
+    return drop_zone_html, [], t("builder.preview.empty")
+
+def open_combined_in_editor(combined_data):
+    """Open combined prompt in the main editor"""
+    if not combined_data or 'content' not in combined_data:
+        return (
+            "",  # prompt_name
+            "",  # prompt_title  
+            "",  # prompt_content
+            "",  # prompt_category
+            "",  # prompt_tags
+            False,  # is_enhancement_prompt
+            "❌ No combined prompt to open in editor"  # status
+        )
+    
+    try:
+        return (
+            combined_data.get('suggested_name', ''),
+            combined_data.get('suggested_title', ''),
+            combined_data.get('content', ''),
+            combined_data.get('suggested_category', 'Combined'),
+            combined_data.get('suggested_tags', ''),
+            False,  # Enhancement prompt checkbox
+            f"✅ Combined prompt loaded into editor. Contains {combined_data.get('source_count', 0)} source prompts."
+        )
+    except Exception as e:
+        return "", "", "", "", "", False, f"❌ Error opening in editor: {str(e)}"
+
 def refresh_api_tokens():
     """Refresh API token display"""
     tokens = prompt_manager.get_user_api_tokens()
@@ -1235,6 +1365,108 @@ def create_interface():
                         interactive=False
                     )
                 
+                # Prompt Builder Tab
+                with gr.TabItem(f"🧩 {t('builder.title')}", elem_classes=["modern-tab"]):
+                    UIComponents.create_section_header("builder.title", "🧩")
+                    gr.Markdown(t("builder.subtitle"))
+                    
+                    with gr.Row(elem_classes=["responsive-layout"]):
+                        # Available Prompts Section
+                        with gr.Column(scale=1, elem_classes=["builder-section"]):
+                            with gr.Group(elem_classes=["builder-header"]):
+                                gr.Markdown(f"### 📋 {t('builder.available')}")
+                                builder_search, builder_filter = UIComponents.create_search_bar(
+                                    placeholder_key="builder.search.placeholder",
+                                    with_filters=True
+                                )
+                                builder_refresh_btn = UIComponents.create_button(
+                                    "action.refresh",
+                                    variant="secondary",
+                                    icon="🔄",
+                                    size="small"
+                                )
+                            
+                            available_prompts_area = gr.HTML(
+                                value="<div class='available-prompts'><p>Login to view available prompts...</p></div>",
+                                elem_classes=["available-prompts"]
+                            )
+                        
+                        # Selected Prompts Section  
+                        with gr.Column(scale=1, elem_classes=["builder-section"]):
+                            with gr.Group(elem_classes=["builder-header"]):
+                                gr.Markdown(f"### 🎯 {t('builder.selected')}")
+                                with gr.Row():
+                                    clear_selection_btn = UIComponents.create_button(
+                                        "builder.clear",
+                                        variant="secondary",
+                                        icon="🗑️",
+                                        size="small"
+                                    )
+                                    combine_prompts_btn = UIComponents.create_button(
+                                        "builder.combine",
+                                        variant="primary",
+                                        icon="🔗",
+                                        size="medium"
+                                    )
+                            
+                            selected_prompts_area = UIComponents.create_drop_zone(
+                                zone_type="selected",
+                                message_key="builder.drag.add"
+                            )
+                            
+                            selected_prompts_list = gr.State([])  # Store selected prompts data
+                    
+                    # Template Selection and Preview
+                    with gr.Row(elem_classes=["responsive-layout"]):
+                        with gr.Column(scale=1, elem_classes=["builder-section"]):
+                            gr.Markdown(f"### 🎨 {t('builder.template')}")
+                            template_selector = UIComponents.create_template_selector()
+                            
+                            gr.Markdown("#### Custom Options")
+                            custom_separator = gr.Textbox(
+                                label="Custom Separator",
+                                value="\\n\\n",
+                                placeholder="Enter custom separator between prompts"
+                            )
+                            add_numbers = gr.Checkbox(
+                                label="Add Numbers",
+                                value=True,
+                                info="Add sequence numbers to prompts"
+                            )
+                        
+                        with gr.Column(scale=1, elem_classes=["builder-section"]):
+                            gr.Markdown(f"### 👁️ {t('builder.preview')}")
+                            preview_area = gr.Textbox(
+                                value=t("builder.preview.empty"),
+                                lines=12,
+                                interactive=False,
+                                elem_classes=["preview-area"]
+                            )
+                            
+                            with gr.Row():
+                                update_preview_btn = UIComponents.create_button(
+                                    "action.refresh",
+                                    variant="secondary",
+                                    icon="👁️",
+                                    size="small"
+                                )
+                                open_in_editor_btn = UIComponents.create_button(
+                                    "builder.edit",
+                                    variant="primary",
+                                    icon="📝",
+                                    size="medium"
+                                )
+                    
+                    # Builder Status
+                    builder_status = UIComponents.create_status_display("status.info")
+                    
+                    # Hidden state for builder data
+                    builder_state = gr.State({
+                        "available_prompts": [],
+                        "selected_prompts": [],
+                        "combined_prompt": None
+                    })
+                
                 # Prompt Execution Tab
                 with gr.TabItem("🚀 Prompt Execution"):
                     gr.Markdown("### Execute AI Prompts")
@@ -1610,6 +1842,9 @@ def create_interface():
         ).then(
             get_langwatch_status_display,
             outputs=langwatch_status
+        ).then(
+            load_available_prompts,
+            outputs=available_prompts_area
         )
         
         logout_btn.click(
@@ -1721,6 +1956,54 @@ def create_interface():
             refresh_prompts_display,
             inputs=[search_box, category_filter],
             outputs=prompts_display
+        )
+        
+        # Event handlers for Prompt Builder
+        builder_refresh_btn.click(
+            load_available_prompts,
+            outputs=available_prompts_area
+        )
+        
+        clear_selection_btn.click(
+            clear_selected_prompts,
+            outputs=[selected_prompts_area, selected_prompts_list, preview_area]
+        )
+        
+        combine_prompts_btn.click(
+            combine_selected_prompts,
+            inputs=[selected_prompts_list, template_selector, custom_separator, add_numbers],
+            outputs=[builder_status, builder_state, selected_prompts_list]
+        )
+        
+        update_preview_btn.click(
+            update_builder_preview,
+            inputs=[selected_prompts_list, template_selector, custom_separator, add_numbers],
+            outputs=preview_area
+        )
+        
+        # Auto-update preview when template or options change
+        template_selector.change(
+            update_builder_preview,
+            inputs=[selected_prompts_list, template_selector, custom_separator, add_numbers],
+            outputs=preview_area
+        )
+        
+        custom_separator.change(
+            update_builder_preview,
+            inputs=[selected_prompts_list, template_selector, custom_separator, add_numbers],
+            outputs=preview_area
+        )
+        
+        add_numbers.change(
+            update_builder_preview,
+            inputs=[selected_prompts_list, template_selector, custom_separator, add_numbers],
+            outputs=preview_area
+        )
+        
+        open_in_editor_btn.click(
+            open_combined_in_editor,
+            inputs=[builder_state],
+            outputs=[prompt_name, prompt_title, prompt_content, prompt_category, prompt_tags, is_enhancement_prompt, prompt_status]
         )
         
         # Event handlers for execution
