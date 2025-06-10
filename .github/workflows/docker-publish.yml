@@ -8,10 +8,10 @@ name: Docker
 on:
   #schedule:
   #  - cron: '38 9 * * *'
-  push:
-    branches: [ "main" ]
+  #push:
+  #  branches: [ "main" ]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+  #  tags: [ 'v*.*.*' ]
   workflow_run:
     workflows: ["Test and Validation"]
     types:
