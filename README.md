@@ -10,6 +10,7 @@ A comprehensive AI prompt management system with unified architecture supporting
 - [🌐 Multi-Language Support](#-multi-language-support)
 - [🧮 Token Calculator Guide](#-token-calculator-guide)
 - [📝 Prompt Management](#-prompt-management)
+- [🧩 Prompt Builder Guide](#-prompt-builder-guide)
 - [🔑 API Access](#-api-access)
 - [🏢 Multi-Tenant Features](#-multi-tenant-features)
 - [🚀 Development](#-development)
@@ -35,6 +36,7 @@ A comprehensive AI prompt management system with unified architecture supporting
 ### 🧮 **Advanced AI Features**
 - **Token Calculator**: Real-time cost estimation for all major AI models
 - **LangWatch Integration**: AI-powered prompt optimization and suggestions
+- **Prompt Builder**: Drag-and-drop interface to combine multiple prompts into new ones
 - **Multi-Provider Support**: OpenAI, Claude, Gemini, LM Studio, Ollama, Llama.cpp
 - **Enhancement Engine**: Improve prompts using different AI models
 
@@ -555,6 +557,273 @@ Improve your prompts with AI-powered suggestions:
 
 ---
 
+## 🧩 Prompt Builder Guide
+
+The **Prompt Builder** is a powerful drag-and-drop interface that allows you to combine multiple existing prompts into sophisticated new ones. Perfect for creating complex, multi-layered prompts from your existing prompt library.
+
+### 🎯 What is the Prompt Builder?
+
+The Prompt Builder enables you to:
+- **Combine Multiple Prompts**: Merge 2 or more existing prompts into a single, comprehensive prompt
+- **Use Smart Templates**: Choose from 4 different combination methods
+- **Drag-and-Drop Interface**: Intuitive, visual prompt selection and organization  
+- **Live Preview**: See exactly how your combined prompt will look before saving
+- **Seamless Integration**: Open combined prompts directly in the main editor for further refinement
+
+### 🚀 Getting Started
+
+#### 1. **Access the Prompt Builder**
+- Navigate to the **🧩 Prompt Builder** tab in the main interface
+- Ensure you have some existing prompts created (minimum 2 prompts required)
+
+#### 2. **Basic Workflow**
+```
+Available Prompts → Select & Combine → Choose Template → Preview → Edit
+```
+
+### 📋 Step-by-Step Guide
+
+#### **Step 1: Browse Available Prompts**
+- The **Available Prompts** panel shows all your existing prompts as cards
+- Each card displays:
+  - **Prompt name** and category
+  - **Preview** of the content
+  - **Character count** and type (regular or enhancement)
+  - **Visual indicators** for prompt types
+
+#### **Step 2: Select Prompts to Combine**
+- **Drag prompts** from the Available section to the Selected area
+- **Alternative**: Click prompts to add them to your selection
+- **Reorder**: Drag selected prompts to change their order
+- **Remove**: Drag prompts out of the selected area to remove them
+
+#### **Step 3: Choose a Combination Template**
+
+| Template | Icon | Description | Best For |
+|----------|------|-------------|----------|
+| **Sequential** | 📋 | Combines prompts one after another with clear separation | Simple prompt chaining |
+| **Sections** | 📑 | Creates distinct sections with headers for each prompt | Structured, multi-part prompts |
+| **Layered** | 🏗️ | Builds context in layers with base + additional layers | Complex context building |
+| **Custom** | 🎨 | Uses your own formatting template with placeholders | Advanced customization |
+
+#### **Step 4: Customize Options**
+- **Custom Separator**: Choose how prompts are separated (default: `\n\n`)
+- **Add Numbers**: Automatically number each prompt section
+- **Template-Specific Options**: Additional settings based on selected template
+
+#### **Step 5: Preview Your Creation**
+- The **Preview** panel shows exactly how your combined prompt will look
+- **Real-time updates** as you change templates or options
+- **Character count** and **source prompt tracking**
+
+#### **Step 6: Finalize and Edit**
+- Click **🔗 Combine Prompts** to generate the final result
+- Click **📝 Open in Editor** to transfer the combined prompt to the main editor
+- **Continue editing** in the main interface with full editing capabilities
+
+### 🎨 Template Details
+
+#### **📋 Sequential Template**
+Combines prompts in order with simple separation:
+```
+1. First prompt content here
+
+2. Second prompt content here
+
+3. Third prompt content here
+```
+
+**Options:**
+- ✅ Add sequence numbers
+- ✅ Custom separator between prompts
+
+#### **📑 Sections Template**  
+Creates clearly defined sections with headers:
+```
+## First Prompt Title
+First prompt content here
+
+---
+
+## Second Prompt Title  
+Second prompt content here
+
+---
+
+## Third Prompt Title
+Third prompt content here
+```
+
+**Best for:**
+- Multi-part instructions
+- Structured analysis prompts
+- Documentation generation
+
+#### **🏗️ Layered Template**
+Builds context progressively:
+```
+Base Context:
+Your foundational prompt here
+
+Layer 1:
+Additional context or instructions
+
+Layer 2:
+Further refinements or specifications
+
+Instructions: Integrate all layers above into a cohesive response.
+```
+
+**Best for:**
+- Complex reasoning tasks
+- Context-heavy prompts
+- Graduated instruction sets
+
+#### **🎨 Custom Template**
+Use your own formatting with placeholders:
+```
+Template: "Context: {content}\nSource: {name}\nCategory: {category}"
+```
+
+**Available Placeholders:**
+- `{content}` - The prompt content
+- `{name}` - Prompt name
+- `{title}` - Prompt title
+- `{category}` - Prompt category
+- `{tags}` - Prompt tags
+
+### ⚡ Advanced Features
+
+#### **Smart Metadata Generation**
+When you combine prompts, the system automatically generates:
+- **Suggested Name**: `Combined_PromptA+PromptB` or `Combined_3_Prompts_20250108`
+- **Suggested Title**: Based on prompt categories and content
+- **Combined Category**: `Combined` or inherited from source prompts
+- **Merged Tags**: All unique tags from source prompts plus `combined` and `X-part` tags
+
+#### **Validation and Error Prevention**
+- **Minimum Requirements**: Must select at least 2 prompts
+- **Duplicate Detection**: Prevents selecting the same prompt twice
+- **Length Limits**: Warns if combined prompt exceeds 50,000 characters
+- **Template Validation**: Ensures template compatibility with selected prompts
+
+#### **Search and Filter**
+- **Search Bar**: Find prompts by name, title, or content
+- **Category Filter**: Show only prompts from specific categories
+- **Refresh**: Update available prompts after creating new ones
+
+### 🌐 Multi-Language Support
+
+The Prompt Builder is fully localized in all 10 supported languages:
+
+| Language | Prompt Builder | Available Prompts | Template Options |
+|----------|---------------|-------------------|------------------|
+| 🇺🇸 English | Prompt Builder | Available Prompts | Sequential, Sections, Layered, Custom |
+| 🇪🇸 Spanish | Constructor de Prompts | Prompts Disponibles | Secuencial, Secciones, Por Capas, Personalizado |
+| 🇫🇷 French | Constructeur de Prompts | Prompts Disponibles | Séquentiel, Sections, En Couches, Personnalisé |
+| 🇩🇪 German | Prompt-Builder | Verfügbare Prompts | Sequenziell, Abschnitte, Geschichtet, Benutzerdefiniert |
+| 🇨🇳 Chinese | 提示构建器 | 可用提示 | 顺序, 分段, 分层, 自定义 |
+| 🇯🇵 Japanese | プロンプトビルダー | 利用可能なプロンプト | 順次, セクション, 階層, カスタム |
+| 🇵🇹 Portuguese | Construtor de Prompts | Prompts Disponíveis | Sequencial, Seções, Em Camadas, Personalizado |
+| 🇷🇺 Russian | Конструктор Промптов | Доступные Промпты | Последовательный, Секции, Слоистый, Пользовательский |
+| 🇸🇦 Arabic | منشئ المطالبات | المطالبات المتاحة | تسلسلي, أقسام, طبقات, مخصص |
+| 🇮🇳 Hindi | प्रॉम्प्ट बिल्डर | उपलब्ध प्रॉम्प्ट्स | क्रमिक, खंड, परतदार, कस्टम |
+
+### 💡 Use Cases and Examples
+
+#### **Example 1: Content Creation Workflow**
+1. **Select prompts**: "Blog Introduction", "SEO Keywords", "Call to Action"
+2. **Template**: Sections
+3. **Result**: Complete blog post structure with intro, SEO-optimized content, and CTA
+
+#### **Example 2: Analysis Framework**
+1. **Select prompts**: "Context Analysis", "SWOT Framework", "Recommendations"
+2. **Template**: Layered
+3. **Result**: Comprehensive analysis prompt with progressive depth
+
+#### **Example 3: Creative Writing**
+1. **Select prompts**: "Character Development", "Setting Description", "Plot Points"
+2. **Template**: Sequential
+3. **Result**: Complete creative writing framework
+
+#### **Example 4: Technical Documentation**
+1. **Select prompts**: "Requirements Gathering", "Technical Specs", "User Stories"
+2. **Template**: Sections with custom separator
+3. **Result**: Structured technical documentation prompt
+
+### 🔧 Tips and Best Practices
+
+#### **Prompt Selection Tips**
+- ✅ **Start with complementary prompts** that work well together
+- ✅ **Consider prompt length** - very long prompts may overwhelm the combination
+- ✅ **Mix prompt types** - combine different categories for richer results
+- ✅ **Use enhancement prompts** strategically to improve overall quality
+
+#### **Template Selection Guide**
+- **Sequential**: Simple combinations, tutorials, step-by-step processes
+- **Sections**: Reports, analyses, structured content
+- **Layered**: Complex reasoning, context-heavy tasks
+- **Custom**: Specialized formatting, integration with external systems
+
+#### **Optimization Strategies**
+- 🎯 **Preview frequently** to catch issues early
+- 🎯 **Test with smaller combinations** first
+- 🎯 **Use meaningful names** for easy identification later
+- 🎯 **Leverage tags** to organize and find combined prompts
+
+### 🚨 Troubleshooting
+
+#### **Common Issues**
+
+**"No prompts selected" Error:**
+- Make sure you've dragged at least 2 prompts to the Selected area
+- Check that prompts are actually visible in the Selected section
+
+**"Combined prompt too long" Warning:**
+- Remove some prompts or choose shorter ones
+- Use more concise source prompts
+- Consider splitting into multiple smaller combinations
+
+**Preview not updating:**
+- Click the "👁️ Refresh Preview" button
+- Check that you've selected a valid template
+- Ensure selected prompts are properly loaded
+
+**Drag-and-drop not working:**
+- Refresh the page and try again
+- Use click-to-select as an alternative
+- Check browser compatibility (modern browsers recommended)
+
+#### **Performance Tips**
+- **Limit simultaneous combinations** to avoid browser slowdown
+- **Clear old selections** before starting new combinations
+- **Use shorter prompts** for faster preview updates
+- **Save frequently** to avoid losing work
+
+### 🔗 Integration with Other Features
+
+#### **Token Calculator Integration**
+- Combined prompts automatically work with the Token Calculator
+- Estimate costs for your combined prompts before using them
+- Compare token usage across different combination templates
+
+#### **LangWatch Optimization**
+- Use combined prompts with LangWatch optimization
+- Improve combined prompts with AI-powered suggestions
+- Optimize the final result after combination
+
+#### **Translation Feature**
+- Combined prompts work with the translation feature
+- Translate combined prompts to English for better AI processing
+- Maintain formatting across translations
+
+#### **API Access**
+- Combined prompts are saved like regular prompts
+- Access via API endpoints once saved
+- Include in automated workflows and integrations
+
+---
+
 ## 🔑 API Access
 
 ### Setting Up API Access
@@ -892,6 +1161,18 @@ docker run -p 7860:7860 \
 | Arabic | `ar` | `DEFAULT_LANGUAGE=ar` | `?lang=ar` | العربية |
 | Hindi | `hi` | `DEFAULT_LANGUAGE=hi` | `?lang=hi` | हिन्दी |
 
+### 🧩 **Prompt Builder Quick Reference**
+
+| Action | Steps | Shortcut |
+|--------|-------|----------|
+| **Access Builder** | Navigate to 🧩 Prompt Builder tab | Direct tab access |
+| **Add Prompts** | Drag from Available → Selected | Click to select |
+| **Change Order** | Drag prompts within Selected area | Drag & drop |
+| **Remove Prompts** | Drag out of Selected area | Click X button |
+| **Preview** | Select template → Auto-preview | 👁️ Refresh button |
+| **Combine** | Click 🔗 Combine Prompts | Automatic generation |
+| **Edit Result** | Click 📝 Open in Editor | Direct transfer |
+
 ### ⚡ **Quick Commands**
 
 ```bash
@@ -1122,4 +1403,4 @@ See the [LICENSE](LICENSE) file for complete details.
 
 ---
 
-**🔐 Secure • 🧮 Cost-Aware • 🚀 Optimized • 🤖 AI-Powered • 🔌 API-Ready**
+**🔐 Secure • 🧮 Cost-Aware • 🚀 Optimized • 🤖 AI-Powered • 🧩 Builder-Enhanced • 🔌 API-Ready**

@@ -127,41 +127,59 @@ class UIComponents:
         
         placeholder = t(placeholder_key) if placeholder_key else ""
         
+        # Extract elem_classes from kwargs to avoid conflict and merge with default classes
+        extra_classes = kwargs.pop('elem_classes', [])
+        
         if input_type == "text":
+            css_classes = ["modern-input"]
+            if extra_classes:
+                css_classes.extend(extra_classes)
             return gr.Textbox(
                 label=label,
                 placeholder=placeholder,
-                elem_classes=["modern-input"],
+                elem_classes=css_classes,
                 **kwargs
             )
         elif input_type == "textarea":
             # Extract lines from kwargs to avoid conflict
             lines = kwargs.pop('lines', 4)
+            css_classes = ["modern-textarea"]
+            if extra_classes:
+                css_classes.extend(extra_classes)
             return gr.Textbox(
                 label=label,
                 placeholder=placeholder,
                 lines=lines,
-                elem_classes=["modern-textarea"],
+                elem_classes=css_classes,
                 **kwargs
             )
         elif input_type == "password":
+            css_classes = ["modern-input"]
+            if extra_classes:
+                css_classes.extend(extra_classes)
             return gr.Textbox(
                 label=label,
                 placeholder=placeholder,
                 type="password",
-                elem_classes=["modern-input"],
+                elem_classes=css_classes,
                 **kwargs
             )
         elif input_type == "dropdown":
+            css_classes = ["modern-dropdown"]
+            if extra_classes:
+                css_classes.extend(extra_classes)
             return gr.Dropdown(
                 label=label,
-                elem_classes=["modern-dropdown"],
+                elem_classes=css_classes,
                 **kwargs
             )
         elif input_type == "number":
+            css_classes = ["modern-input"]
+            if extra_classes:
+                css_classes.extend(extra_classes)
             return gr.Number(
                 label=label,
-                elem_classes=["modern-input"],
+                elem_classes=css_classes,
                 **kwargs
             )
     
@@ -178,7 +196,11 @@ class UIComponents:
         if icon:
             label = f"{icon} {label}"
         
+        # Extract elem_classes from kwargs to avoid conflict and merge with default classes
+        extra_classes = kwargs.pop('elem_classes', [])
         css_classes = ["modern-button", f"btn-{variant}", f"btn-{size}"]
+        if extra_classes:
+            css_classes.extend(extra_classes)
         
         return gr.Button(
             label,

@@ -1220,8 +1220,7 @@ def create_interface():
                                         size="medium"
                                     )
                                     translation_status = UIComponents.create_status_display(
-                                        "translate.status",
-                                        elem_classes=["translation-status"]
+                                        "translate.status"
                                     )
                             
                             # Token Calculator Section
