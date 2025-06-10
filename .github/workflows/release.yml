@@ -1,14 +1,15 @@
-name: Create Release
+name: "Create Release"
 
 on:
-  workflow_run:
-    workflows: ["Test and Validation"]
-    types:
-      - completed
   push:
     tags:
       - 'v*.*.*'
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for manual release'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -19,10 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Set release tag
+        id: set_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="${{ github.event.inputs.tag_name }}"
+          else
+            TAG_NAME="${{ github.ref_name }}"
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Using tag: $TAG_NAME"
+      
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ steps.set_tag.outputs.tag_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,7 +56,7 @@ jobs:
       - name: Create release distribution
         run: |
           # Create comprehensive release package
-          RELEASE_DIR="ai-prompt-manager-${{ github.ref_name }}"
+          RELEASE_DIR="ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}"
           mkdir -p "$RELEASE_DIR"
           
           echo "📦 Creating release package: $RELEASE_DIR"
@@ -79,9 +92,9 @@ jobs:
           ls -la "$RELEASE_DIR/"
           
           # Create installation script
-          cat > ai-prompt-manager-${{ github.ref_name }}/install.sh << 'EOF'
+          cat > ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}/install.sh << 'EOF'
           #!/bin/bash
-          echo "🚀 AI Prompt Manager ${{ github.ref_name }} Installation"
+          echo "🚀 AI Prompt Manager ${{ steps.set_tag.outputs.tag_name }} Installation"
           echo "================================================="
           
           # Check Python version
@@ -111,7 +124,7 @@ jobs:
           fi
           
           echo ""
-          echo "✅ AI Prompt Manager ${{ github.ref_name }} installed successfully!"
+          echo "✅ AI Prompt Manager ${{ steps.set_tag.outputs.tag_name }} installed successfully!"
           echo ""
           echo "🚀 Quick Start Commands:"
           echo "  poetry run python run.py                    # Multi-tenant mode"
@@ -127,23 +140,23 @@ jobs:
           echo "🔧 Configuration Guide: .env.example"
           EOF
           
-          chmod +x ai-prompt-manager-${{ github.ref_name }}/install.sh
+          chmod +x ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}/install.sh
           
           # Create archives
           echo "📦 Creating release archives..."
-          tar -czf ai-prompt-manager-${{ github.ref_name }}.tar.gz ai-prompt-manager-${{ github.ref_name }}/
-          zip -r ai-prompt-manager-${{ github.ref_name }}.zip ai-prompt-manager-${{ github.ref_name }}/
+          tar -czf ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}.tar.gz ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}/
+          zip -r ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}.zip ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}/
           
           # Verify archives were created
           echo "✅ Release archives created:"
-          ls -lh ai-prompt-manager-${{ github.ref_name }}.tar.gz ai-prompt-manager-${{ github.ref_name }}.zip
+          ls -lh ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}.tar.gz ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}.zip
 
       - name: Generate changelog
         id: changelog
         run: |
           # Check if this is actually a tag release
-          if [[ "${{ github.ref_name }}" != v*.*.* ]]; then
-            echo "⚠️ This is not a version tag release (ref: ${{ github.ref_name }})"
+          if [[ "${{ steps.set_tag.outputs.tag_name }}" != v*.*.* ]]; then
+            echo "⚠️ This is not a version tag release (ref: ${{ steps.set_tag.outputs.tag_name }})"
             echo "Skipping changelog generation for non-tag releases"
             echo "CHANGELOG=## Manual Release
 
@@ -162,10 +175,10 @@ Please refer to the commit history for changes." >> "$GITHUB_OUTPUT"
             echo "Previous tag: $PREVIOUS_TAG"
           fi
           
-          echo "Current tag: ${{ github.ref_name }}"
+          echo "Current tag: ${{ steps.set_tag.outputs.tag_name }}"
           
           # Generate changelog
-          echo "## What's Changed in ${{ github.ref_name }}" > RELEASE_CHANGELOG.md
+          echo "## What's Changed in ${{ steps.set_tag.outputs.tag_name }}" > RELEASE_CHANGELOG.md
           echo "" >> RELEASE_CHANGELOG.md
           
           # Get commits since last tag
@@ -173,7 +186,7 @@ Please refer to the commit history for changes." >> "$GITHUB_OUTPUT"
             echo "✅ Generated changelog from commits"
           else
             echo "⚠️ No commits found, creating basic changelog"
-            echo "- Release ${{ github.ref_name }}" >> RELEASE_CHANGELOG.md
+            echo "- Release ${{ steps.set_tag.outputs.tag_name }}" >> RELEASE_CHANGELOG.md
           fi
           
           # Save changelog for use in release body
@@ -185,15 +198,16 @@ Please refer to the commit history for changes." >> "$GITHUB_OUTPUT"
 
       - name: Create release body
         run: |
-          cat > RELEASE_BODY.md << 'EOF'
-          # 🚀 AI Prompt Manager ${{ github.ref_name }}
+          TAG_NAME="${{ steps.set_tag.outputs.tag_name }}"
+          cat > RELEASE_BODY.md << EOF
+          # 🚀 AI Prompt Manager $TAG_NAME
           
           ## 📦 Installation Options
           
           ### Option 1: Download Release Package (Recommended)
-          1. Download `ai-prompt-manager-${{ github.ref_name }}.tar.gz` or `.zip` from the assets below
-          2. Extract the archive: `tar -xzf ai-prompt-manager-${{ github.ref_name }}.tar.gz`
-          3. Run the installer: `cd ai-prompt-manager-${{ github.ref_name }} && chmod +x install.sh && ./install.sh`
+          1. Download \`ai-prompt-manager-$TAG_NAME.tar.gz\` or \`.zip\` from the assets below
+          2. Extract the archive: \`tar -xzf ai-prompt-manager-$TAG_NAME.tar.gz\`
+          3. Run the installer: \`cd ai-prompt-manager-$TAG_NAME && chmod +x install.sh && ./install.sh\`
           4. Start the application: `poetry run python run.py`
           
           ### Option 2: Docker Deployment
@@ -209,7 +223,7 @@ Please refer to the commit history for changes." >> "$GITHUB_OUTPUT"
           ```bash
           git clone https://github.com/${{ github.repository }}.git
           cd ai-prompt-manager
-          git checkout ${{ github.ref_name }}
+          git checkout $TAG_NAME
           poetry install
           poetry run python run.py
           ```
@@ -278,11 +292,11 @@ Please refer to the commit history for changes." >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
-          name: AI Prompt Manager ${{ github.ref_name }}
+          tag_name: ${{ steps.set_tag.outputs.tag_name }}
+          name: AI Prompt Manager ${{ steps.set_tag.outputs.tag_name }}
           body_path: RELEASE_BODY.md
           draft: false
           prerelease: false
           files: |
-            ai-prompt-manager-${{ github.ref_name }}.tar.gz
-            ai-prompt-manager-${{ github.ref_name }}.zip
+            ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}.tar.gz
+            ai-prompt-manager-${{ steps.set_tag.outputs.tag_name }}.zip
