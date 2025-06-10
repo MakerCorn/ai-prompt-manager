@@ -1,6 +1,10 @@
 name: Create Release
 
 on:
+  workflow_run:
+    workflows: ["Test and Validation"]
+    types:
+      - completed
   push:
     tags:
       - 'v*.*.*'
