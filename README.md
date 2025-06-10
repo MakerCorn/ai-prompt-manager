@@ -260,6 +260,66 @@ The multi-language system covers **all user-facing elements**:
 - ✅ **Enhancement Engine**: Prompt improvement tools
 - ✅ **Error Messages**: Validation and system feedback
 
+### 🌐 Translation Feature
+
+When using the interface in a non-English language, AI Prompt Manager provides an automatic **translation feature** to help you work with AI enhancement tools that work best with English prompts.
+
+#### **How Translation Works**
+
+1. **Automatic Detection**: Translation button appears automatically when UI language is not English
+2. **One-Click Translation**: Click "Translate to English" button in prompt editor
+3. **Smart Replacement**: Translated text replaces original content in the editor
+4. **Validation**: Translated text undergoes validation before saving
+5. **Status Feedback**: Clear success/error messages guide the process
+
+#### **Supported Translation Services**
+
+| Service | Quality | Setup | Cost |
+|---------|---------|-------|------|
+| **OpenAI** | ⭐⭐⭐⭐⭐ | API Key | Paid |
+| **Google Translate** | ⭐⭐⭐⭐ | API Key | Paid |
+| **LibreTranslate** | ⭐⭐⭐ | Optional Key | Free/Paid |
+| **Mock** | ⭐ | None | Free |
+
+#### **Configuration**
+
+Set up translation services via environment variables:
+
+```bash
+# Use OpenAI for highest quality
+TRANSLATION_SERVICE=openai
+OPENAI_API_KEY=your_openai_api_key
+
+# Use Google Translate  
+TRANSLATION_SERVICE=google
+GOOGLE_TRANSLATE_API_KEY=your_google_key
+
+# Use LibreTranslate (open source)
+TRANSLATION_SERVICE=libre
+LIBRETRANSLATE_URL=https://libretranslate.de/translate
+LIBRETRANSLATE_API_KEY=optional_key
+
+# Use mock for testing (default)
+TRANSLATION_SERVICE=mock
+```
+
+#### **Usage Workflow**
+
+1. **Switch Language**: Change UI to your preferred language (Spanish, French, etc.)
+2. **Write Prompt**: Enter your prompt in your native language
+3. **Translate**: Click the "🌐 Translate to English" button that appears
+4. **Enhance**: Use the translated English text with AI enhancement tools
+5. **Save**: Save the improved prompt after validation
+
+#### **Example**
+
+```text
+Original (Spanish): "Escribe un poema sobre la naturaleza"
+Translated (English): "Write a poem about nature"  
+Enhanced (English): "Create a beautiful, evocative poem about the wonders 
+                     of nature, focusing on vivid imagery and emotional depth"
+```
+
 ### 🔧 Advanced Configuration
 
 #### **Programmatic Language Control**
@@ -849,6 +909,28 @@ DEFAULT_LANGUAGE=fr MULTITENANT_MODE=true python run.py
 
 # API with German interface
 DEFAULT_LANGUAGE=de ENABLE_API=true python run.py
+
+# Translation service with Spanish UI
+DEFAULT_LANGUAGE=es TRANSLATION_SERVICE=openai OPENAI_API_KEY=key python run.py
+```
+
+### 🌐 **Translation Configuration**
+
+```bash
+# OpenAI translation (best quality)
+TRANSLATION_SERVICE=openai
+OPENAI_API_KEY=your_openai_key
+
+# Google Translate
+TRANSLATION_SERVICE=google
+GOOGLE_TRANSLATE_API_KEY=your_google_key
+
+# LibreTranslate (free)
+TRANSLATION_SERVICE=libre
+LIBRETRANSLATE_URL=https://libretranslate.de/translate
+
+# Mock for testing (default)
+TRANSLATION_SERVICE=mock
 ```
 
 ### 🔧 **Developer Integration**
@@ -866,6 +948,14 @@ print(t('app.title'))    # "Gestor de Prompts IA"
 
 # With parameters
 print(t('auth.welcome', name='María'))  # "¡Bienvenido, María!"
+
+# Translation API
+from text_translator import text_translator
+
+# Check if translation is needed
+if text_translator.is_translation_needed():
+    success, translated, error = text_translator.translate_to_english("Hola mundo")
+    print(f"Translated: {translated}")
 ```
 
 ---

@@ -197,6 +197,11 @@ class UIComponents:
         label = t(label_key)
         css_classes = ["status-display", f"status-{status_type}"]
         
+        # Extract elem_classes from kwargs to avoid conflict
+        extra_classes = kwargs.pop('elem_classes', [])
+        if extra_classes:
+            css_classes.extend(extra_classes)
+        
         return gr.Textbox(
             label=label,
             interactive=False,

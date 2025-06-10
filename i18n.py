@@ -186,6 +186,11 @@ class I18nManager:
             "msg.confirm_delete": "Are you sure you want to delete this?",
             "msg.no_results": "No results found",
             "msg.loading_data": "Loading data...",
+            
+            # Translation
+            "translate.to_english": "Translate to English",
+            "translate.status": "Translation Status",
+            "translate.help": "Translate your prompt to English for better AI enhancement",
         }
     
     def _get_spanish_translations(self) -> Dict[str, str]:
@@ -277,6 +282,11 @@ class I18nManager:
             "msg.confirm_delete": "¿Está seguro de que desea eliminar esto?",
             "msg.no_results": "No se encontraron resultados",
             "msg.loading_data": "Cargando datos...",
+            
+            # Translation
+            "translate.to_english": "Traducir al Inglés",
+            "translate.status": "Estado de Traducción",
+            "translate.help": "Traduzca su prompt al inglés para una mejor mejora con IA",
         }
     
     def _get_french_translations(self) -> Dict[str, str]:
@@ -368,6 +378,11 @@ class I18nManager:
             "msg.confirm_delete": "Êtes-vous sûr de vouloir supprimer ceci?",
             "msg.no_results": "Aucun résultat trouvé",
             "msg.loading_data": "Chargement des données...",
+            
+            # Translation
+            "translate.to_english": "Traduire en Anglais",
+            "translate.status": "Statut de Traduction",
+            "translate.help": "Traduisez votre prompt en anglais pour une meilleure amélioration IA",
         }
     
     def _get_german_translations(self) -> Dict[str, str]:
@@ -459,6 +474,11 @@ class I18nManager:
             "msg.confirm_delete": "Sind Sie sicher, dass Sie dies löschen möchten?",
             "msg.no_results": "Keine Ergebnisse gefunden",
             "msg.loading_data": "Daten werden geladen...",
+            
+            # Translation
+            "translate.to_english": "Ins Englische übersetzen",
+            "translate.status": "Übersetzungsstatus",
+            "translate.help": "Übersetzen Sie Ihren Prompt ins Englische für bessere KI-Verbesserung",
         }
     
     def _get_chinese_translations(self) -> Dict[str, str]:
@@ -550,6 +570,11 @@ class I18nManager:
             "msg.confirm_delete": "您确定要删除这个吗？",
             "msg.no_results": "未找到结果",
             "msg.loading_data": "正在加载数据...",
+            
+            # Translation
+            "translate.to_english": "翻译为英文",
+            "translate.status": "翻译状态",
+            "translate.help": "将您的提示翻译为英文以获得更好的AI增强效果",
         }
     
     def _get_japanese_translations(self) -> Dict[str, str]:
@@ -641,6 +666,11 @@ class I18nManager:
             "msg.confirm_delete": "本当に削除しますか？",
             "msg.no_results": "結果が見つかりません",
             "msg.loading_data": "データを読み込み中...",
+            
+            # Translation
+            "translate.to_english": "英語に翻訳",
+            "translate.status": "翻訳ステータス",
+            "translate.help": "より良いAI強化のためにプロンプトを英語に翻訳してください",
         }
     
     def _get_portuguese_translations(self) -> Dict[str, str]:
@@ -732,6 +762,11 @@ class I18nManager:
             "msg.confirm_delete": "Tem certeza que deseja excluir isso?",
             "msg.no_results": "Nenhum resultado encontrado",
             "msg.loading_data": "Carregando dados...",
+            
+            # Translation
+            "translate.to_english": "Traduzir para Inglês",
+            "translate.status": "Status da Tradução",
+            "translate.help": "Traduza seu prompt para inglês para melhor aprimoramento com IA",
         }
     
     def _get_russian_translations(self) -> Dict[str, str]:
@@ -823,6 +858,11 @@ class I18nManager:
             "msg.confirm_delete": "Вы уверены, что хотите удалить это?",
             "msg.no_results": "Результаты не найдены",
             "msg.loading_data": "Загрузка данных...",
+            
+            # Translation
+            "translate.to_english": "Перевести на английский",
+            "translate.status": "Статус перевода",
+            "translate.help": "Переведите ваш промпт на английский для лучшего улучшения ИИ",
         }
     
     def _get_arabic_translations(self) -> Dict[str, str]:
@@ -914,6 +954,11 @@ class I18nManager:
             "msg.confirm_delete": "هل أنت متأكد من أنك تريد حذف هذا؟",
             "msg.no_results": "لم يتم العثور على نتائج",
             "msg.loading_data": "جاري تحميل البيانات...",
+            
+            # Translation
+            "translate.to_english": "ترجمة إلى الإنجليزية",
+            "translate.status": "حالة الترجمة",
+            "translate.help": "ترجم موجهك إلى الإنجليزية للحصول على تحسين أفضل للذكاء الاصطناعي",
         }
     
     def _get_hindi_translations(self) -> Dict[str, str]:
@@ -1005,6 +1050,11 @@ class I18nManager:
             "msg.confirm_delete": "क्या आप वाकई इसे हटाना चाहते हैं?",
             "msg.no_results": "कोई परिणाम नहीं मिला",
             "msg.loading_data": "डेटा लोड हो रहा है...",
+            
+            # Translation
+            "translate.to_english": "अंग्रेजी में अनुवाद करें",
+            "translate.status": "अनुवाद स्थिति",
+            "translate.help": "बेहतर AI सुधार के लिए अपने प्रॉम्प्ट को अंग्रेजी में अनुवाद करें",
         }
 
 # Global i18n instance

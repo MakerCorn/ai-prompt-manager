@@ -22,6 +22,7 @@ from langwatch_optimizer import langwatch_optimizer
 from token_calculator import token_calculator
 from i18n import i18n, t
 from ui_components import UIComponents, ModernTheme, ResponsiveCSS, create_modern_interface
+from text_translator import text_translator
 
 class AIPromptManager:
     def __init__(self, db_path: str = "prompts.db"):
@@ -928,6 +929,27 @@ def admin_refresh_tenant_users(tenant_id):
     
     return user_list
 
+# Translation functions
+def translate_prompt_to_english(prompt_text):
+    """Translate prompt text to English for enhancement"""
+    if not prompt_text or not prompt_text.strip():
+        return "", "No text to translate"
+    
+    if not text_translator.is_translation_needed():
+        return prompt_text, "Text is already in English"
+    
+    success, translated_text, error = text_translator.translate_to_english(prompt_text)
+    
+    if success:
+        source_lang = text_translator.get_current_language_name()
+        return translated_text, f"✅ Translated from {source_lang} to English"
+    else:
+        return prompt_text, f"❌ Translation failed: {error}"
+
+def check_translation_button_visibility():
+    """Check if translation button should be visible"""
+    return gr.update(visible=text_translator.is_translation_needed())
+
 # Language change handler
 def change_language(language: str):
     """Handle language change and update all UI elements"""
@@ -948,14 +970,15 @@ def change_language(language: str):
         # Set the new language
         i18n.set_language(language_map[language])
         
-        # Return updated translations for visible UI elements
+        # Return updated translations for visible UI elements and translation button visibility
         return (
             t("app.status.not_authenticated"),  # auth_status
             "",  # login_message - clear it
-            f"Language changed to {language}"  # status message
+            f"Language changed to {language}",  # status message
+            gr.update(visible=text_translator.is_translation_needed())  # translation button visibility
         )
     
-    return gr.update(), gr.update(), "Language change failed"
+    return gr.update(), gr.update(), "Language change failed", gr.update()
 
 # Create modern Gradio interface
 def create_interface():
@@ -1053,6 +1076,23 @@ def create_interface():
                                 lines=8,
                                 required=True
                             )
+                            
+                            # Translation Section (visible only for non-English UI)
+                            with gr.Group(visible=text_translator.is_translation_needed()) as translation_section:
+                                gr.Markdown(f"#### 🌐 {t('translate.to_english')}")
+                                gr.Markdown(t("translate.help"))
+                                
+                                with gr.Row():
+                                    translate_btn = UIComponents.create_button(
+                                        "translate.to_english",
+                                        variant="secondary",
+                                        icon="🌐",
+                                        size="medium"
+                                    )
+                                    translation_status = UIComponents.create_status_display(
+                                        "translate.status",
+                                        elem_classes=["translation-status"]
+                                    )
                             
                             # Token Calculator Section
                             with gr.Group():
@@ -1556,7 +1596,7 @@ def create_interface():
         language_selector.change(
             change_language,
             inputs=[language_selector],
-            outputs=[auth_status, login_message, login_message]  # Use login_message as status display
+            outputs=[auth_status, login_message, login_message, translation_section]  # Include translation section
         )
         
         # Event handlers for authentication
@@ -1624,6 +1664,13 @@ def create_interface():
             calculate_token_estimate,
             inputs=[prompt_content, calc_model, max_completion_tokens],
             outputs=token_calc_status
+        )
+        
+        # Event handler for translation
+        translate_btn.click(
+            translate_prompt_to_english,
+            inputs=[prompt_content],
+            outputs=[prompt_content, translation_status]
         )
         
         # Event handlers for LangWatch optimization
