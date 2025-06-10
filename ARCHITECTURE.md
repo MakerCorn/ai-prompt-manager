@@ -1,4 +1,4 @@
-# 🏗️ AI Prompt Manager - System Architecture
+# 🏗️ Instruere AI Prompt Manager - System Architecture
 
 ## 📋 Table of Contents
 
