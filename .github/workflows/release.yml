@@ -158,7 +158,7 @@ jobs:
           if [[ "${{ steps.set_tag.outputs.tag_name }}" != v*.*.* ]]; then
             echo "⚠️ This is not a version tag release (ref: ${{ steps.set_tag.outputs.tag_name }})"
             echo "Skipping changelog generation for non-tag releases"
-            echo "CHANGELOG=## Manual Release
+            echo "CHANGELOG=## Manual Release" >> $GITHUB_OUTPUT
             exit 0
           fi
           
