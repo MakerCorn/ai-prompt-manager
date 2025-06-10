@@ -718,7 +718,7 @@ sequenceDiagram
 ```mermaid
 graph TB
     subgraph "🌐 Language Detection"
-        URL_PARAM[🔗 URL Parameter ?lang=es]
+        URL_PARAM[🔗 URL Parameter]
         ENV_VAR[⚙️ Environment Variable]
         USER_PREF[👤 User Preference]
         BROWSER[🌐 Browser Accept-Language]
