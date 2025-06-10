@@ -20,6 +20,8 @@ from auth_manager import AuthManager, User, Tenant
 from api_token_manager import APITokenManager
 from langwatch_optimizer import langwatch_optimizer
 from token_calculator import token_calculator
+from i18n import i18n, t
+from ui_components import UIComponents, ModernTheme, ResponsiveCSS, create_modern_interface
 
 class AIPromptManager:
     def __init__(self, db_path: str = "prompts.db"):
@@ -476,7 +478,13 @@ def get_session_token(request: gr.Request) -> Optional[str]:
     return None
 
 def check_authentication(request: gr.Request) -> Tuple[bool, str]:
-    """Check if user is authenticated"""
+    """Check if user is authenticated and handle language parameter"""
+    # Check for language parameter in URL
+    if hasattr(request, 'query_params') and 'lang' in request.query_params:
+        lang_param = request.query_params['lang'].lower()
+        if lang_param in ['en', 'es', 'fr', 'de', 'zh', 'ja', 'pt', 'ru', 'ar', 'hi']:
+            i18n.set_language(lang_param)
+    
     token = get_session_token(request)
     if token and prompt_manager.validate_session(token):
         user_info = f"{prompt_manager.current_user.first_name} {prompt_manager.current_user.last_name} ({prompt_manager.current_user.email})"
@@ -920,62 +928,130 @@ def admin_refresh_tenant_users(tenant_id):
     
     return user_list
 
-# Create Gradio interface
+# Language change handler
+def change_language(language: str):
+    """Handle language change and update all UI elements"""
+    language_map = {
+        "English": "en",
+        "Español": "es", 
+        "Français": "fr",
+        "Deutsch": "de",
+        "中文": "zh",
+        "日本語": "ja",
+        "Português": "pt",
+        "Русский": "ru",
+        "العربية": "ar",
+        "हिन्दी": "hi"
+    }
+    
+    if language in language_map:
+        # Set the new language
+        i18n.set_language(language_map[language])
+        
+        # Return updated translations for visible UI elements
+        return (
+            t("app.status.not_authenticated"),  # auth_status
+            "",  # login_message - clear it
+            f"Language changed to {language}"  # status message
+        )
+    
+    return gr.update(), gr.update(), "Language change failed"
+
+# Create modern Gradio interface
 def create_interface():
-    with gr.Blocks(title="Multi-Tenant AI Prompt Manager", theme=gr.themes.Soft()) as app:
+    """Create modernized interface with i18n support and improved design"""
+    with gr.Blocks(
+        title=t("app.title"),
+        theme=ModernTheme.create_theme(),
+        css=ResponsiveCSS.get_css()
+    ) as app:
         # Store session token
         session_token = gr.State("")
         
-        gr.Markdown("""
-        # 🤖 Multi-Tenant AI Prompt Manager
+        # Modern header with language selector
+        UIComponents.create_header("app.title", "app.subtitle")
         
-        Secure, multi-tenant AI prompt management with authentication, SSO/ADFS support, and admin capabilities.
-        """)
+        # Language selector
+        with gr.Row():
+            with gr.Column(scale=3):
+                pass  # Spacer
+            with gr.Column(scale=1):
+                language_selector = UIComponents.create_language_selector()
         
-        # Authentication status
-        auth_status = gr.Markdown("❌ Not authenticated")
+        # Authentication status with internationalization
+        auth_status = gr.Markdown(t("app.status.not_authenticated"))
         
-        # Login interface
-        with gr.Row(visible=True) as login_section:
+        # Modern login interface with internationalization
+        with gr.Row(visible=True, elem_classes=["login-section"]) as login_section:
             with gr.Column():
-                gr.Markdown("## 🔐 Login")
+                UIComponents.create_section_header("auth.login", "🔐")
                 
-                with gr.Tabs():
-                    with gr.TabItem("📧 Email Login"):
-                        login_email = gr.Textbox(label="Email", placeholder="user@domain.com")
-                        login_password = gr.Textbox(label="Password", type="password")
-                        login_subdomain = gr.Textbox(
-                            label="Tenant Domain", 
-                            value="localhost",
-                            placeholder="your-tenant-domain"
+                with gr.Tabs(elem_classes=["modern-tabs"]):
+                    with gr.TabItem(f"📧 {t('auth.login')}", elem_classes=["modern-tab"]):
+                        login_email = UIComponents.create_input_group(
+                            "auth.email",
+                            placeholder_key="form.placeholder.email",
+                            required=True
                         )
-                        login_btn = gr.Button("🔑 Login", variant="primary")
-                        login_message = gr.Textbox(label="Status", interactive=False)
+                        login_password = UIComponents.create_input_group(
+                            "auth.password",
+                            input_type="password",
+                            required=True
+                        )
+                        login_subdomain = UIComponents.create_input_group(
+                            "auth.tenant",
+                            value="localhost"
+                        )
+                        login_btn = UIComponents.create_button(
+                            "auth.login",
+                            variant="primary",
+                            icon="🔑",
+                            size="large"
+                        )
+                        login_message = UIComponents.create_status_display("status.info")
                     
-                    with gr.TabItem("🔗 SSO Login"):
-                        sso_subdomain = gr.Textbox(
-                            label="Tenant Domain", 
-                            placeholder="your-tenant-domain"
+                    with gr.TabItem(f"🔗 {t('auth.sso')}", elem_classes=["modern-tab"]):
+                        sso_subdomain = UIComponents.create_input_group(
+                            "auth.tenant",
+                            placeholder_key="form.placeholder.name"
                         )
-                        sso_btn = gr.Button("🚀 Login with SSO")
-                        sso_message = gr.Textbox(label="SSO Login URL", interactive=False)
+                        sso_btn = UIComponents.create_button(
+                            "auth.sso",
+                            variant="secondary",
+                            icon="🚀",
+                            size="large"
+                        )
+                        sso_message = UIComponents.create_status_display("status.info")
         
-        # Main application interface
-        with gr.Row(visible=False) as main_section:
-            with gr.Tabs():
+        # Main application interface with modern design
+        with gr.Row(visible=False, elem_classes=["main-section"]) as main_section:
+            with gr.Tabs(elem_classes=["modern-tabs"]):
                 # Prompt Management Tab
-                with gr.TabItem("📝 Prompt Management"):
-                    gr.Markdown("### Add/Edit Prompts")
+                with gr.TabItem(f"📝 {t('nav.prompts')}", elem_classes=["modern-tab"]):
+                    UIComponents.create_section_header("nav.prompts", "📝")
                     
-                    with gr.Row():
-                        with gr.Column(scale=2):
-                            prompt_name = gr.Textbox(label="Prompt Name (Required)", placeholder="Enter unique prompt name")
-                            prompt_title = gr.Textbox(label="Prompt Title", placeholder="Enter prompt title")
-                            prompt_category = gr.Textbox(label="Category", placeholder="e.g., Writing, Analysis, Creative")
-                            prompt_content = gr.Textbox(
-                                label="Prompt Content",
-                                lines=6,
-                                placeholder="Enter your AI prompt here..."
+                    with gr.Row(elem_classes=["responsive-layout"]):
+                        with gr.Column(scale=2, elem_classes=["main-content"]):
+                            prompt_name = UIComponents.create_input_group(
+                                "prompt.name",
+                                placeholder_key="form.placeholder.name",
+                                required=True
+                            )
+                            prompt_title = UIComponents.create_input_group(
+                                "prompt.title",
+                                placeholder_key="form.placeholder.name"
+                            )
+                            prompt_category = UIComponents.create_input_group(
+                                "prompt.category",
+                                input_type="dropdown",
+                                choices=["General", "Writing", "Analysis", "Creative", "Technical"],
+                                value="General"
+                            )
+                            prompt_content = UIComponents.create_input_group(
+                                "prompt.content",
+                                input_type="textarea",
+                                lines=8,
+                                required=True
                             )
                             
                             # Token Calculator Section
@@ -1475,6 +1551,13 @@ def create_interface():
         
         # Logout button
         logout_btn = gr.Button("🚪 Logout", variant="secondary", visible=False)
+        
+        # Language selector event handler
+        language_selector.change(
+            change_language,
+            inputs=[language_selector],
+            outputs=[auth_status, login_message, login_message]  # Use login_message as status display
+        )
         
         # Event handlers for authentication
         login_btn.click(

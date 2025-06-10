@@ -7,12 +7,14 @@ A comprehensive AI prompt management system with unified architecture supporting
 - [🌟 Key Features](#-key-features)
 - [🚀 Quick Start](#-quick-start)
 - [⚙️ Configuration](#️-configuration)
+- [🌐 Multi-Language Support](#-multi-language-support)
 - [🧮 Token Calculator Guide](#-token-calculator-guide)
 - [📝 Prompt Management](#-prompt-management)
 - [🔑 API Access](#-api-access)
 - [🏢 Multi-Tenant Features](#-multi-tenant-features)
 - [🚀 Development](#-development)
 - [🔒 Production Deployment](#-production-deployment)
+- [🚀 Multi-Language Quick Reference](#-multi-language-quick-reference)
 - [📚 Additional Resources](#-additional-resources)
 - [📄 License](#-license)
 
@@ -35,6 +37,13 @@ A comprehensive AI prompt management system with unified architecture supporting
 - **LangWatch Integration**: AI-powered prompt optimization and suggestions
 - **Multi-Provider Support**: OpenAI, Claude, Gemini, LM Studio, Ollama, Llama.cpp
 - **Enhancement Engine**: Improve prompts using different AI models
+
+### 🌐 **Modern User Experience**
+- **Multi-Language Support**: 10 languages with real-time switching
+- **Responsive Design**: Mobile-first, adaptive interface
+- **Modern UI Components**: Professional styling with accessibility features
+- **Dark Mode Support**: Automatic theme switching
+- **Intuitive Navigation**: Simplified, context-aware interface
 
 ### 🔌 **Developer Experience**
 - **REST API**: Comprehensive API with interactive documentation
@@ -177,6 +186,191 @@ DB_TYPE=postgres POSTGRES_DSN="postgresql://user:pass@localhost/prompts" python 
 # Full configuration
 MULTITENANT_MODE=true ENABLE_API=true SERVER_PORT=8080 DEBUG=false python run.py
 ```
+
+---
+
+## 🌐 Multi-Language Support
+
+AI Prompt Manager supports **10 languages** with real-time interface switching, making it accessible to users worldwide. The internationalization system provides comprehensive translations for all UI elements.
+
+### 🌍 Supported Languages
+
+| Language | Code | Native Name | Status |
+|----------|------|-------------|--------|
+| **English** | `en` | English | ✅ Complete |
+| **Spanish** | `es` | Español | ✅ Complete |
+| **French** | `fr` | Français | ✅ Complete |
+| **German** | `de` | Deutsch | ✅ Complete |
+| **Chinese** | `zh` | 中文 | ✅ Complete |
+| **Japanese** | `ja` | 日本語 | ✅ Complete |
+| **Portuguese** | `pt` | Português | ✅ Complete |
+| **Russian** | `ru` | Русский | ✅ Complete |
+| **Arabic** | `ar` | العربية | ✅ Complete |
+| **Hindi** | `hi` | हिन्दी | ✅ Complete |
+
+### 🔄 How to Change Language
+
+#### **Method 1: Using the Interface (Recommended)**
+1. **Locate the Language Selector**: Look for the 🌐 Language dropdown in the top-right corner
+2. **Select Your Language**: Click the dropdown and choose your preferred language
+3. **Instant Update**: The interface will immediately switch to the selected language
+
+#### **Method 2: Environment Configuration**
+Set the default language for new sessions:
+
+```bash
+# Set default language (optional)
+DEFAULT_LANGUAGE=es python run.py  # Spanish
+DEFAULT_LANGUAGE=fr python run.py  # French
+DEFAULT_LANGUAGE=zh python run.py  # Chinese
+```
+
+#### **Method 3: URL Parameter**
+Access the interface with a specific language:
+
+```bash
+# Examples
+http://localhost:7860/?lang=es  # Spanish
+http://localhost:7860/?lang=fr  # French
+http://localhost:7860/?lang=zh  # Chinese
+```
+
+### 🎯 What Gets Translated
+
+The multi-language system covers **all user-facing elements**:
+
+#### **Interface Elements**
+- ✅ Navigation menus and tabs
+- ✅ Button labels and actions
+- ✅ Form fields and placeholders
+- ✅ Status messages and notifications
+- ✅ Help text and tooltips
+
+#### **Application Sections**
+- ✅ **Authentication**: Login forms, SSO options
+- ✅ **Prompt Management**: Add, edit, delete prompts
+- ✅ **Library**: Search, categories, filters
+- ✅ **Token Calculator**: Model selection, cost estimation
+- ✅ **API Management**: Token creation, documentation
+- ✅ **Settings**: Configuration options
+- ✅ **Admin Panel**: User and tenant management
+
+#### **AI Features**
+- ✅ **LangWatch Integration**: Optimization interface
+- ✅ **Enhancement Engine**: Prompt improvement tools
+- ✅ **Error Messages**: Validation and system feedback
+
+### 🔧 Advanced Configuration
+
+#### **Programmatic Language Control**
+Access the internationalization system programmatically:
+
+```python
+from i18n import i18n, t
+
+# Get available languages
+languages = i18n.get_available_languages()
+print(languages)  # {'en': 'English', 'es': 'Español', ...}
+
+# Change language
+i18n.set_language('es')
+
+# Translate text
+title = t('app.title')  # Returns translated app title
+welcome = t('auth.welcome', name='John')  # With parameters
+```
+
+#### **Custom Translations**
+Extend translations for custom deployments:
+
+```python
+# Add custom translations
+from i18n import i18n
+
+# Add new language or extend existing
+custom_translations = {
+    'custom.message': 'My custom message',
+    'custom.button': 'Custom Button'
+}
+
+# Extend existing language
+i18n.translations['en'].update(custom_translations)
+```
+
+### 🌟 Language Features
+
+#### **Smart Fallbacks**
+- **Automatic Fallback**: Missing translations default to English
+- **Graceful Degradation**: Untranslated keys display as readable text
+- **Context Preservation**: Formatting and parameters work across all languages
+
+#### **Cultural Considerations**
+- **Text Direction**: Right-to-left support for Arabic
+- **Number Formatting**: Locale-appropriate number display
+- **Date Formats**: Regional date and time formatting
+- **Currency**: Localized cost estimates in token calculator
+
+#### **Accessibility**
+- **Screen Readers**: Proper language attributes for assistive technology
+- **Keyboard Navigation**: Language switching via keyboard shortcuts
+- **High Contrast**: Language selector works with accessibility themes
+
+### 🎨 UI Adaptations
+
+The interface automatically adapts to different languages:
+
+#### **Layout Flexibility**
+- **Dynamic Text Sizing**: Accommodates longer/shorter translations
+- **Responsive Labels**: Forms adjust to text length variations
+- **Icon Consistency**: Universal icons complement text labels
+
+#### **Typography**
+- **Font Support**: Web fonts that support all character sets
+- **Readability**: Optimized contrast and spacing for each language
+- **Consistency**: Unified styling across all language versions
+
+### 🔍 Technical Details
+
+#### **Translation Architecture**
+- **Embedded Translations**: No external files required for reliability
+- **Key-Based System**: Hierarchical translation keys (e.g., `auth.login`)
+- **Parameter Support**: Dynamic content with variable substitution
+- **Caching**: Efficient translation loading and memory usage
+
+#### **File Structure**
+```
+ai-prompt-manager/
+├── i18n.py                 # Internationalization system
+├── ui_components.py        # Language-aware UI components
+└── prompt_manager.py       # Main interface with i18n integration
+```
+
+#### **Browser Support**
+- **Modern Browsers**: Full support in Chrome, Firefox, Safari, Edge
+- **Fallback Support**: Graceful degradation in older browsers
+- **Mobile Optimized**: Touch-friendly language switching on mobile devices
+
+### ❓ Troubleshooting
+
+#### **Common Issues**
+
+**Language not switching immediately:**
+- Refresh the page or restart the interface
+- Check browser console for JavaScript errors
+
+**Missing translations:**
+- Some text remains in English - this is expected fallback behavior
+- Report missing translations via GitHub issues
+
+**Performance with many languages:**
+- All translations are loaded efficiently in memory
+- No performance impact from multiple language support
+
+#### **Getting Help**
+- 📖 **Documentation**: Check this guide for configuration details
+- 🐛 **Bug Reports**: Report translation issues on GitHub
+- 💡 **Feature Requests**: Suggest new languages or improvements
+- 🌍 **Community**: Join discussions about localization
 
 ---
 
@@ -618,6 +812,61 @@ docker run -p 7860:7860 \
 **Available Images:**
 - `ghcr.io/makercorn/ai-prompt-manager:latest` - Latest build
 - `ghcr.io/makercorn/ai-prompt-manager:v1.0.0` - Tagged releases
+
+---
+
+## 🚀 Multi-Language Quick Reference
+
+### 🌐 **Language Codes & Commands**
+
+| Language | Code | Environment | URL Parameter | Native Name |
+|----------|------|-------------|---------------|-------------|
+| English | `en` | `DEFAULT_LANGUAGE=en` | `?lang=en` | English |
+| Spanish | `es` | `DEFAULT_LANGUAGE=es` | `?lang=es` | Español |
+| French | `fr` | `DEFAULT_LANGUAGE=fr` | `?lang=fr` | Français |
+| German | `de` | `DEFAULT_LANGUAGE=de` | `?lang=de` | Deutsch |
+| Chinese | `zh` | `DEFAULT_LANGUAGE=zh` | `?lang=zh` | 中文 |
+| Japanese | `ja` | `DEFAULT_LANGUAGE=ja` | `?lang=ja` | 日本語 |
+| Portuguese | `pt` | `DEFAULT_LANGUAGE=pt` | `?lang=pt` | Português |
+| Russian | `ru` | `DEFAULT_LANGUAGE=ru` | `?lang=ru` | Русский |
+| Arabic | `ar` | `DEFAULT_LANGUAGE=ar` | `?lang=ar` | العربية |
+| Hindi | `hi` | `DEFAULT_LANGUAGE=hi` | `?lang=hi` | हिन्दी |
+
+### ⚡ **Quick Commands**
+
+```bash
+# Start with Spanish interface
+DEFAULT_LANGUAGE=es python run.py
+
+# Start with Chinese interface  
+DEFAULT_LANGUAGE=zh python run.py
+
+# Access with URL parameter
+curl "http://localhost:7860/?lang=fr"
+
+# Multi-tenant with French
+DEFAULT_LANGUAGE=fr MULTITENANT_MODE=true python run.py
+
+# API with German interface
+DEFAULT_LANGUAGE=de ENABLE_API=true python run.py
+```
+
+### 🔧 **Developer Integration**
+
+```python
+# Quick language switching in code
+from i18n import i18n, t
+
+# Available languages
+langs = i18n.get_available_languages()
+
+# Switch language
+i18n.set_language('es')  # Spanish
+print(t('app.title'))    # "Gestor de Prompts IA"
+
+# With parameters
+print(t('auth.welcome', name='María'))  # "¡Bienvenido, María!"
+```
 
 ---
 
