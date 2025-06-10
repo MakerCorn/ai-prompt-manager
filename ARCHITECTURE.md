@@ -731,7 +731,7 @@ graph TB
     end
 
     subgraph "📚 Translation Storage"
-        EN[🇺🇸 English (Base)]
+        EN[🇺🇸 English]
         ES[🇪🇸 Spanish]
         FR[🇫🇷 French]
         DE[🇩🇪 German]
