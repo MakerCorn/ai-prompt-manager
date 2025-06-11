@@ -576,6 +576,9 @@ class TenantAwareRepository(BaseRepository[T]):
                 """
                 cursor.execute(query, tuple(values))
                 
+                # Commit the transaction
+                conn.commit()
+                
                 # Get the last inserted row ID from the same connection
                 cursor.execute("SELECT last_insert_rowid()")
                 last_id = cursor.fetchone()[0]

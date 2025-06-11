@@ -188,8 +188,7 @@ class PromptService(BaseService):
             if updated_prompt:
                 return ServiceResult(
                     success=True,
-                    data=updated_prompt,
-                    message="Prompt updated successfully"
+                    data=updated_prompt
                 )
             else:
                 return ServiceResult(
@@ -250,8 +249,7 @@ class PromptService(BaseService):
             if deleted:
                 return ServiceResult(
                     success=True,
-                    data=True,
-                    message=f"Prompt '{name}' deleted successfully"
+                    data=True
                 )
             else:
                 return ServiceResult(
@@ -580,8 +578,7 @@ class PromptService(BaseService):
             if saved_prompt:
                 return ServiceResult(
                     success=True,
-                    data=saved_prompt,
-                    message=f"Prompt '{new_name}' duplicated successfully"
+                    data=saved_prompt
                 )
             else:
                 return ServiceResult(

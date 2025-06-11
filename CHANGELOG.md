@@ -1,5 +1,72 @@
 # Changelog
 
+## [v0.3.2] - 2025-06-11 - New Architecture Repository & Transaction Fixes
+
+### 🔧 Critical Repository Fixes
+
+#### **Transaction Management Resolution**
+- **Database Transaction Commits**: Fixed critical issue where repository save operations weren't being committed to the database
+- **Connection Context Handling**: Enhanced `TenantAwareRepository._insert_entity()` to properly commit transactions in SQLite operations
+- **Data Persistence**: Resolved issue where records appeared to be saved but were lost due to missing transaction commits
+- **Query Reliability**: Ensured all CRUD operations properly persist data across connection contexts
+
+#### **Repository Pattern Completion**
+- **Save Functionality**: Fixed repository save operations returning None instead of saved entities
+- **Retrieval Operations**: All find operations (find_all, search, find_by_name) now working correctly with tenant filtering
+- **Update Operations**: Prompt update functionality fully operational with proper validation and persistence
+- **Delete Operations**: Prompt deletion working with proper database cleanup and tenant isolation
+
+#### **ServiceResult API Standardization**
+- **Parameter Cleanup**: Removed invalid `message` parameter usage from all ServiceResult instantiations
+- **Consistent API**: Standardized service responses to use only valid ServiceResult fields (success, data, error, error_code)
+- **Error Handling**: Improved error reporting with proper error codes and descriptive messages
+
+### 🧪 Comprehensive Testing Validation
+
+#### **New Architecture Test Suite**
+- **End-to-End Testing**: All 10 test scenarios in `test_new_prompt_architecture.py` now passing successfully
+- **CRUD Operations**: Complete Create, Read, Update, Delete functionality validated
+- **Tenant Isolation**: Verified proper data separation between tenants in all operations
+- **Search Functionality**: Full-text search and filtering operations working correctly
+- **Statistics & Analytics**: Prompt statistics and categorization features fully functional
+
+#### **CI/CD Integration**
+- **Build Validation**: Enhanced Dockerfile with repository functionality testing during container builds
+- **Workflow Testing**: Updated CI workflows to validate repository fixes before deployments
+- **Release Validation**: Added critical repository tests to release workflows to prevent broken releases
+- **Docker Testing**: Enhanced container test scripts to validate complete repository functionality
+
+### ⚡ Performance & Reliability Improvements
+
+#### **Database Operations**
+- **Connection Efficiency**: Optimized database connection handling in repository operations
+- **Query Performance**: Improved query execution with proper parameter binding and tenant filtering
+- **Transaction Integrity**: Ensured ACID compliance in all repository operations
+- **Error Recovery**: Better error handling and rollback mechanisms for failed operations
+
+#### **Service Layer Stability**
+- **Validation Pipeline**: Robust input validation with descriptive error messages
+- **Business Logic**: Complete implementation of prompt management business rules
+- **Data Consistency**: Ensured data integrity across all service operations
+- **Tenant Security**: Bulletproof tenant isolation preventing cross-tenant data access
+
+### 📊 Architecture Status
+
+#### **Fully Operational Components**
+- ✅ **Prompt Repository**: Complete CRUD operations with tenant isolation
+- ✅ **Prompt Service**: Full business logic implementation with validation
+- ✅ **Database Layer**: Robust transaction management and connection handling
+- ✅ **Data Models**: Rich entity models with proper validation and serialization
+- ✅ **Testing Framework**: Comprehensive test coverage for all new architecture components
+
+#### **Integration Ready**
+- **Legacy Compatibility**: New architecture components work seamlessly alongside legacy code
+- **Migration Foundation**: Solid foundation established for migrating remaining legacy components
+- **Production Readiness**: Repository pattern ready for production deployment with full functionality
+- **Container Support**: Complete Docker integration with validation and health checks
+
+---
+
 ## [v0.3.1] - 2025-06-11 - Docker Modernization & Documentation Consolidation
 
 ### 🐳 Docker Infrastructure Modernization
