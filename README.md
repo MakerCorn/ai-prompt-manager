@@ -792,6 +792,28 @@ The prompt optimizer works seamlessly with the translation system:
 2. **Optimize**: Run optimization on English text for best results
 3. **Translate Back**: Optionally translate optimized prompt back to original language
 
+### 🧪 Testing the Optimizer
+
+You can test the prompt optimization system using the included test script:
+
+```bash
+# Test with built-in optimizer (no API keys required)
+python test_langwatch_integration.py
+
+# Test with specific service (set environment variables first)
+PROMPT_OPTIMIZER=langwatch LANGWATCH_API_KEY=your_key python test_langwatch_integration.py
+
+# Test service switching
+PROMPT_OPTIMIZER=promptperfect PROMPTPERFECT_API_KEY=your_key python test_langwatch_integration.py
+```
+
+The test script will:
+- ✅ Check service availability and configuration
+- ✅ Test simple and complex prompt optimization
+- ✅ Verify error handling for edge cases
+- ✅ Test different optimization goals
+- ✅ Show before/after comparisons and scoring
+
 ### 🚨 Troubleshooting
 
 #### **Common Issues**
@@ -1590,7 +1612,7 @@ poetry install --with dev
 # Core functionality tests
 python test_mt_install.py           # Multi-tenant setup
 python test_standalone_api.py       # API integration
-python test_langwatch_integration.py # LangWatch features
+python test_langwatch_integration.py # Prompt optimization features
 python test_api_integration.py      # Full API test suite
 
 # Component testing

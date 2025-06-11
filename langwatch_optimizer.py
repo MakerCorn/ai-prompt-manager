@@ -186,6 +186,19 @@ class PromptOptimizer:
             )
         
         try:
+            # Validate input
+            if not original_prompt or not original_prompt.strip():
+                return OptimizationResult(
+                    optimized_prompt=original_prompt,
+                    original_prompt=original_prompt,
+                    optimization_score=0.0,
+                    suggestions=["Empty prompt provided - cannot optimize"],
+                    reasoning="Cannot optimize empty or whitespace-only prompts",
+                    timestamp=datetime.now(),
+                    success=False,
+                    error_message="Empty prompt provided"
+                )
+            
             # Default optimization goals
             if optimization_goals is None:
                 optimization_goals = [

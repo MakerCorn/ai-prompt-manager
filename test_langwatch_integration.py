@@ -1,30 +1,35 @@
 #!/usr/bin/env python3
 """
-Test LangWatch optimization integration
+Test Multi-Service Prompt Optimization Integration
 """
 
 import os
-from langwatch_optimizer import langwatch_optimizer
+from langwatch_optimizer import prompt_optimizer, langwatch_optimizer
 
 def test_langwatch_optimization():
-    """Test LangWatch optimization functionality"""
+    """Test multi-service prompt optimization functionality"""
     
-    print("🧪 Testing LangWatch Integration")
+    print("🧪 Testing Multi-Service Prompt Optimization")
     print("=" * 50)
     
     # Test 1: Check status
-    print("1. Checking LangWatch status...")
-    status = langwatch_optimizer.get_status()
+    print("1. Checking optimizer status...")
+    status = prompt_optimizer.get_status()
+    print(f"   Service: {status['service']}")
     print(f"   Available: {status['available']}")
-    print(f"   Library installed: {status['library_installed']}")
     print(f"   Initialized: {status['initialized']}")
     print(f"   API key set: {status['api_key_set']}")
+    print(f"   Available services: {list(status['services_available'].keys())}")
+    
+    # Show which services are available
+    available_services = [k for k, v in status['services_available'].items() if v]
+    print(f"   Working services: {available_services}")
     
     # Test 2: Simple optimization
     print("\n2. Testing simple prompt optimization...")
     test_prompt = "Help me write an email"
     
-    result = langwatch_optimizer.optimize_prompt(
+    result = prompt_optimizer.optimize_prompt(
         original_prompt=test_prompt,
         context="Business communication",
         target_model="gpt-4"
@@ -44,11 +49,11 @@ def test_langwatch_optimization():
     current trends, and future implications. Make it informative.
     """
     
-    result2 = langwatch_optimizer.optimize_prompt(
+    result2 = prompt_optimizer.optimize_prompt(
         original_prompt=complex_prompt.strip(),
         context="Technical writing for executives",
         target_model="gpt-4",
-        optimization_goals=["clarity", "structure", "specificity", "executive-friendly"]
+        optimization_goals=["clarity", "structure", "specificity", "effectiveness"]
     )
     
     print(f"   Success: {result2.success}")
@@ -58,7 +63,7 @@ def test_langwatch_optimization():
     
     # Test 4: Error handling
     print("\n4. Testing error handling...")
-    empty_result = langwatch_optimizer.optimize_prompt(
+    empty_result = prompt_optimizer.optimize_prompt(
         original_prompt="",
         context=None,
         target_model="gpt-4"
@@ -69,8 +74,25 @@ def test_langwatch_optimization():
     else:
         print("   ⚠️  Empty prompt not handled properly")
     
+    # Test 5: Service configuration test
+    print("\n5. Testing service configuration...")
+    
+    # Test with different optimization goals
+    test_goals = ["clarity", "effectiveness", "structure", "specificity", "creativity"]
+    for goal in test_goals:
+        result_goal = prompt_optimizer.optimize_prompt(
+            original_prompt="Explain quantum computing",
+            context="Educational content",
+            target_model="gpt-4",
+            optimization_goals=[goal]
+        )
+        if result_goal.success:
+            print(f"   ✅ {goal.title()} optimization: Score {result_goal.optimization_score:.1f}")
+        else:
+            print(f"   ❌ {goal.title()} optimization failed")
+    
     print("\n" + "=" * 50)
-    print("🎉 LangWatch integration test completed!")
+    print("🎉 Multi-service prompt optimization test completed!")
     
     return result.success and result2.success
 
