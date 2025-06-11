@@ -98,21 +98,20 @@ graph TB
     style Data fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
-### 🆕 New Modular Architecture
+### 🆕 Modern Modular Architecture
 
-**The codebase has been refactored with a new modular architecture** that improves maintainability, reduces technical debt, and provides better separation of concerns:
+**Instruere features a hybrid architecture** that combines proven legacy components with a new modular architecture designed for maintainability, scalability, and enterprise deployment:
 
-- **📦 Modular Design**: Clear separation between authentication, prompts, API, and UI layers
-- **🏗️ Base Classes**: Shared functionality through inheritance and composition
-- **🔧 Dependency Injection**: Testable, loosely-coupled components
-- **🛡️ Type Safety**: Comprehensive type hints throughout the codebase
-- **📋 Structured Logging**: Centralized logging with audit trails
-- **⚡ Modern Security**: Argon2/bcrypt password hashing, JWT management
+- **📦 Modular Design**: Clean separation between authentication, prompts, API, and UI layers
+- **🏗️ Base Classes**: Shared functionality through inheritance and composition patterns
+- **🔧 Dependency Injection**: Testable, loosely-coupled components with full dependency injection
+- **🛡️ Type Safety**: Comprehensive type hints throughout the codebase for reliability
+- **📋 Structured Logging**: Centralized logging with audit trails and performance metrics
+- **⚡ Modern Security**: Argon2/bcrypt password hashing, JWT management, and RBAC
+- **🐳 Container Ready**: Full Docker support with Redis caching and health monitoring
 
 **📖 Architecture Documentation:**
-- **[NEW_ARCHITECTURE_GUIDE.md](NEW_ARCHITECTURE_GUIDE.md)** - Complete guide to the new modular architecture
-- **[REFACTORING_PLAN.md](REFACTORING_PLAN.md)** - Detailed refactoring plan and migration strategy
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture documentation
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Complete system architecture with diagrams and implementation details
 
 ### 🔑 Key Architectural Principles
 - **🏗️ Unified Codebase**: Single application, multiple deployment modes
@@ -135,14 +134,23 @@ Get Instruere running in under 5 minutes with these simple steps:
 ✅ Optional: PostgreSQL for production
 ```
 
-### 🐳 Option 1: Docker (Easiest)
+### 🐳 Option 1: Docker (Recommended)
 
 ```bash
-# 1️⃣ Run with Docker (recommended for testing)
+# 🚀 Quick Start - Single Container
 docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:latest
 
-# 2️⃣ Open browser to http://localhost:7860
-# 3️⃣ Login: admin@localhost / admin123
+# 🏗️ Development - Full Stack with PostgreSQL & Redis
+docker-compose up -d
+
+# 🏭 Production - Optimized with Health Checks
+docker-compose -f docker-compose.prod.yml up -d
+
+# 🧪 Test Docker Setup
+./scripts/docker-test.sh
+
+# Open browser to http://localhost:7860
+# Login: admin@localhost / admin123
 ```
 
 ### 🐍 Option 2: Python Installation
@@ -165,12 +173,13 @@ poetry run python run.py
 
 ### 🚀 Deployment Options
 
-| Environment | Command | Use Case |
-|-------------|---------|----------|
-| **🧪 Development** | `poetry run python run.py --single-user` | Personal use, testing |
-| **🏢 Multi-Tenant** | `poetry run python run.py` | Teams, organizations |
-| **🔌 With API** | `poetry run python run.py --with-api` | Developer integration |
-| **🐳 Production** | `docker-compose -f docker-compose.prod.yml up -d` | Scalable deployment |
+| Environment | Command | Features | Use Case |
+|-------------|---------|----------|----------|
+| **🧪 Development** | `poetry run python run.py --single-user` | SQLite, Single User | Personal use, testing |
+| **🏢 Multi-Tenant** | `poetry run python run.py` | SQLite, Multi-tenant | Teams, organizations |
+| **🔌 With API** | `poetry run python run.py --with-api` | API + UI, Multi-tenant | Developer integration |
+| **🐳 Docker Dev** | `docker-compose up -d` | PostgreSQL + Redis + Full Stack | Development with persistence |
+| **🏭 Production** | `docker-compose -f docker-compose.prod.yml up -d` | Optimized + Health Checks + Redis | Scalable deployment |
 
 ### ✅ Verify Installation
 
@@ -2055,13 +2064,25 @@ print('OpenAI:', 'Set' if os.getenv('OPENAI_API_KEY') else 'Missing')
 # Install test dependencies
 poetry install --with dev
 
-# Core functionality tests
-python test_mt_install.py           # Multi-tenant setup and UI creation
-python test_standalone_api.py       # API integration
-python test_langwatch_integration.py # Prompt optimization features
-python test_api_integration.py      # Full API test suite
+# 🏗️ New Architecture Tests
+python tests/integration/test_new_prompt_architecture.py  # New architecture validation
+python tests/integration/test_new_architecture_integration.py  # Component integration
+python -c "
+# Test new architecture imports
+import sys; sys.path.insert(0, 'src')
+from src.core.config.settings import AppConfig
+from src.prompts.services.prompt_service import PromptService
+from src.auth.models.user import User
+print('✅ New architecture components working!')
+"
 
-# Component testing
+# 🔧 Legacy Integration Tests
+python test_mt_install.py                    # Multi-tenant setup and UI creation
+python test_standalone_api.py               # API integration
+python test_langwatch_integration.py        # Prompt optimization features
+python test_api_integration.py              # Full API test suite
+
+# 📊 Component Testing
 python -c "
 from prompt_data_manager import PromptDataManager
 from auth_manager import AuthManager
@@ -2069,14 +2090,14 @@ from auth_manager import AuthManager
 # Test database initialization  
 auth = AuthManager('test.db')
 data = PromptDataManager('test.db', tenant_id='test', user_id='test')
-print('✅ All components working correctly!')
+print('✅ Legacy components working correctly!')
 
 # Cleanup
 import os
 os.remove('test.db')
 "
 
-# Multi-tenant isolation testing
+# 🏢 Multi-tenant Isolation Testing
 python -c "
 from auth_manager import AuthManager
 auth = AuthManager('test_isolation.db')
@@ -2088,7 +2109,7 @@ tenant2_id = auth.create_tenant('Company B', 'company-b', 50)[1]
 print('✅ Tenant isolation test passed')
 "
 
-# Test different launcher modes
+# 🚀 Test Different Launcher Modes
 python run.py --help                         # Show all options
 MULTITENANT_MODE=false python run.py &       # Start in single-user mode
 sleep 2 && pkill -f "python run.py"          # Stop test server
@@ -2096,14 +2117,28 @@ sleep 2 && pkill -f "python run.py"          # Stop test server
 
 **Docker Testing:**
 ```bash
-# Test Docker build
-docker build -t ai-prompt-manager-test .
-docker run --rm -p 7860:7860 ai-prompt-manager-test
+# 🐳 Comprehensive Docker Testing
+./scripts/docker-test.sh                    # Full Docker validation suite
 
-# Test with PostgreSQL
-docker-compose -f docker-compose.yml up -d
-# Wait for services to start
-docker-compose logs ai-prompt-manager
+# 🧪 Manual Docker Testing
+docker build -t ai-prompt-manager-test .    # Test build process
+docker run --rm -p 7860:7860 ai-prompt-manager-test  # Test single container
+
+# 🏗️ Test Development Stack
+docker-compose up -d                        # PostgreSQL + Redis + App
+docker-compose logs app                     # Check application logs
+
+# 🏭 Test Production Stack  
+docker-compose -f docker-compose.prod.yml up -d  # Production configuration
+curl http://localhost:7860/api/health       # Verify health endpoint
+
+# 🔍 Container Validation
+docker exec ai-prompt-manager-app-1 python -c "
+import sys; sys.path.insert(0, '/app/src')
+from src.prompts.services.prompt_service import PromptService
+import prompt_manager, auth_manager
+print('✅ All components available in container')
+"
 ```
 
 ### CI/CD Pipeline

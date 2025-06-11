@@ -16,6 +16,16 @@ services:
       - prompt_network
     restart: unless-stopped
 
+  # Redis Cache for production
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - prompt_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
   # AI Prompt Manager Application with API (Production)
   app:
     # Use latest stable release from GitHub Container Registry
@@ -40,6 +50,9 @@ services:
       SECRET_KEY: ${SECRET_KEY:-your-production-secret-key-change-this}
       LOCAL_DEV_MODE: "false"
       
+      # Python Path for new architecture
+      PYTHONPATH: "/app/src:/app"
+      
       # SSO Configuration (configure as needed)
       SSO_ENABLED: ${SSO_ENABLED:-false}
       ADFS_ENABLED: ${ADFS_ENABLED:-false}
@@ -51,11 +64,19 @@ services:
       # LangWatch Optimization (optional)
       LANGWATCH_API_KEY: ${LANGWATCH_API_KEY:-}
       LANGWATCH_PROJECT_ID: ${LANGWATCH_PROJECT_ID:-ai-prompt-manager}
+      
+      # New Architecture Configuration
+      ENABLE_NEW_ARCHITECTURE: ${ENABLE_NEW_ARCHITECTURE:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      
+      # Redis Configuration (for caching and performance)
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     
     volumes:
       - app_data:/app/data
     depends_on:
       - postgres
+      - redis
     networks:
       - prompt_network
     restart: unless-stopped
@@ -71,6 +92,7 @@ services:
 volumes:
   postgres_data:
   app_data:
+  redis_data:
 
 networks:
   prompt_network:

@@ -1,5 +1,63 @@
 # Changelog
 
+## [v0.3.1] - 2025-06-11 - Docker Modernization & Documentation Consolidation
+
+### 🐳 Docker Infrastructure Modernization
+
+#### **Enhanced Container Support**
+- **Structured File Copying**: Updated Dockerfile for optimized builds with explicit `src/`, `tests/`, and `scripts/` copying
+- **Python Path Configuration**: Added `PYTHONPATH=/app/src:/app` for seamless new architecture module resolution
+- **Build-time Validation**: Integrated import tests for both legacy and new architecture components during build
+- **Security Environment**: Added comprehensive environment variable configuration including `SECRET_KEY`
+
+#### **Docker Compose Enhancements**
+- **Redis Cache Integration**: Added Redis service for enhanced performance in both development and production
+- **Production Optimization**: Configured Redis with memory limits and LRU eviction for production environments
+- **Environment Configuration**: Comprehensive environment variable setup with sensible defaults
+- **Service Dependencies**: Proper service dependency management and health checks
+
+#### **Container Testing**
+- **Validation Script**: Created `scripts/docker-test.sh` for comprehensive container testing
+- **Import Validation**: Automated testing of both legacy and new architecture component imports
+- **Health Monitoring**: API endpoint validation and container health monitoring
+- **Environment Testing**: Separate test suites for development and production Docker setups
+
+### 📚 Documentation Consolidation
+
+#### **Streamlined Documentation**
+- **Architecture Consolidation**: Merged `NEW_ARCHITECTURE_GUIDE.md`, `REFACTORING_PLAN.md`, and `REFACTORING_SUMMARY.md` into comprehensive `ARCHITECTURE.md`
+- **Redundant File Removal**: Eliminated documentation files with "NEW_" prefixes as requested
+- **Version Control**: Maintained proper documentation versioning without file name confusion
+- **Comprehensive Coverage**: Updated architecture documentation with implementation status and migration roadmap
+
+#### **Test File Organization**
+- **Proper Test Structure**: Moved `test_new_prompt_architecture.py` to `tests/integration/` directory
+- **CI Pipeline Updates**: Updated all GitHub Actions workflows to reference correct test file paths
+- **Test Validation**: Verified all test files compile without syntax errors and maintain proper organization
+- **Legacy Compatibility**: Maintained legacy integration tests in root directory for CI compatibility
+
+### 🔧 Infrastructure Improvements
+
+#### **Updated .dockerignore**
+- **Optimized Builds**: Enhanced .dockerignore for faster Docker builds and smaller images
+- **Selective Inclusion**: Maintained essential integration tests while excluding unnecessary files
+- **License Preservation**: Ensured critical files like LICENSE are included in containers
+
+#### **CI/CD Pipeline Updates**
+- **Path Corrections**: Fixed all workflow references to use correct test file paths
+- **Build Integration**: Updated package build workflows to include new architecture components
+- **Test Coverage**: Enhanced CI testing to validate both legacy and new architecture components
+
+### ⚡ Performance & Compatibility
+
+#### **Hybrid Architecture Support**
+- **Seamless Operation**: Full support for both legacy and new architecture components in containerized environments
+- **Import Resolution**: Proper Python path configuration ensures both architectures work together
+- **Build Optimization**: Faster builds through improved file copying and caching strategies
+- **Health Validation**: Comprehensive health checks for containerized applications
+
+---
+
 ## [v0.3.0] - 2025-06-11 - Architecture Modernization & Code Refactoring
 
 ### 🏗️ Major Architecture Overhaul

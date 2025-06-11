@@ -51,12 +51,17 @@ ehthumbs.db
 Thumbs.db
 
 # Project specific
-tests/
-test_*.py
 *.md
 !README.md
+!LICENSE
 docs/
 examples/
+
+# Keep integration tests that validate Docker functionality
+!test_langwatch_integration.py
+!test_mt_install.py
+!test_api_integration.py
+!tests/integration/
 
 # Development files
 docker-compose.yml

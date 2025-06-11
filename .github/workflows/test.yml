@@ -81,7 +81,7 @@ jobs:
           echo "🧪 Testing new architecture components..."
           
           # Test the new prompt architecture
-          poetry run python test_new_prompt_architecture.py
+          poetry run python tests/integration/test_new_prompt_architecture.py
           
           # Test configuration system
           poetry run python -c "

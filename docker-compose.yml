@@ -15,6 +15,17 @@ services:
     networks:
       - prompt_network
 
+  # Redis Cache (optional, for enhanced performance)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - prompt_network
+    command: redis-server --appendonly yes
+
   # AI Prompt Manager Application with API
   app:
     # Use pre-built image from GitHub Container Registry
@@ -44,6 +55,9 @@ services:
       SECRET_KEY: change-this-secret-key-in-production
       LOCAL_DEV_MODE: "false"  # Set to false for production
       
+      # Python Path for new architecture
+      PYTHONPATH: "/app/src:/app"
+      
       # SSO Configuration (configure if needed)
       SSO_ENABLED: "false"
       ADFS_ENABLED: "false"
@@ -51,17 +65,26 @@ services:
       # SSO_CLIENT_SECRET: your-client-secret
       # SSO_AUTHORITY: https://login.microsoftonline.com/your-tenant
       # SSO_REDIRECT_URI: http://localhost:7860/auth/callback
+      
+      # LangWatch Optimization (optional)
+      # LANGWATCH_API_KEY: your-langwatch-api-key
+      # LANGWATCH_PROJECT_ID: ai-prompt-manager
+      
+      # Redis Configuration (optional, for caching)
+      # REDIS_URL: redis://redis:6379/0
     
     volumes:
       - app_data:/app/data
     depends_on:
       - postgres
+      - redis
     networks:
       - prompt_network
 
 volumes:
   postgres_data:
   app_data:
+  redis_data:
 
 networks:
   prompt_network:

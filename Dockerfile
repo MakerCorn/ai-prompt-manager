@@ -11,7 +11,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DB_TYPE=sqlite \
     DB_PATH=/app/data/prompts.db \
     SERVER_HOST=0.0.0.0 \
-    SERVER_PORT=7860
+    SERVER_PORT=7860 \
+    SECRET_KEY=change-this-secret-key-in-production \
+    PYTHONPATH=/app/src:/app
 
 # Set work directory
 WORKDIR /app
@@ -25,8 +27,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Poetry
 RUN pip install --upgrade pip && pip install poetry
 
-# Copy application code (includes LICENSE file needed by pyproject.toml)
-COPY . .
+# Copy application files
+COPY pyproject.toml poetry.lock LICENSE ./
+COPY *.py ./
+COPY src/ ./src/
+COPY tests/ ./tests/
+COPY scripts/ ./scripts/
 
 # Configure poetry and install dependencies
 RUN poetry config virtualenvs.create false \
@@ -34,6 +40,18 @@ RUN poetry config virtualenvs.create false \
 
 # Create data directory for database
 RUN mkdir -p /app/data
+
+# Test that both legacy and new architecture components can be imported
+RUN python -c "
+import sys
+sys.path.insert(0, '/app/src')
+# Test legacy imports
+import prompt_manager, auth_manager, api_endpoints
+# Test new architecture imports
+from src.core.config.settings import AppConfig
+from src.prompts.models.prompt import Prompt
+print('✅ Docker build: All imports successful')
+"
 
 # Expose port for Gradio and API
 EXPOSE 7860

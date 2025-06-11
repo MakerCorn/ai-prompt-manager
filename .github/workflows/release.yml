@@ -189,7 +189,7 @@ jobs:
           
           # Test new architecture
           echo "🏗️ Testing new architecture..."
-          poetry run python test_new_prompt_architecture.py
+          poetry run python tests/integration/test_new_prompt_architecture.py
           
           echo "✅ All release tests passed!"
 
@@ -384,7 +384,7 @@ jobs:
           echo "  docker-compose -f docker-compose.prod.yml up -d  # Production"
           echo ""
           echo "🔧 Testing:"
-          echo "  python test_new_prompt_architecture.py  # Test new architecture"
+          echo "  python tests/integration/test_new_prompt_architecture.py  # Test new architecture"
           echo "  python test_langwatch_integration.py    # Test prompt optimization"
           echo "  python test_mt_install.py               # Test multi-tenant setup"
           echo ""

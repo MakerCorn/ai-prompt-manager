@@ -112,7 +112,7 @@ jobs:
           echo "  poetry run python run.py --help             # Show all options"
           echo ""
           echo "🧪 Testing:"
-          echo "  poetry run python test_new_prompt_architecture.py  # Test new architecture"
+          echo "  poetry run python tests/integration/test_new_prompt_architecture.py  # Test new architecture"
           echo "  poetry run python test_langwatch_integration.py    # Test optimization"
           echo ""
           echo "🐳 Docker:"
