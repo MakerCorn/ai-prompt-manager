@@ -662,10 +662,18 @@ jobs:
           # Extract changes from CHANGELOG.md if it exists
           CHANGELOG_CONTENT=""
           if [ -f CHANGELOG.md ]; then
-            # Try to extract the section for this version
-            CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION#v}\]/,/## \[/p" CHANGELOG.md | head -n -1 | tail -n +2)
+            # Try to extract the section for this version with brackets
+            CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION}\]/,/## \[/p" CHANGELOG.md | head -n -1 | tail -n +2)
             if [ -z "$CHANGELOG_CONTENT" ]; then
-              # Try without version brackets
+              # Try without the 'v' prefix but with brackets
+              CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION#v}\]/,/## \[/p" CHANGELOG.md | head -n -1 | tail -n +2)
+            fi
+            if [ -z "$CHANGELOG_CONTENT" ]; then
+              # Try without brackets but with 'v' prefix
+              CHANGELOG_CONTENT=$(sed -n "/## ${VERSION}/,/## /p" CHANGELOG.md | head -n -1 | tail -n +2)
+            fi
+            if [ -z "$CHANGELOG_CONTENT" ]; then
+              # Try without brackets and without 'v' prefix
               CHANGELOG_CONTENT=$(sed -n "/## ${VERSION#v}/,/## /p" CHANGELOG.md | head -n -1 | tail -n +2)
             fi
           fi
