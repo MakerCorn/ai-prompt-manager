@@ -55,19 +55,28 @@ def test_new_prompt_architecture():
         
         # Test 1: Create a prompt
         print("📝 Test 1: Creating a prompt")
-        result = prompt_service.create_prompt(
-            tenant_id=tenant_id,
-            user_id=user_id,
-            name="test_prompt",
-            title="Test Prompt Title",
-            content="This is a test prompt content for validation.",
-            category="Testing",
-            tags="test, validation, new-architecture",
-            is_enhancement_prompt=False
-        )
+        print(f"   - Using tenant_id: {tenant_id}")
+        print(f"   - Using user_id: {user_id}")
+        
+        try:
+            result = prompt_service.create_prompt(
+                tenant_id=tenant_id,
+                user_id=user_id,
+                name="test_prompt",
+                title="Test Prompt Title",
+                content="This is a test prompt content for validation.",
+                category="Testing",
+                tags="test, validation, new-architecture",
+                is_enhancement_prompt=False
+            )
+        except Exception as e:
+            print(f"💥 Exception during create_prompt: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
         
         if result.success:
-            print(f"✅ Prompt created successfully: {result.message}")
+            print(f"✅ Prompt created successfully")
             created_prompt = result.data
             if created_prompt:
                 print(f"   - ID: {created_prompt.id}")
@@ -88,6 +97,17 @@ def test_new_prompt_architecture():
                         return False
         else:
             print(f"❌ Failed to create prompt: {result.error}")
+            print(f"   - Error code: {result.error_code}")
+            
+            # Check if record was actually inserted
+            print("🔍 Checking if record was inserted anyway...")
+            with db_manager.get_connection_context() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM prompts WHERE name = 'test_prompt'")
+                records = cursor.fetchall()
+                print(f"   - Found {len(records)} records with name 'test_prompt'")
+                if records:
+                    print(f"   - Record exists: {dict(records[0])}")
             return False
         
         print()
@@ -106,7 +126,7 @@ def test_new_prompt_architecture():
         )
         
         if result.success:
-            print(f"✅ Enhancement prompt created: {result.message}")
+            print(f"✅ Enhancement prompt created")
             if result.data:
                 print(f"   - Enhancement flag: {result.data.is_enhancement_prompt}")
             else:
@@ -182,7 +202,7 @@ def test_new_prompt_architecture():
         )
         
         if result.success:
-            print(f"✅ Prompt updated: {result.message}")
+            print(f"✅ Prompt updated")
             updated_prompt = result.data
             print(f"   - New name: {updated_prompt.name}")
             print(f"   - New category: {updated_prompt.category}")
@@ -202,7 +222,7 @@ def test_new_prompt_architecture():
         )
         
         if result.success:
-            print(f"✅ Prompt duplicated: {result.message}")
+            print(f"✅ Prompt duplicated")
             print(f"   - Original: updated_test_prompt")
             print(f"   - Duplicate: {result.data.name}")
         else:
@@ -234,7 +254,7 @@ def test_new_prompt_architecture():
         result = prompt_service.delete_prompt(tenant_id, "duplicated_prompt")
         
         if result.success:
-            print(f"✅ Prompt deleted: {result.message}")
+            print(f"✅ Prompt deleted")
         else:
             print(f"❌ Failed to delete prompt: {result.error}")
             return False

@@ -187,9 +187,55 @@ jobs:
           echo "🏢 Testing multi-tenant setup..."
           poetry run python test_mt_install.py
           
-          # Test new architecture
-          echo "🏗️ Testing new architecture..."
+          # Test new architecture with repository fixes
+          echo "🏗️ Testing new architecture with repository fixes..."
           poetry run python tests/integration/test_new_prompt_architecture.py
+          
+          # Validate critical repository save functionality for release
+          echo "🔧 Validating repository save functionality..."
+          poetry run python -c "
+          import sys
+          import tempfile
+          sys.path.insert(0, 'src')
+          
+          from src.core.config.settings import DatabaseConfig, DatabaseType
+          from src.core.base.database_manager import DatabaseManager
+          from src.prompts.services.prompt_service import PromptService
+          
+          # Critical test for release validation
+          temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+          temp_db.close()
+          
+          try:
+              db_config = DatabaseConfig(db_type=DatabaseType.SQLITE, db_path=temp_db.name)
+              db_manager = DatabaseManager(db_config)
+              prompt_service = PromptService(db_manager)
+              
+              # Test create and retrieve operations
+              create_result = prompt_service.create_prompt(
+                  tenant_id='release-test-tenant',
+                  user_id='release-test-user',
+                  name='release_validation_prompt',
+                  title='Release Validation Prompt',
+                  content='Testing new architecture for release readiness'
+              )
+              
+              if not (create_result.success and create_result.data and create_result.data.id):
+                  print(f'❌ Release validation failed: Create operation failed')
+                  exit(1)
+              
+              print('✅ Release validation: Repository save functionality verified')
+              
+          except Exception as e:
+              print(f'❌ Release validation failed with exception: {e}')
+              exit(1)
+          finally:
+              import os
+              try:
+                  os.unlink(temp_db.name)
+              except:
+                  pass
+          "
           
           echo "✅ All release tests passed!"
 

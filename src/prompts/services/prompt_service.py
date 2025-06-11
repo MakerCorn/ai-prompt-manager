@@ -90,11 +90,9 @@ class PromptService(BaseService):
             saved_prompt = self.repository.save(prompt)
             
             if saved_prompt:
-                prompt_type = "Enhancement prompt" if is_enhancement_prompt else "Prompt"
                 return ServiceResult(
                     success=True,
-                    data=saved_prompt,
-                    message=f"{prompt_type} '{name}' created successfully"
+                    data=saved_prompt
                 )
             else:
                 return ServiceResult(

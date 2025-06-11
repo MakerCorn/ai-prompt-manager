@@ -77,19 +77,53 @@ print('✅ Legacy imports successful')
         return 1
     fi
     
-    # Test new architecture imports
-    echo "  Testing new architecture imports..."
+    # Test new architecture imports and functionality
+    echo "  Testing new architecture imports and repository functionality..."
     if docker exec $container_name python -c "
 import sys
+import tempfile
 sys.path.insert(0, '/app/src')
-from src.core.config.settings import AppConfig
+from src.core.config.settings import AppConfig, DatabaseConfig, DatabaseType
 from src.prompts.models.prompt import Prompt
 from src.prompts.services.prompt_service import PromptService
-print('✅ New architecture imports successful')
+from src.core.base.database_manager import DatabaseManager
+
+# Test repository save functionality in Docker
+temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+temp_db.close()
+
+try:
+    db_config = DatabaseConfig(db_type=DatabaseType.SQLITE, db_path=temp_db.name)
+    db_manager = DatabaseManager(db_config)
+    prompt_service = PromptService(db_manager)
+    
+    # Test the fixed repository save functionality
+    result = prompt_service.create_prompt(
+        tenant_id='docker-test-tenant',
+        user_id='docker-test-user',
+        name='docker_test_prompt',
+        title='Docker Test Prompt',
+        content='Testing repository fixes in Docker container'
+    )
+    
+    if result.success and result.data and result.data.id:
+        print('✅ New architecture and repository save working in Docker')
+    else:
+        print(f'❌ Repository save test failed in Docker: {result.error}')
+        exit(1)
+except Exception as e:
+    print(f'❌ Docker test failed with exception: {e}')
+    exit(1)
+finally:
+    import os
+    try:
+        os.unlink(temp_db.name)
+    except:
+        pass
 "; then
-        echo "  ✅ New architecture imports working"
+        echo "  ✅ New architecture and repository functionality working"
     else
-        echo "  ❌ New architecture imports failed"
+        echo "  ❌ New architecture functionality failed"
         return 1
     fi
 }

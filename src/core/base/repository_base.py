@@ -527,6 +527,72 @@ class TenantAwareRepository(BaseRepository[T]):
         
         return super().save(self._dict_to_entity(entity_dict))
     
+    def _insert_entity(self, entity_dict: Dict[str, Any]) -> T:
+        """
+        Insert new entity into database with tenant context.
+        
+        Args:
+            entity_dict: Entity data as dictionary
+            
+        Returns:
+            Inserted entity with generated fields
+        """
+        # Add timestamp fields if they exist
+        current_time = datetime.utcnow()
+        if 'created_at' in entity_dict and entity_dict['created_at'] is None:
+            entity_dict['created_at'] = current_time
+        if 'updated_at' in entity_dict:
+            entity_dict['updated_at'] = current_time
+        
+        # Ensure tenant_id is set
+        entity_dict['tenant_id'] = self.current_tenant_id
+        
+        # Build INSERT query
+        fields = [k for k, v in entity_dict.items() if v is not None]
+        placeholders = ["?" for _ in fields]
+        values = [entity_dict[field] for field in fields]
+        
+        if self.db_manager.config.db_type.value == "postgres":
+            placeholders = ["%s" for _ in fields]
+            # For PostgreSQL, use RETURNING to get the inserted record
+            query = f"""
+                INSERT INTO {self.table_name} ({', '.join(fields)}) 
+                VALUES ({', '.join(placeholders)})
+                RETURNING *
+            """
+            
+            row = self.db_manager.execute_query(query, tuple(values), fetch_one=True)
+            return self._row_to_entity(row)
+        else:
+            # For SQLite - do everything in the same connection context
+            id_field = self._get_id_field()
+            with self.db_manager.get_connection_context() as conn:
+                cursor = conn.cursor()
+                
+                # Insert the record
+                query = f"""
+                    INSERT INTO {self.table_name} ({', '.join(fields)}) 
+                    VALUES ({', '.join(placeholders)})
+                """
+                cursor.execute(query, tuple(values))
+                
+                # Get the last inserted row ID from the same connection
+                cursor.execute("SELECT last_insert_rowid()")
+                last_id = cursor.fetchone()[0]
+                
+                # Fetch the record directly from the same connection without tenant filtering
+                fetch_query = f"SELECT * FROM {self.table_name} WHERE {id_field} = ?"
+                cursor.execute(fetch_query, (last_id,))
+                row = cursor.fetchone()
+                
+                if row:
+                    # Convert to dict format that the db_manager.execute_query returns
+                    columns = [desc[0] for desc in cursor.description]
+                    row_dict = dict(zip(columns, row))
+                    return self._row_to_entity(row_dict)
+                else:
+                    raise DatabaseException(f"Failed to retrieve inserted {self.table_name} record with ID {last_id}")
+
     @abstractmethod
     def _dict_to_entity(self, entity_dict: Dict[str, Any]) -> T:
         """
