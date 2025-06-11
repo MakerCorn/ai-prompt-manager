@@ -10,6 +10,7 @@ A comprehensive AI prompt management system with unified architecture supporting
 - [🌐 Multi-Language Support](#-multi-language-support)
 - [🧮 Token Calculator Guide](#-token-calculator-guide)
 - [📝 Prompt Management](#-prompt-management)
+- [🚀 Prompt Optimizer Guide](#-prompt-optimizer-guide)
 - [🧩 Prompt Builder Guide](#-prompt-builder-guide)
 - [🔑 API Access](#-api-access)
 - [🏢 Multi-Tenant Features](#-multi-tenant-features)
@@ -35,7 +36,7 @@ A comprehensive AI prompt management system with unified architecture supporting
 
 ### 🧮 **Advanced AI Features**
 - **Token Calculator**: Real-time cost estimation for all major AI models
-- **LangWatch Integration**: AI-powered prompt optimization and suggestions
+- **Multi-Service Prompt Optimizer**: AI-powered optimization with LangWatch, PromptPerfect, LangSmith, Helicone support
 - **Prompt Builder**: Drag-and-drop interface to combine multiple prompts into new ones
 - **Multi-Provider Support**: OpenAI, Claude, Gemini, LM Studio, Ollama, Llama.cpp
 - **Enhancement Engine**: Improve prompts using different AI models
@@ -535,18 +536,20 @@ The calculator provides:
    - **Tags**: Comma-separated keywords
 
 3. **Estimate costs** using the Token Calculator
-4. **Optimize if needed** with LangWatch integration
+4. **Optimize if needed** with the Prompt Optimizer (see [🚀 Prompt Optimizer Guide](#-prompt-optimizer-guide))
 5. **Save prompt** with "➕ Add Prompt"
 
-### LangWatch Optimization
+### Prompt Optimization
 
-Improve your prompts with AI-powered suggestions:
+Improve your prompts with AI-powered suggestions using multiple optimization services:
 
 1. **Add optimization context** - Describe your prompt's purpose
 2. **Select target model** - Choose your intended AI model
-3. **Click "🚀 Optimize with LangWatch"**
+3. **Click "🚀 Optimize"** - Uses your configured optimization service
 4. **Review suggestions** - See score, reasoning, and improvements
 5. **Accept, retry, or reject** - Choose the best version
+
+For detailed optimization features and configuration, see the [🚀 Prompt Optimizer Guide](#-prompt-optimizer-guide).
 
 ### Prompt Library
 
@@ -554,6 +557,329 @@ Improve your prompts with AI-powered suggestions:
 - **Search by keywords** - Name, title, content, or tags
 - **Filter by category** - Organize by type or purpose
 - **Quick actions** - Load, edit, or delete prompts
+
+---
+
+## 🚀 Prompt Optimizer Guide
+
+The **Prompt Optimizer** is an AI-powered system that analyzes and improves your prompts automatically, making them more effective, clear, and targeted for better AI model performance. The system supports multiple optimization services and provides detailed feedback to help you create superior prompts.
+
+### 🎯 What is Prompt Optimization?
+
+Prompt optimization uses AI to analyze your prompts and suggest improvements based on:
+- **Clarity**: Making instructions more specific and unambiguous
+- **Effectiveness**: Improving response quality and accuracy  
+- **Structure**: Adding organization and logical flow
+- **Specificity**: Replacing vague terms with concrete directions
+- **Context**: Providing appropriate background information
+
+### 🔧 How to Use the Prompt Optimizer
+
+#### 1. **Access the Optimizer**
+- Navigate to **Prompt Management** tab
+- Create or edit a prompt in the content area
+- Find the **🚀 Prompt Optimizer** section below the prompt editor
+
+#### 2. **Configure Optimization Settings**
+- **Optimization Context**: Describe your prompt's purpose (optional but recommended)
+- **Target AI Model**: Select your intended model (GPT-4, Claude, etc.)
+- **Optimization Goals**: Choose what to improve (clarity, specificity, effectiveness)
+
+#### 3. **Run Optimization**
+- Click **🚀 Optimize with LangWatch** (or your configured service)
+- Wait for analysis - typically takes 5-15 seconds
+- Review the optimization results
+
+#### 4. **Review Results**
+The optimizer provides:
+```
+🚀 Optimization Results
+
+📊 Optimization Score: 78.5/100
+🎯 Improvement: +23.5 points
+
+✨ Optimized Prompt:
+[Your improved prompt text here with better structure and clarity]
+
+💡 Key Improvements:
+• Added role definition for better responses
+• Structured approach for better organization  
+• Added output formatting instructions
+• Enhanced specificity for clearer results
+
+🧠 Reasoning:
+The optimization expanded the prompt with additional context, 
+defined the AI's role for better responses, and added structural 
+elements for clarity to enhance effectiveness and clarity.
+```
+
+#### 5. **Accept or Iterate**
+- **Accept**: Replace your original prompt with the optimized version
+- **Retry**: Run optimization again with different settings
+- **Reject**: Keep your original prompt
+- **Manual Edit**: Use suggestions to manually improve your prompt
+
+### 🛠️ Optimization Services
+
+AI Prompt Manager supports multiple optimization backends for flexibility and reliability:
+
+#### **🚀 LangWatch** (Recommended)
+- **Quality**: ⭐⭐⭐⭐⭐ Enterprise-grade optimization
+- **Features**: Advanced analytics, A/B testing, real-time monitoring
+- **Best For**: Production applications, complex prompts
+- **Setup**: Requires API key and project ID
+
+#### **🔍 PromptPerfect**
+- **Quality**: ⭐⭐⭐⭐ Specialized prompt refinement
+- **Features**: Multi-model optimization, instant feedback
+- **Best For**: Creative prompts, image generation
+- **Setup**: API key required
+
+#### **🧠 LangSmith**
+- **Quality**: ⭐⭐⭐⭐ LangChain ecosystem integration
+- **Features**: Version control, collaborative editing, testing
+- **Best For**: LangChain applications, team workflows
+- **Setup**: LangSmith account and API key
+
+#### **⚡ Helicone**
+- **Quality**: ⭐⭐⭐ Observability-focused optimization
+- **Features**: Performance monitoring, cost tracking
+- **Best For**: Production monitoring, debugging
+- **Setup**: Helicone account and API key
+
+#### **🧪 Built-in Optimizer** (Default)
+- **Quality**: ⭐⭐⭐ Rule-based improvements
+- **Features**: No external dependencies, instant results
+- **Best For**: Development, testing, offline use
+- **Setup**: No configuration required
+
+### 🔧 Configuration
+
+Configure your preferred optimization service via environment variables:
+
+#### **LangWatch Configuration**
+```bash
+# LangWatch (Recommended for production)
+PROMPT_OPTIMIZER=langwatch
+LANGWATCH_API_KEY=your_langwatch_api_key
+LANGWATCH_PROJECT_ID=your_project_id
+LANGWATCH_ENDPOINT=https://api.langwatch.ai  # Optional
+```
+
+#### **PromptPerfect Configuration**
+```bash
+# PromptPerfect
+PROMPT_OPTIMIZER=promptperfect
+PROMPTPERFECT_API_KEY=your_promptperfect_api_key
+```
+
+#### **LangSmith Configuration**
+```bash
+# LangSmith (LangChain)
+PROMPT_OPTIMIZER=langsmith
+LANGSMITH_API_KEY=your_langsmith_api_key
+LANGSMITH_PROJECT=your_project_name
+```
+
+#### **Helicone Configuration**
+```bash
+# Helicone
+PROMPT_OPTIMIZER=helicone
+HELICONE_API_KEY=your_helicone_api_key
+HELICONE_APP_NAME=ai-prompt-manager
+```
+
+#### **Built-in Optimizer (Default)**
+```bash
+# Built-in optimizer (no external service required)
+PROMPT_OPTIMIZER=builtin
+# No additional configuration needed
+```
+
+### 📊 Optimization Features
+
+#### **Smart Analysis**
+- **Prompt Length Analysis**: Identifies overly long or short prompts
+- **Complexity Detection**: Recognizes overly complex or repetitive content
+- **Structure Assessment**: Evaluates logical flow and organization
+- **Clarity Metrics**: Measures instruction specificity and precision
+
+#### **Multi-Model Support**
+The optimizer adapts suggestions based on your target AI model:
+- **GPT-4**: Focus on complex reasoning and detailed instructions
+- **GPT-3.5-turbo**: Emphasize clarity and conciseness
+- **Claude**: Optimize for conversational flow and context
+- **Gemini**: Balance creativity with structure
+
+#### **Optimization Goals**
+Customize optimization focus:
+- **Clarity**: Remove ambiguity, add specific instructions
+- **Effectiveness**: Improve response quality and accuracy
+- **Conciseness**: Remove redundancy while maintaining completeness
+- **Structure**: Add organization and logical flow
+- **Creativity**: Enhance creative and open-ended prompts
+
+### 🎯 Best Practices
+
+#### **Writing Prompts for Optimization**
+1. **Provide Context**: Add background information about your use case
+2. **Be Specific**: Include details about desired output format
+3. **Set Clear Goals**: Define what you want the AI to accomplish
+4. **Use Examples**: Include sample inputs/outputs when relevant
+
+#### **Optimization Workflow**
+```
+Original Prompt → Configure Settings → Run Optimizer → Review Results → Test → Deploy
+```
+
+#### **Iterative Improvement**
+- Start with basic prompts and optimize iteratively
+- Test optimized prompts with real use cases
+- Use A/B testing to compare versions
+- Track performance metrics over time
+
+### 🔍 Advanced Features
+
+#### **Batch Optimization**
+Optimize multiple prompts simultaneously:
+```bash
+# Coming soon: Batch optimization API
+POST /api/optimize/batch
+{
+  "prompts": ["prompt1", "prompt2", "prompt3"],
+  "settings": { "target_model": "gpt-4", "goals": ["clarity", "effectiveness"] }
+}
+```
+
+#### **Custom Optimization Rules**
+Define organization-specific optimization patterns:
+```python
+# Custom optimization rules (advanced)
+custom_rules = {
+    "add_role_definition": True,
+    "require_output_format": True, 
+    "max_length": 2000,
+    "industry_context": "healthcare"
+}
+```
+
+#### **Optimization History**
+Track improvement over time:
+- View optimization history for each prompt
+- Compare versions and see improvement metrics
+- Export optimization reports for analysis
+
+### 📈 Performance Metrics
+
+#### **Optimization Score Breakdown**
+- **0-30**: Poor - Requires significant improvement
+- **30-60**: Fair - Some optimization needed  
+- **60-80**: Good - Well-structured prompt
+- **80-95**: Excellent - Highly optimized prompt
+- **95-100**: Perfect - No improvements needed
+
+#### **Improvement Categories**
+- **+5-10 points**: Minor improvements (formatting, clarity)
+- **+10-20 points**: Moderate improvements (structure, specificity)  
+- **+20-30 points**: Major improvements (complete restructuring)
+- **+30+ points**: Significant transformation (role definition, context)
+
+### 🌐 Multi-Language Support
+
+The prompt optimizer works seamlessly with the translation system:
+
+1. **Translate First**: Use "🌐 Translate to English" for non-English prompts
+2. **Optimize**: Run optimization on English text for best results
+3. **Translate Back**: Optionally translate optimized prompt back to original language
+
+### 🚨 Troubleshooting
+
+#### **Common Issues**
+
+**Optimization Not Working:**
+- Check API key configuration in environment variables
+- Verify internet connectivity for external services
+- Try built-in optimizer as fallback
+
+**Poor Optimization Results:**
+- Provide more context about prompt purpose
+- Try different optimization goals
+- Use multiple optimization services for comparison
+
+**Service Unavailable:**
+- Built-in optimizer always available as backup
+- Check service status pages for external providers
+- Configure multiple services for redundancy
+
+#### **Error Messages**
+- `API_KEY_MISSING`: Set required environment variables
+- `SERVICE_UNAVAILABLE`: External service is down, use alternative
+- `PROMPT_TOO_LONG`: Shorten prompt or split into multiple parts
+- `RATE_LIMIT_EXCEEDED`: Wait and retry, or upgrade service plan
+
+### 🎓 Examples
+
+#### **Example 1: Basic Prompt Optimization**
+```
+Original: "Write about dogs"
+
+Optimized: "You are a knowledgeable pet expert. Write a comprehensive 
+guide about dogs that covers the following topics:
+
+1. Popular dog breeds and their characteristics
+2. Basic care requirements (feeding, exercise, grooming)
+3. Training tips for new dog owners
+4. Health considerations and veterinary care
+
+Please structure your response with clear headings and provide 
+practical, actionable advice for both new and experienced dog owners."
+
+Improvement: +45 points (clarity, structure, specificity)
+```
+
+#### **Example 2: Technical Prompt Optimization**
+```
+Original: "Explain API design"
+
+Optimized: "You are a senior software architect with expertise in 
+API design. Explain REST API design best practices for a junior 
+developer, covering:
+
+Step 1: Core principles (statelessness, resource-based URLs)
+Step 2: HTTP methods and status codes usage
+Step 3: Authentication and security considerations  
+Step 4: Documentation and versioning strategies
+
+Provide concrete examples for each concept and explain common 
+pitfalls to avoid. Format your response as a structured tutorial 
+with code examples where appropriate."
+
+Improvement: +38 points (role definition, structure, examples)
+```
+
+### 🔗 Integration with Other Features
+
+#### **Token Calculator Integration**
+- Optimization results show token impact
+- Compare costs before/after optimization
+- Optimize for specific token budgets
+
+#### **Prompt Builder Integration** 
+- Optimize combined prompts after building
+- Apply optimization to individual components
+- Create optimized prompt templates
+
+#### **API Integration**
+```bash
+# Optimize via API
+POST /api/prompts/optimize
+{
+  "content": "your prompt here",
+  "context": "analysis task",
+  "target_model": "gpt-4",
+  "goals": ["clarity", "effectiveness"]
+}
+```
 
 ---
 
@@ -902,9 +1228,14 @@ SSO_CLIENT_SECRET=your-client-secret
 SSO_AUTHORITY=https://login.microsoftonline.com/your-tenant-id
 SSO_REDIRECT_URI=http://localhost:7860/auth/callback
 
-# AI Service Integration (optional)
+# Prompt Optimization Services (optional)
+PROMPT_OPTIMIZER=langwatch              # Service: langwatch, promptperfect, langsmith, helicone, builtin
 LANGWATCH_API_KEY=your-langwatch-api-key
 LANGWATCH_PROJECT_ID=ai-prompt-manager
+PROMPTPERFECT_API_KEY=your-promptperfect-key
+LANGSMITH_API_KEY=your-langsmith-key
+LANGSMITH_PROJECT=your-project-name
+HELICONE_API_KEY=your-helicone-key
 
 # Development & Debugging
 DEBUG=false                   # Enable debug mode (default: false)
@@ -927,6 +1258,12 @@ DEBUG=false                   # Enable debug mode (default: false)
 | `SSO_CLIENT_ID` | SSO application ID | - | - |
 | `SSO_CLIENT_SECRET` | SSO client secret | - | - |
 | `SSO_AUTHORITY` | SSO authority URL | - | - |
+| `PROMPT_OPTIMIZER` | Optimization service to use | `builtin` | - |
+| `LANGWATCH_API_KEY` | LangWatch API key | - | - |
+| `LANGWATCH_PROJECT_ID` | LangWatch project ID | `ai-prompt-manager` | - |
+| `PROMPTPERFECT_API_KEY` | PromptPerfect API key | - | - |
+| `LANGSMITH_API_KEY` | LangSmith API key | - | - |
+| `HELICONE_API_KEY` | Helicone API key | - | - |
 | `DEBUG` | Enable debug logging | `false` | `--debug` |
 | `GRADIO_SHARE` | Enable public sharing | `false` | `--share` |
 

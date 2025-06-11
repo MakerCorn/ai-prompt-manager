@@ -75,7 +75,7 @@ graph TB
         subgraph "📝 Prompt Management"
             PROMPT_MGR[📄 Prompt Manager]
             BUILDER[🧩 Prompt Builder]
-            OPTIMIZER[🚀 LangWatch Optimizer]
+            OPTIMIZER[🚀 Multi-Service Optimizer]
             CALCULATOR[🧮 Token Calculator]
         end
         
@@ -95,7 +95,7 @@ graph TB
 
     %% External Services
     subgraph "🌍 External Services"
-        LANGWATCH[🚀 LangWatch<br/>Optimization]
+        OPT_SERVICES[🚀 Optimization Services<br/>LangWatch/PromptPerfect<br/>LangSmith/Helicone]
         AI_MODELS[🤖 AI Models<br/>OpenAI/Local]
         TRANSLATE_SVC[🔄 Translation Services<br/>OpenAI/Google/Libre]
         SSO[🔗 SSO/ADFS<br/>Microsoft Azure]
@@ -131,7 +131,7 @@ graph TB
     DATA_MGR --> SQLITE
     DATA_MGR --> POSTGRES
     
-    OPTIMIZER --> LANGWATCH
+    OPTIMIZER --> OPT_SERVICES
     CALCULATOR --> AI_MODELS
     TRANSLATOR --> TRANSLATE_SVC
     AUTH_MGR --> SSO
@@ -148,7 +148,7 @@ graph TB
     class GRADIO,AUTH_UI,BUILDER_UI,FASTAPI,AUTH_API,PROMPT_API,ADMIN_API appLayer
     class AUTH_MGR,USER_MGR,TENANT_MGR,TOKEN_MGR,PROMPT_MGR,BUILDER,OPTIMIZER,CALCULATOR,I18N,TRANSLATOR,UI_COMP businessLayer
     class DATA_MGR,API_TOKEN_MGR,CONFIG_MGR dataLayer
-    class LANGWATCH,AI_MODELS,TRANSLATE_SVC,SSO externalLayer
+    class OPT_SERVICES,AI_MODELS,TRANSLATE_SVC,SSO externalLayer
     class SQLITE,POSTGRES dbLayer
 ```
 
