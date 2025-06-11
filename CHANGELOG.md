@@ -1,5 +1,116 @@
 # Changelog
 
+## [v0.3.3] - 2025-06-11 - Test Organization & Docker Syntax Fixes
+
+### 🧪 Test Suite Organization
+
+#### **Test File Structure Modernization**
+- **Centralized Test Directory**: Moved all test files from root directory to proper `tests/integration/` structure
+- **File Organization**: Organized test files into logical directories (`integration/`, `unit/`, `fixtures/`)
+- **Path Standardization**: Updated all references to test files across documentation and workflows
+- **Clean Root Directory**: Removed test file clutter from project root for better organization
+
+#### **Moved Test Files**
+- `test_langwatch_integration.py` → `tests/integration/test_langwatch_integration.py`
+- `test_api_integration.py` → `tests/integration/test_api_integration.py`
+- `test_standalone_api.py` → `tests/integration/test_standalone_api.py`
+- `test_azure_integration.py` → `tests/integration/test_azure_integration.py`
+- `test_mt_install.py` → `tests/integration/test_mt_install.py`
+- `simple_api_test.py` → `tests/integration/simple_api_test.py`
+
+#### **Documentation Updates**
+- **README.md**: Updated all test file references to use new `tests/integration/` paths
+- **Workflow Documentation**: Updated GitHub Actions workflow examples with correct paths
+- **Installation Guides**: Updated installation script examples to use proper test paths
+- **Docker Documentation**: Updated container test validation commands
+
+### 🐳 Docker Infrastructure Fixes
+
+#### **Dockerfile Syntax Resolution**
+- **Multiline Python Code**: Fixed Docker build syntax errors in RUN commands with multiline Python code
+- **Proper Escaping**: Converted multiline Python blocks to single-line format with semicolons and backslashes
+- **Build Validation**: Ensured Docker syntax parser correctly handles Python import tests
+- **Container Testing**: Maintained functionality while conforming to Docker syntax requirements
+
+#### **Build Process Improvements**
+- **Syntax Validation**: Docker builds now parse successfully without syntax errors
+- **Import Testing**: Preserved both legacy and new architecture component validation during builds
+- **Error Prevention**: Eliminated "unknown instruction" errors in Docker build process
+- **Container Reliability**: Enhanced container build reliability and consistency
+
+### 🔧 CI/CD Pipeline Updates
+
+#### **Workflow Path Corrections**
+- **GitHub Actions**: Updated `.github/workflows/test.yml` with correct test file paths
+- **Release Workflows**: Updated `.github/workflows/release.yml` test references
+- **Build Workflows**: Updated `.github/workflows/build-package.yml` test file copying
+- **Docker Ignore**: Updated `.dockerignore` to use `!tests/` instead of individual test file inclusions
+
+#### **Automated Testing**
+- **Path Consistency**: All automated tests now use standardized `tests/integration/` paths
+- **Build Validation**: Enhanced CI to validate test file organization during builds
+- **Release Testing**: Improved release validation with proper test file structure
+- **Container Testing**: Updated Docker test scripts to use organized test structure
+
+### 📁 File Structure Improvements
+
+#### **Clean Project Organization**
+```
+ai-prompt-manager/
+├── tests/
+│   ├── integration/          # Integration test suite
+│   │   ├── test_langwatch_integration.py
+│   │   ├── test_api_integration.py
+│   │   ├── test_standalone_api.py
+│   │   ├── test_azure_integration.py
+│   │   ├── test_mt_install.py
+│   │   └── simple_api_test.py
+│   ├── unit/                 # Unit test suite
+│   │   ├── auth/
+│   │   └── core/
+│   └── fixtures/             # Test fixtures and data
+├── src/                      # New architecture source
+├── scripts/                  # Utility scripts
+└── [project files]           # Clean root directory
+```
+
+#### **Benefits of Reorganization**
+- **Professional Structure**: Industry-standard test organization
+- **Easier Navigation**: Clear separation between different types of tests
+- **Scalable Testing**: Easy to add new test categories and fixtures
+- **Clean Root**: Reduced clutter in project root directory
+- **CI/CD Compatibility**: Better integration with automated testing pipelines
+
+### ⚡ Quality & Maintenance Improvements
+
+#### **Code Quality**
+- **Consistent Paths**: All test references now use consistent, absolute paths
+- **Documentation Accuracy**: All documentation reflects actual file locations
+- **Build Reliability**: Docker builds are now more reliable with proper syntax
+- **Error Prevention**: Eliminated common Docker syntax pitfalls
+
+#### **Developer Experience**
+- **Clear Structure**: Developers can easily find and run appropriate tests
+- **Logical Organization**: Tests are organized by type and purpose
+- **Consistent Commands**: All test commands use standardized paths
+- **Better Documentation**: Clear examples of how to run tests in different scenarios
+
+### 🔍 Validation & Testing
+
+#### **Comprehensive Validation**
+- **Docker Syntax**: Verified Docker build syntax is correct and functional
+- **Path Resolution**: Confirmed all test file paths resolve correctly
+- **CI Integration**: Validated all GitHub Actions workflows use correct paths
+- **Documentation Accuracy**: Ensured all documentation reflects actual file structure
+
+#### **Quality Assurance**
+- **No Broken Links**: All test file references point to existing files
+- **Functional Tests**: All moved test files maintain their functionality
+- **Build Success**: Docker builds complete successfully with proper validation
+- **Release Readiness**: All components ready for production deployment
+
+---
+
 ## [v0.3.2] - 2025-06-11 - New Architecture Repository & Transaction Fixes
 
 ### 🔧 Critical Repository Fixes

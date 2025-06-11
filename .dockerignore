@@ -57,11 +57,8 @@ Thumbs.db
 docs/
 examples/
 
-# Keep integration tests that validate Docker functionality
-!test_langwatch_integration.py
-!test_mt_install.py
-!test_api_integration.py
-!tests/integration/
+# Keep tests directory for validation
+!tests/
 
 # Development files
 docker-compose.yml

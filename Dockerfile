@@ -42,47 +42,36 @@ RUN poetry config virtualenvs.create false \
 RUN mkdir -p /app/data
 
 # Test that both legacy and new architecture components can be imported
-RUN python -c "
-import sys
-sys.path.insert(0, '/app/src')
-# Test legacy imports
-import prompt_manager, auth_manager, api_endpoints
-# Test new architecture imports
-from src.core.config.settings import AppConfig, DatabaseConfig, DatabaseType
-from src.prompts.models.prompt import Prompt
-from src.core.base.database_manager import DatabaseManager
-from src.prompts.services.prompt_service import PromptService
-print('✅ Docker build: All imports successful')
-"
+RUN python -c "\
+import sys; \
+sys.path.insert(0, '/app/src'); \
+import prompt_manager, auth_manager, api_endpoints; \
+from src.core.config.settings import AppConfig, DatabaseConfig, DatabaseType; \
+from src.prompts.models.prompt import Prompt; \
+from src.core.base.database_manager import DatabaseManager; \
+from src.prompts.services.prompt_service import PromptService; \
+print('✅ Docker build: All imports successful')"
 
 # Test basic new architecture functionality during build
-RUN python -c "
-import sys
-import tempfile
-sys.path.insert(0, '/app/src')
-from src.core.config.settings import DatabaseConfig, DatabaseType
-from src.core.base.database_manager import DatabaseManager
-from src.prompts.services.prompt_service import PromptService
-
-# Test basic repository and service functionality
-temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
-temp_db.close()
-
-try:
-    db_config = DatabaseConfig(db_type=DatabaseType.SQLITE, db_path=temp_db.name)
-    db_manager = DatabaseManager(db_config)
-    prompt_service = PromptService(db_manager)
-    print('✅ Docker build: New architecture services initialized successfully')
-except Exception as e:
-    print(f'❌ Docker build: New architecture test failed: {e}')
-    raise
-finally:
-    import os
-    try:
-        os.unlink(temp_db.name)
-    except:
-        pass
-"
+RUN python -c "\
+import sys, tempfile, os; \
+sys.path.insert(0, '/app/src'); \
+from src.core.config.settings import DatabaseConfig, DatabaseType; \
+from src.core.base.database_manager import DatabaseManager; \
+from src.prompts.services.prompt_service import PromptService; \
+temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db'); \
+temp_db.close(); \
+try: \
+    db_config = DatabaseConfig(db_type=DatabaseType.SQLITE, db_path=temp_db.name); \
+    db_manager = DatabaseManager(db_config); \
+    prompt_service = PromptService(db_manager); \
+    print('✅ Docker build: New architecture services initialized successfully'); \
+except Exception as e: \
+    print(f'❌ Docker build: New architecture test failed: {e}'); \
+    raise; \
+finally: \
+    try: os.unlink(temp_db.name); \
+    except: pass"
 
 # Expose port for Gradio and API
 EXPOSE 7860

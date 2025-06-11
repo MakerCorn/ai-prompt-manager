@@ -919,13 +919,13 @@ You can test the prompt optimization system using the included test script:
 
 ```bash
 # Test with built-in optimizer (no API keys required)
-python test_langwatch_integration.py
+python tests/integration/test_langwatch_integration.py
 
 # Test with specific service (set environment variables first)
-PROMPT_OPTIMIZER=langwatch LANGWATCH_API_KEY=your_key python test_langwatch_integration.py
+PROMPT_OPTIMIZER=langwatch LANGWATCH_API_KEY=your_key python tests/integration/test_langwatch_integration.py
 
 # Test service switching
-PROMPT_OPTIMIZER=promptperfect PROMPTPERFECT_API_KEY=your_key python test_langwatch_integration.py
+PROMPT_OPTIMIZER=promptperfect PROMPTPERFECT_API_KEY=your_key python tests/integration/test_langwatch_integration.py
 ```
 
 The test script will:
@@ -1745,9 +1745,9 @@ python run.py --port 8080                    # Custom port
 python run.py --help                         # Show all options
 
 # Testing
-python test_mt_install.py                    # Multi-tenant setup
-python test_langwatch_integration.py         # LangWatch features
-python test_standalone_api.py                # API integration
+python tests/integration/test_mt_install.py                    # Multi-tenant setup
+python tests/integration/test_langwatch_integration.py         # LangWatch features
+python tests/integration/test_standalone_api.py                # API integration
 ```
 
 ### Docker Development
@@ -2036,7 +2036,7 @@ print('Database connection successful')
 
 ```bash
 # Test optimization service
-python test_langwatch_integration.py
+python tests/integration/test_langwatch_integration.py
 
 # Verify API keys
 python -c "
@@ -2077,10 +2077,10 @@ print('✅ New architecture components working!')
 "
 
 # 🔧 Legacy Integration Tests
-python test_mt_install.py                    # Multi-tenant setup and UI creation
-python test_standalone_api.py               # API integration
-python test_langwatch_integration.py        # Prompt optimization features
-python test_api_integration.py              # Full API test suite
+python tests/integration/test_mt_install.py                    # Multi-tenant setup and UI creation
+python tests/integration/test_standalone_api.py               # API integration
+python tests/integration/test_langwatch_integration.py        # Prompt optimization features
+python tests/integration/test_api_integration.py              # Full API test suite
 
 # 📊 Component Testing
 python -c "

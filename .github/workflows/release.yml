@@ -181,11 +181,11 @@ jobs:
           
           # Test optimization integration
           echo "🤖 Testing prompt optimization..."
-          poetry run python test_langwatch_integration.py
+          poetry run python tests/integration/test_langwatch_integration.py
           
           # Test multi-tenant setup
           echo "🏢 Testing multi-tenant setup..."
-          poetry run python test_mt_install.py
+          poetry run python tests/integration/test_mt_install.py
           
           # Test new architecture with repository fixes
           echo "🏗️ Testing new architecture with repository fixes..."
@@ -358,7 +358,7 @@ jobs:
           fi
           
           # Copy test files for validation
-          cp test_*.py release-dist/ 2>/dev/null || echo "No test files to copy"
+          cp -r tests/ release-dist/ 2>/dev/null || echo "No tests directory to copy"
           
           # Create installation script
           cat > release-dist/install.sh << 'EOF'
@@ -431,8 +431,8 @@ jobs:
           echo ""
           echo "🔧 Testing:"
           echo "  python tests/integration/test_new_prompt_architecture.py  # Test new architecture"
-          echo "  python test_langwatch_integration.py    # Test prompt optimization"
-          echo "  python test_mt_install.py               # Test multi-tenant setup"
+          echo "  python tests/integration/test_langwatch_integration.py    # Test prompt optimization"
+          echo "  python tests/integration/test_mt_install.py               # Test multi-tenant setup"
           echo ""
           echo "📖 Documentation:"
           echo "  README.md - Complete user guide"

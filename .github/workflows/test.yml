@@ -74,7 +74,7 @@ jobs:
           "
 
       - name: Run LangWatch integration tests
-        run: poetry run python test_langwatch_integration.py
+        run: poetry run python tests/integration/test_langwatch_integration.py
 
       - name: Test new architecture components
         run: |
