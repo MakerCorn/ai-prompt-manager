@@ -60,6 +60,7 @@ class AIPromptManager:
         # Load configurations
         self.config = self.load_config()
         self.enhancement_config = self.load_enhancement_config()
+        self.test_config = self.load_test_config()
     
     def clear_current_user(self):
         """Clear current user session"""
@@ -67,6 +68,7 @@ class AIPromptManager:
         self.data = None
         self.config = {}
         self.enhancement_config = {}
+        self.test_config = {}
     
     def login(self, email: str, password: str, subdomain: str = "localhost") -> Tuple[bool, str, Optional[str]]:
         """Authenticate user and return success, message, and session token"""
@@ -184,6 +186,48 @@ class AIPromptManager:
             'api_key': '',
             'model_name': 'gpt-4',
             'enhancement_prompt_name': None
+        }
+    
+    def save_test_config(self, service_type: str, api_endpoint: str, api_key: str, model_name: str) -> str:
+        """Save test service configuration"""
+        if not self.current_user:
+            return "Error: User not authenticated!"
+        
+        config = {
+            'service_type': service_type,
+            'api_endpoint': api_endpoint,
+            'api_key': api_key,
+            'model_name': model_name
+        }
+        
+        data_manager = self.get_data_manager()
+        if data_manager and data_manager.save_config('test_service', json.dumps(config)):
+            self.test_config = config
+            return "Test configuration saved successfully!"
+        return "Error saving test configuration!"
+    
+    def load_test_config(self) -> Dict:
+        """Load test service configuration"""
+        if not self.current_user:
+            return self._get_default_test_config()
+        
+        data_manager = self.get_data_manager()
+        if data_manager:
+            config_str = data_manager.get_config('test_service')
+            if config_str:
+                try:
+                    return json.loads(config_str)
+                except json.JSONDecodeError:
+                    pass
+        
+        return self._get_default_test_config()
+    
+    def _get_default_test_config(self) -> Dict:
+        return {
+            'service_type': 'openai',
+            'api_endpoint': 'http://localhost:1234/v1',
+            'api_key': '',
+            'model_name': 'gpt-3.5-turbo'
         }
     
     def format_prompts_for_display(self, prompts: List[Dict]) -> str:
@@ -680,6 +724,43 @@ def enhance_ai_prompt(original_prompt, enhancement_prompt_name):
     
     return prompt_manager.enhance_prompt(original_prompt, enhancement_prompt_name)
 
+def test_prompt_with_llm(prompt_content, test_input):
+    """Test prompt with configured LLM model"""
+    if not prompt_content.strip():
+        return "Please enter a prompt to test!", "❌ No prompt provided"
+    
+    try:
+        # Combine prompt with test input if provided
+        if test_input and test_input.strip():
+            combined_prompt = f"{prompt_content.strip()}\n\n{test_input.strip()}"
+        else:
+            combined_prompt = prompt_content.strip()
+        
+        # Get user test configuration
+        user_id = prompt_manager.get_current_user_id()
+        if not user_id:
+            return "Please log in to test prompts.", "❌ Authentication required"
+        
+        # Use test configuration if available, fallback to main config
+        test_config = getattr(prompt_manager, 'test_config', None)
+        if not test_config or not test_config.get('model_name'):
+            config = prompt_manager.get_user_config(user_id)
+            if not config:
+                return "Please configure your AI service or Test service in the Configuration tab first.", "❌ No configuration found"
+        else:
+            config = test_config
+        
+        # Test the prompt using the configured LLM
+        result = prompt_manager.call_ai_service(combined_prompt, config)
+        
+        if result.startswith("Error:"):
+            return result, "❌ Test failed"
+        else:
+            return result, "✅ Test completed successfully"
+            
+    except Exception as e:
+        return f"Error testing prompt: {str(e)}", "❌ Test error"
+
 def save_configuration(service_type, api_endpoint, api_key, model_name):
     """Save the AI service configuration"""
     return prompt_manager.save_config(service_type, api_endpoint, api_key, model_name)
@@ -687,6 +768,10 @@ def save_configuration(service_type, api_endpoint, api_key, model_name):
 def save_enhancement_configuration(service_type, api_endpoint, api_key, model_name, enhancement_prompt_name):
     """Save enhancement configuration"""
     return prompt_manager.save_enhancement_config(service_type, api_endpoint, api_key, model_name, enhancement_prompt_name)
+
+def save_test_configuration(service_type, api_endpoint, api_key, model_name):
+    """Save test configuration"""
+    return prompt_manager.save_test_config(service_type, api_endpoint, api_key, model_name)
 
 # LangWatch optimization functions
 def optimize_prompt_langwatch(prompt_text, context, target_model):
@@ -1206,6 +1291,35 @@ def create_interface():
                                 lines=8,
                                 required=True
                             )
+                            
+                            # Test Prompt Section
+                            with gr.Group():
+                                gr.Markdown("#### 🧪 Test Prompt")
+                                gr.Markdown("Test your prompt with the configured LLM model")
+                                
+                                with gr.Row():
+                                    with gr.Column(scale=2):
+                                        test_input = gr.Textbox(
+                                            label="Test Input",
+                                            placeholder="Enter test input or context for your prompt...",
+                                            lines=2,
+                                            info="This will be combined with your prompt for testing"
+                                        )
+                                    with gr.Column(scale=1):
+                                        test_btn = UIComponents.create_button(
+                                            "test.prompt",
+                                            variant="secondary",
+                                            icon="🧪",
+                                            size="medium"
+                                        )
+                                
+                                test_output = gr.Textbox(
+                                    label="Test Output",
+                                    lines=6,
+                                    interactive=False,
+                                    placeholder="Test results will appear here..."
+                                )
+                                test_status = UIComponents.create_status_display("test.status")
                             
                             # Translation Section (visible only for non-English UI)
                             with gr.Group(visible=text_translator.is_translation_needed()) as translation_section:
@@ -1770,6 +1884,37 @@ def create_interface():
                     
                     enh_config_save_btn = gr.Button("💾 Save Enhancement Config", variant="primary")
                     enh_config_status = gr.Textbox(label="Enhancement Config Status", interactive=False)
+                    
+                    gr.Markdown("---")
+                    gr.Markdown("### Test Service Configuration")
+                    gr.Markdown("Configure a separate AI service specifically for prompt testing")
+                    
+                    with gr.Row():
+                        test_service_type = gr.Dropdown(
+                            choices=["openai", "lmstudio", "ollama", "llamacpp"],
+                            value="openai",
+                            label="Test Service Type"
+                        )
+                        test_model_name = gr.Textbox(
+                            value="gpt-3.5-turbo",
+                            label="Test Model Name",
+                            placeholder="e.g., gpt-3.5-turbo, llama2"
+                        )
+                    
+                    test_api_endpoint = gr.Textbox(
+                        value="http://localhost:1234/v1",
+                        label="Test API Endpoint",
+                        placeholder="http://localhost:1234/v1"
+                    )
+                    
+                    test_api_key = gr.Textbox(
+                        label="Test API Key (optional)",
+                        type="password",
+                        placeholder="Enter API key if required"
+                    )
+                    
+                    test_config_save_btn = gr.Button("💾 Save Test Config", variant="primary")
+                    test_config_status = gr.Textbox(label="Test Config Status", interactive=False)
         
         # Admin interface (only visible to admins)
         with gr.Row(visible=False) as admin_section:
@@ -1905,6 +2050,13 @@ def create_interface():
             translate_prompt_to_english,
             inputs=[prompt_content],
             outputs=[prompt_content, translation_status]
+        )
+        
+        # Event handler for prompt testing
+        test_btn.click(
+            test_prompt_with_llm,
+            inputs=[prompt_content, test_input],
+            outputs=[test_output, test_status]
         )
         
         # Event handlers for LangWatch optimization
@@ -2074,6 +2226,12 @@ def create_interface():
             save_enhancement_configuration,
             inputs=[enh_service_type, enh_api_endpoint, enh_api_key, enh_model_name, enh_prompt_dropdown],
             outputs=enh_config_status
+        )
+        
+        test_config_save_btn.click(
+            save_test_configuration,
+            inputs=[test_service_type, test_api_endpoint, test_api_key, test_model_name],
+            outputs=test_config_status
         )
         
         # Event handlers for API token management

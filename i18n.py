@@ -192,6 +192,10 @@ class I18nManager:
             "translate.status": "Translation Status",
             "translate.help": "Translate your prompt to English for better AI enhancement",
             
+            # Testing
+            "test.prompt": "Test Prompt",
+            "test.status": "Test Status",
+            
             # Prompt Builder
             "builder.title": "Prompt Builder",
             "builder.subtitle": "Combine existing prompts to create new ones",
