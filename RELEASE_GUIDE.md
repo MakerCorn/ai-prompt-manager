@@ -209,6 +209,14 @@ chmod +x scripts/create-release.sh
 - Verify all dependencies are available
 - Test local Docker build: `docker build -t test .`
 
+**❌ Docker Registry Name Error**
+```
+invalid reference format: repository name must be lowercase
+```
+- This is automatically handled by the release workflow
+- Repository names are converted to lowercase (e.g., `MakerCorn/ai-prompt-manager` → `makercorn/ai-prompt-manager`)
+- Test locally: `./scripts/test-docker-name.sh`
+
 **❌ Version Conflicts**
 ```bash
 # Check if tag already exists

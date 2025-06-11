@@ -1711,11 +1711,13 @@ The release script (`scripts/create-release.sh`) automates:
 
 **🐳 Docker Images:**
 ```bash
-# Available tags:
+# Available tags (repository names are automatically converted to lowercase):
 ghcr.io/makercorn/ai-prompt-manager:latest     # Latest stable
 ghcr.io/makercorn/ai-prompt-manager:v1.0.0     # Specific version
 ghcr.io/makercorn/ai-prompt-manager:stable     # Latest stable (non-prerelease)
 ```
+
+> **Note**: Docker registry names must be lowercase. The release workflow automatically converts repository names to comply with Docker registry requirements.
 
 ### Troubleshooting
 

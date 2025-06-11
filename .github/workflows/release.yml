@@ -21,6 +21,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  # Convert repository name to lowercase for Docker compatibility
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
@@ -444,8 +445,8 @@ jobs:
           ### Docker
           \`\`\`bash
           # Pull and run
-          docker pull ghcr.io/${{ github.repository }}:${VERSION}
-          docker run -p 7860:7860 ghcr.io/${{ github.repository }}:${VERSION}
+          docker pull ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:${VERSION}
+          docker run -p 7860:7860 ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:${VERSION}
           \`\`\`
           
           ---
@@ -478,10 +479,18 @@ jobs:
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
       image-tags: ${{ steps.meta.outputs.tags }}
+      image-name: ${{ steps.image-name.outputs.lowercase }}
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Convert repository name to lowercase
+        id: image-name
+        run: |
+          LOWERCASE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "lowercase=$LOWERCASE_REPO" >> $GITHUB_OUTPUT
+          echo "🐳 Docker image will be: ${{ env.REGISTRY }}/$LOWERCASE_REPO"
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3.5.0
@@ -502,7 +511,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}
           tags: |
             type=ref,event=tag
             type=raw,value=latest,enable={{is_default_branch}}
@@ -552,7 +561,7 @@ jobs:
           ## 📋 Image Information
           
           **Registry:** ${{ env.REGISTRY }}
-          **Repository:** ${{ env.IMAGE_NAME }}
+          **Repository:** ${{ steps.image-name.outputs.lowercase }}
           **Platforms:** linux/amd64, linux/arm64
           
           ## 🏷️ Tags
@@ -566,8 +575,8 @@ jobs:
           ### Quick Start
           \`\`\`bash
           # Pull and run latest version
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}
-          docker run -p 7860:7860 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}
+          docker pull ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}:${VERSION}
+          docker run -p 7860:7860 ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}:${VERSION}
           \`\`\`
           
           ### Production Deployment
@@ -576,7 +585,7 @@ jobs:
           version: '3.8'
           services:
             ai-prompt-manager:
-              image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}
+              image: ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}:${VERSION}
               ports:
                 - "7860:7860"
               environment:
@@ -606,7 +615,7 @@ jobs:
           \`\`\`bash
           cosign verify --certificate-identity-regexp='.*' \\
             --certificate-oidc-issuer-regexp='.*' \\
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+            ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}@${{ steps.build.outputs.digest }}
           \`\`\`
           EOF
 
@@ -679,7 +688,7 @@ jobs:
           ### 🐳 Docker (Recommended)
           \`\`\`bash
           # Quick start
-          docker run -p 7860:7860 ghcr.io/${{ github.repository }}:${{ needs.validate-release.outputs.version }}
+          docker run -p 7860:7860 ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:${{ needs.validate-release.outputs.version }}
           
           # Production with PostgreSQL
           docker-compose -f docker-compose.prod.yml up -d
@@ -718,9 +727,9 @@ jobs:
           
           | Tag | Description | Image |
           |-----|-------------|-------|
-          | \`latest\` | Latest stable release | \`ghcr.io/${{ github.repository }}:latest\` |
-          | \`${{ needs.validate-release.outputs.version }}\` | This release | \`ghcr.io/${{ github.repository }}:${{ needs.validate-release.outputs.version }}\` |$(if [[ "${{ needs.validate-release.outputs.is_prerelease }}" == "false" ]]; then echo "
-          | \`stable\` | Latest stable release | \`ghcr.io/${{ github.repository }}:stable\` |"; fi)
+          | \`latest\` | Latest stable release | \`ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:latest\` |
+          | \`${{ needs.validate-release.outputs.version }}\` | This release | \`ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:${{ needs.validate-release.outputs.version }}\` |$(if [[ "${{ needs.validate-release.outputs.is_prerelease }}" == "false" ]]; then echo "
+          | \`stable\` | Latest stable release | \`ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:stable\` |"; fi)
           
           **Image Digest:** \`${{ needs.build-docker-image.outputs.image-digest }}\`
           
@@ -777,13 +786,13 @@ jobs:
   # Post-release validation
   validate-release-artifacts:
     runs-on: ubuntu-latest
-    needs: [validate-release, create-github-release]
+    needs: [validate-release, create-github-release, build-docker-image]
     
     steps:
       - name: Test Docker image
         run: |
           VERSION="${{ needs.validate-release.outputs.version }}"
-          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}"
+          IMAGE="${{ env.REGISTRY }}/${{ needs.build-docker-image.outputs.image-name }}:${VERSION}"
           
           echo "🧪 Testing Docker image: $IMAGE"
           
@@ -818,7 +827,7 @@ jobs:
           echo ""
           echo "📦 Release: ${{ needs.validate-release.outputs.release_name }}"
           echo "🏷️ Version: ${{ needs.validate-release.outputs.version }}"
-          echo "🐳 Docker: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.validate-release.outputs.version }}"
+          echo "🐳 Docker: ${{ env.REGISTRY }}/${{ needs.build-docker-image.outputs.image-name }}:${{ needs.validate-release.outputs.version }}"
           echo "📋 Pre-release: ${{ needs.validate-release.outputs.is_prerelease }}"
           echo ""
           echo "✅ All release artifacts validated and published!"
