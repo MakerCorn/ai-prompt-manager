@@ -1616,7 +1616,7 @@ if text_translator.is_translation_needed():
 poetry install --with dev
 
 # Core functionality tests
-python test_mt_install.py           # Multi-tenant setup
+python test_mt_install.py           # Multi-tenant setup and UI creation
 python test_standalone_api.py       # API integration
 python test_langwatch_integration.py # Prompt optimization features
 python test_api_integration.py      # Full API test suite

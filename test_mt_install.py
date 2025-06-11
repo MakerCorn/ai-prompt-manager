@@ -20,8 +20,8 @@ def test_imports():
         from prompt_data_manager import PromptDataManager
         print("  ✅ prompt_data_manager imported successfully")
         
-        from prompt_manager_mt import AIPromptManager, create_interface
-        print("  ✅ prompt_manager_mt imported successfully")
+        from prompt_manager import create_interface
+        print("  ✅ prompt_manager imported successfully")
         
         return True
     except ImportError as e:
@@ -163,7 +163,7 @@ def test_ui_creation():
     print("\n🖥️ Testing UI creation...")
     
     try:
-        from prompt_manager_mt import create_interface
+        from prompt_manager import create_interface
         
         # Create interface (without launching)
         app = create_interface()
@@ -204,7 +204,7 @@ def main():
     if passed == total:
         print("\n🎉 All tests passed! Multi-tenant system is ready to use.")
         print("\n🚀 To start the application:")
-        print("   poetry run python run_mt.py")
+        print("   poetry run python run.py")
         print("\n🔑 Default credentials:")
         print("   Email: admin@localhost")
         print("   Password: admin123")
