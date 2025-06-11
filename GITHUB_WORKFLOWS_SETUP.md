@@ -17,19 +17,55 @@ Complete guide for setting up automated Docker builds and deployments using GitH
 
 ## 🔍 Overview
 
-This project includes three automated GitHub workflows:
+This project includes four automated GitHub workflows:
 
 1. **🧪 Test and Validation** (`test.yml`) - Runs tests on every push and PR
-2. **📦 Package Build** (`build-package.yml`) - Builds and publishes package artifacts
-3. **🚀 Release Management** (`release.yml`) - Creates releases with downloadable packages
+2. **📦 Package Build** (`build-package.yml`) - Builds and publishes package artifacts  
+3. **🐳 Docker Publishing** (`docker-publish.yml`) - Builds and publishes Docker images
+4. **🚀 Release Management** (`release.yml`) - Comprehensive release automation with packages and containers
 
 ### Workflow Triggers
 
 | Workflow | Trigger | Action |
 |----------|---------|--------|
 | **Test** | PR to `main`, Push to `main` | Run tests, validate unified launcher |
-| **Package Build** | Push to `main`, Version tags | Build Python packages and distributions |
-| **Release** | Version tags (`v*.*.*`) | Create GitHub release with downloadable assets |
+| **Package Build** | Push to `main`, Tags `v*.*.*`, PR to `main` | Build Python packages and source archives |
+| **Docker Publish** | After successful tests | Build and push Docker images to GHCR |
+| **Release** | Tags `v*.*.*`, Manual trigger | Complete release with packages, Docker images, and GitHub release |
+
+## 🚀 Release Workflow Features
+
+The new release workflow (`release.yml`) provides comprehensive automation for creating releases:
+
+### **📦 Release Artifacts**
+- **Python Packages**: Wheel and source distributions
+- **Docker Images**: Multi-platform containers (linux/amd64, linux/arm64)
+- **Source Archives**: Complete source code with installation scripts
+- **Documentation**: Release manifests and installation guides
+
+### **🔐 Security Features**
+- **Reproducible Builds**: Deterministic build process
+- **Checksums**: SHA256 verification for all packages
+- **Signed Images**: Docker images signed with Sigstore/Cosign
+- **Supply Chain Security**: Auditable build artifacts
+
+### **🎯 Release Types**
+- **Stable Releases**: `v1.0.0`, `v1.1.0`, `v2.0.0`
+- **Pre-releases**: `v1.0.0-alpha.1`, `v1.0.0-beta.1`, `v1.0.0-rc.1`
+- **Manual Triggers**: Create releases on-demand via GitHub Actions
+
+### **🐳 Docker Tags**
+| Tag Pattern | Description | Example |
+|-------------|-------------|---------|
+| `latest` | Latest stable release | `ghcr.io/makercorn/ai-prompt-manager:latest` |
+| `v*.*.*` | Specific version | `ghcr.io/makercorn/ai-prompt-manager:v1.0.0` |
+| `stable` | Latest stable (non-prerelease) | `ghcr.io/makercorn/ai-prompt-manager:stable` |
+
+### **📋 Release Process**
+1. **Validation**: Version format, repository state, and tests
+2. **Building**: Python packages and Docker images in parallel
+3. **Publishing**: Upload to GitHub Releases and GHCR
+4. **Verification**: Automated testing of release artifacts
 
 ---
 

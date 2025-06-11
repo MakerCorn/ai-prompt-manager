@@ -97,10 +97,16 @@ python run.py --help  # See all options
 
 ### Docker Deployment
 ```bash
-# Quick start
+# Quick start with latest release
 docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:latest
 
-# With PostgreSQL
+# Specific version
+docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:v1.0.0
+
+# Production with PostgreSQL
+docker-compose -f docker-compose.prod.yml up -d
+
+# Development
 docker-compose up -d
 ```
 
@@ -1663,10 +1669,53 @@ docker-compose logs ai-prompt-manager
 ### CI/CD Pipeline
 
 - **Automated Testing** - Python tests, Docker builds, integration tests
-- **Docker Publishing** - GitHub Container Registry with multi-tag strategy  
-- **Release Management** - Automated releases with changelog generation
+- **Docker Publishing** - GitHub Container Registry with multi-platform support (amd64, arm64)
+- **Release Management** - Comprehensive automated releases with packages and containers
+- **Security** - Sigstore/Cosign signing for supply chain security
 
 **📋 Setup Guide:** See [GITHUB_WORKFLOWS_SETUP.md](GITHUB_WORKFLOWS_SETUP.md) for complete workflow configuration instructions.
+
+#### **Release Process**
+
+The project uses automated releases that create both Python packages and Docker images:
+
+**🚀 Creating a Release:**
+```bash
+# Using the release script (recommended)
+./scripts/create-release.sh
+
+# Manual process
+git tag v1.0.0
+git push origin v1.0.0
+
+# Or trigger manually via GitHub Actions
+# Go to Actions → Release → Run workflow
+```
+
+The release script (`scripts/create-release.sh`) automates:
+- ✅ Version validation and updating
+- ✅ CHANGELOG.md prompts
+- ✅ Git tagging and pushing
+- ✅ Automated workflow triggering
+
+**📦 Release Artifacts:**
+- **Python Packages**: Wheel and source distributions
+- **Docker Images**: Multi-platform containers (linux/amd64, linux/arm64)
+- **Source Archives**: Complete source with installation scripts
+- **Documentation**: Release manifests and installation guides
+
+**🔐 Security Features:**
+- SHA256 checksums for all packages
+- Signed Docker images with Cosign
+- Reproducible and auditable builds
+
+**🐳 Docker Images:**
+```bash
+# Available tags:
+ghcr.io/makercorn/ai-prompt-manager:latest     # Latest stable
+ghcr.io/makercorn/ai-prompt-manager:v1.0.0     # Specific version
+ghcr.io/makercorn/ai-prompt-manager:stable     # Latest stable (non-prerelease)
+```
 
 ### Troubleshooting
 

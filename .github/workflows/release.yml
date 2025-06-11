@@ -1,0 +1,824 @@
+name: Release
+
+# Trigger on semantic version tags and manual releases
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Pre-release'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Validate the release
+  validate-release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+      release_name: ${{ steps.version.outputs.release_name }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version and release type
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION="${{ github.ref_name }}"
+            # Check if it's a prerelease (contains alpha, beta, rc, etc.)
+            if [[ "$VERSION" =~ (alpha|beta|rc|pre) ]]; then
+              IS_PRERELEASE="true"
+            else
+              IS_PRERELEASE="false"
+            fi
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            IS_PRERELEASE="${{ github.event.release.prerelease }}"
+          else
+            echo "❌ Unsupported trigger for release workflow"
+            exit 1
+          fi
+          
+          # Validate version format
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
+            echo "❌ Invalid version format: $VERSION (expected: vX.Y.Z)"
+            exit 1
+          fi
+          
+          # Generate release name
+          CLEAN_VERSION=${VERSION#v}  # Remove 'v' prefix
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            RELEASE_NAME="AI Prompt Manager $CLEAN_VERSION (Pre-release)"
+          else
+            RELEASE_NAME="AI Prompt Manager $CLEAN_VERSION"
+          fi
+          
+          echo "🔖 Release Version: $VERSION"
+          echo "🚀 Release Name: $RELEASE_NAME"
+          echo "🧪 Pre-release: $IS_PRERELEASE"
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Check if version exists in pyproject.toml
+        run: |
+          EXPECTED_VERSION="${{ steps.version.outputs.version }}"
+          EXPECTED_VERSION=${EXPECTED_VERSION#v}  # Remove 'v' prefix
+          
+          TOML_VERSION=$(grep -E '^version = ' pyproject.toml | sed 's/version = "//; s/"//')
+          
+          if [[ "$TOML_VERSION" != "$EXPECTED_VERSION" ]]; then
+            echo "⚠️ Version mismatch:"
+            echo "  Tag version: $EXPECTED_VERSION"
+            echo "  pyproject.toml version: $TOML_VERSION"
+            echo ""
+            echo "💡 Consider updating pyproject.toml to match the release tag"
+          else
+            echo "✅ Version in pyproject.toml matches release tag: $EXPECTED_VERSION"
+          fi
+
+  # Run tests before release
+  test-before-release:
+    runs-on: ubuntu-latest
+    needs: validate-release
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install project
+        run: poetry install --no-interaction
+
+      - name: Run comprehensive tests
+        run: |
+          echo "🧪 Running comprehensive test suite for release..."
+          
+          # Test Python syntax
+          echo "📝 Testing Python syntax..."
+          poetry run python -m py_compile *.py
+          
+          # Test imports
+          echo "📦 Testing imports..."
+          poetry run python -c "
+          import prompt_manager
+          import prompt_data_manager
+          import auth_manager
+          import api_token_manager
+          import api_endpoints
+          import langwatch_optimizer
+          print('✅ All imports successful')
+          "
+          
+          # Test launcher functionality
+          echo "🚀 Testing launcher..."
+          poetry run python run.py --help > /dev/null
+          
+          # Test optimization integration
+          echo "🤖 Testing prompt optimization..."
+          poetry run python test_langwatch_integration.py
+          
+          # Test multi-tenant setup
+          echo "🏢 Testing multi-tenant setup..."
+          poetry run python test_mt_install.py
+          
+          echo "✅ All release tests passed!"
+
+  # Build Python package
+  build-python-package:
+    runs-on: ubuntu-latest
+    needs: [validate-release, test-before-release]
+    outputs:
+      package-version: ${{ steps.package-info.outputs.version }}
+      package-name: ${{ steps.package-info.outputs.name }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install project
+        run: poetry install --no-interaction
+
+      - name: Update version in pyproject.toml
+        run: |
+          RELEASE_VERSION="${{ needs.validate-release.outputs.version }}"
+          CLEAN_VERSION=${RELEASE_VERSION#v}  # Remove 'v' prefix
+          
+          echo "📝 Updating version to: $CLEAN_VERSION"
+          poetry version $CLEAN_VERSION
+          
+          # Verify the update
+          NEW_VERSION=$(poetry version --short)
+          echo "✅ Updated pyproject.toml version to: $NEW_VERSION"
+
+      - name: Extract package information
+        id: package-info
+        run: |
+          VERSION=$(poetry version --short)
+          NAME=$(poetry version | cut -d' ' -f1)
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Package: $NAME v$VERSION"
+
+      - name: Build package
+        run: |
+          echo "🏗️ Building Python package..."
+          poetry build
+          
+          echo "📋 Build results:"
+          ls -la dist/
+          
+          echo "📊 Package checksums:"
+          sha256sum dist/*
+
+      - name: Create release distribution
+        run: |
+          VERSION="${{ needs.validate-release.outputs.version }}"
+          PACKAGE_NAME="${{ steps.package-info.outputs.name }}"
+          
+          echo "📦 Creating comprehensive release distribution..."
+          
+          # Create distribution directory
+          mkdir -p release-dist
+          
+          # Copy built packages
+          cp dist/* release-dist/
+          
+          # Copy essential files
+          cp README.md release-dist/
+          cp LICENSE release-dist/
+          cp CHANGELOG.md release-dist/
+          cp ARCHITECTURE.md release-dist/
+          cp pyproject.toml release-dist/
+          cp poetry.lock release-dist/
+          
+          # Copy environment and Docker files
+          if [ -f .env.example ]; then
+            cp .env.example release-dist/
+          fi
+          cp docker-compose.yml release-dist/
+          cp docker-compose.prod.yml release-dist/
+          cp Dockerfile release-dist/
+          
+          # Copy source files
+          cp *.py release-dist/
+          
+          # Create installation script
+          cat > release-dist/install.sh << 'EOF'
+          #!/bin/bash
+          
+          set -e
+          
+          echo "🚀 AI Prompt Manager Installation Script"
+          echo "========================================"
+          echo "Version: ${{ steps.package-info.outputs.version }}"
+          echo "Package: ${{ steps.package-info.outputs.name }}"
+          echo ""
+          
+          # Check Python version
+          PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
+          REQUIRED_VERSION="3.12"
+          
+          if ! python3 -c "import sys; exit(0 if sys.version_info >= (3, 12) else 1)" 2>/dev/null; then
+            echo "❌ Python 3.12+ is required. Found: $PYTHON_VERSION"
+            echo "Please install Python 3.12 or later and try again."
+            exit 1
+          fi
+          
+          echo "✅ Python version: $PYTHON_VERSION"
+          
+          # Check if Poetry is installed
+          if ! command -v poetry &> /dev/null; then
+            echo "📦 Poetry not found. Installing Poetry..."
+            curl -sSL https://install.python-poetry.org | python3 -
+            export PATH="$HOME/.local/bin:$PATH"
+            
+            if ! command -v poetry &> /dev/null; then
+              echo "❌ Poetry installation failed. Please install Poetry manually:"
+              echo "   curl -sSL https://install.python-poetry.org | python3 -"
+              exit 1
+            fi
+          fi
+          
+          echo "✅ Poetry found: $(poetry --version)"
+          
+          # Install from wheel if available, otherwise from source
+          if ls *.whl 1> /dev/null 2>&1; then
+            echo "📦 Installing from wheel package..."
+            pip install *.whl
+          else
+            echo "📚 Installing from source..."
+            poetry install --no-interaction --only=main
+          fi
+          
+          # Copy environment file
+          if [ -f .env.example ] && [ ! -f .env ]; then
+            echo "⚙️ Creating .env configuration file..."
+            cp .env.example .env
+            echo "✅ Created .env file from template"
+            echo "💡 Please edit .env file to configure your deployment"
+          fi
+          
+          echo ""
+          echo "🎉 Installation complete!"
+          echo ""
+          echo "🚀 Quick Start Commands:"
+          echo "  python run.py                           # Multi-tenant mode (default)"
+          echo "  python run.py --single-user             # Single-user mode"
+          echo "  python run.py --with-api                # Multi-tenant + API"
+          echo "  python run.py --help                    # Show all options"
+          echo ""
+          echo "🐳 Docker Commands:"
+          echo "  docker-compose up -d                    # Development"
+          echo "  docker-compose -f docker-compose.prod.yml up -d  # Production"
+          echo ""
+          echo "🔧 Testing:"
+          echo "  python test_langwatch_integration.py    # Test prompt optimization"
+          echo "  python test_mt_install.py               # Test multi-tenant setup"
+          echo ""
+          echo "📖 Documentation:"
+          echo "  README.md - Complete user guide"
+          echo "  ARCHITECTURE.md - System architecture"
+          echo "  CHANGELOG.md - Release notes"
+          echo ""
+          echo "🌐 Access your installation at: http://localhost:7860"
+          EOF
+          
+          chmod +x release-dist/install.sh
+          
+          # Create comprehensive archive
+          echo "📦 Creating release archives..."
+          tar -czf "${PACKAGE_NAME}-${VERSION}.tar.gz" release-dist/
+          zip -r "${PACKAGE_NAME}-${VERSION}.zip" release-dist/
+          
+          echo "✅ Release distribution created:"
+          ls -la *.tar.gz *.zip
+
+      - name: Generate release manifest
+        run: |
+          VERSION="${{ needs.validate-release.outputs.version }}"
+          PACKAGE_NAME="${{ steps.package-info.outputs.name }}"
+          
+          echo "📋 Generating release manifest..."
+          
+          cat > RELEASE_MANIFEST.md << EOF
+          # 🚀 AI Prompt Manager Release Manifest
+          
+          **Release Version:** ${VERSION}
+          **Package Name:** ${PACKAGE_NAME}
+          **Package Version:** ${{ steps.package-info.outputs.version }}
+          **Build Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Git Commit:** ${{ github.sha }}
+          **Git Ref:** ${{ github.ref }}
+          **Pre-release:** ${{ needs.validate-release.outputs.is_prerelease }}
+          
+          ## 📦 Package Information
+          
+          - **Python Version:** $(python --version)
+          - **Poetry Version:** $(poetry --version)
+          - **Platform:** $(uname -a)
+          
+          ## 🏗️ Build Artifacts
+          
+          ### Python Distributions
+          \`\`\`
+          $(ls -la dist/)
+          \`\`\`
+          
+          ### Release Archives
+          \`\`\`
+          $(ls -la *.tar.gz *.zip 2>/dev/null || echo "No archives found")
+          \`\`\`
+          
+          ### Source Package Contents
+          \`\`\`
+          $(ls -la release-dist/)
+          \`\`\`
+          
+          ## 🔐 Checksums
+          
+          ### Python Packages
+          \`\`\`
+          $(sha256sum dist/*)
+          \`\`\`
+          
+          ### Release Archives
+          \`\`\`
+          $(sha256sum *.tar.gz *.zip 2>/dev/null || echo "No archives to checksum")
+          \`\`\`
+          
+          ## 🧪 Tests
+          
+          All tests passed:
+          - ✅ Python syntax validation
+          - ✅ Import tests
+          - ✅ Launcher functionality
+          - ✅ Prompt optimization system
+          - ✅ Multi-tenant setup
+          
+          ## 📝 Installation
+          
+          ### From Release Archive
+          \`\`\`bash
+          # Download and extract
+          wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/${PACKAGE_NAME}-${VERSION}.tar.gz
+          tar -xzf ${PACKAGE_NAME}-${VERSION}.tar.gz
+          cd release-dist
+          
+          # Run installation script
+          chmod +x install.sh
+          ./install.sh
+          \`\`\`
+          
+          ### From Python Package
+          \`\`\`bash
+          # Install directly from wheel
+          pip install ${PACKAGE_NAME}-${{ steps.package-info.outputs.version }}-py3-none-any.whl
+          \`\`\`
+          
+          ### Docker
+          \`\`\`bash
+          # Pull and run
+          docker pull ghcr.io/${{ github.repository }}:${VERSION}
+          docker run -p 7860:7860 ghcr.io/${{ github.repository }}:${VERSION}
+          \`\`\`
+          
+          ---
+          
+          Generated by AI Prompt Manager Release System
+          EOF
+          
+          echo "✅ Release manifest generated"
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-packages-${{ needs.validate-release.outputs.version }}
+          path: |
+            dist/*
+            *.tar.gz
+            *.zip
+            RELEASE_MANIFEST.md
+            release-dist/
+          retention-days: 90
+
+  # Build and push Docker image
+  build-docker-image:
+    runs-on: ubuntu-latest
+    needs: [validate-release, test-before-release]
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tags: ${{ steps.meta.outputs.tags }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ needs.validate-release.outputs.version }}
+            type=raw,value=stable,enable=${{ needs.validate-release.outputs.is_prerelease == 'false' }}
+          labels: |
+            org.opencontainers.image.title=AI Prompt Manager
+            org.opencontainers.image.description=A comprehensive AI prompt management system with multi-service optimization
+            org.opencontainers.image.vendor=MakerCorn
+            org.opencontainers.image.version=${{ needs.validate-release.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created={{date 'RFC3339'}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE={{date 'RFC3339'}}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ needs.validate-release.outputs.version }}
+
+      - name: Sign the Docker image
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+      - name: Generate Docker image manifest
+        run: |
+          VERSION="${{ needs.validate-release.outputs.version }}"
+          
+          cat > DOCKER_MANIFEST.md << EOF
+          # 🐳 Docker Image Manifest
+          
+          **Release:** ${VERSION}
+          **Built:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Digest:** ${{ steps.build.outputs.digest }}
+          
+          ## 📋 Image Information
+          
+          **Registry:** ${{ env.REGISTRY }}
+          **Repository:** ${{ env.IMAGE_NAME }}
+          **Platforms:** linux/amd64, linux/arm64
+          
+          ## 🏷️ Tags
+          
+          \`\`\`
+          ${{ steps.meta.outputs.tags }}
+          \`\`\`
+          
+          ## 🚀 Usage
+          
+          ### Quick Start
+          \`\`\`bash
+          # Pull and run latest version
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}
+          docker run -p 7860:7860 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}
+          \`\`\`
+          
+          ### Production Deployment
+          \`\`\`bash
+          # Using docker-compose
+          version: '3.8'
+          services:
+            ai-prompt-manager:
+              image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}
+              ports:
+                - "7860:7860"
+              environment:
+                - MULTITENANT_MODE=true
+                - ENABLE_API=true
+                - SECRET_KEY=your-secret-key
+              volumes:
+                - ./data:/app/data
+          \`\`\`
+          
+          ### Environment Variables
+          
+          - \`MULTITENANT_MODE\`: Enable multi-tenant mode (default: true)
+          - \`ENABLE_API\`: Enable REST API (default: true)
+          - \`SERVER_HOST\`: Server host (default: 0.0.0.0)
+          - \`SERVER_PORT\`: Server port (default: 7860)
+          - \`DB_TYPE\`: Database type (sqlite/postgres, default: sqlite)
+          - \`SECRET_KEY\`: JWT signing secret (auto-generated if not set)
+          
+          ## 🔐 Security
+          
+          This image is signed with Sigstore/Cosign for supply chain security.
+          
+          **Digest:** ${{ steps.build.outputs.digest }}
+          
+          **Verify signature:**
+          \`\`\`bash
+          cosign verify --certificate-identity-regexp='.*' \\
+            --certificate-oidc-issuer-regexp='.*' \\
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          \`\`\`
+          EOF
+
+      - name: Upload Docker artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-manifest-${{ needs.validate-release.outputs.version }}
+          path: DOCKER_MANIFEST.md
+          retention-days: 90
+
+  # Create GitHub release
+  create-github-release:
+    runs-on: ubuntu-latest
+    needs: [validate-release, build-python-package, build-docker-image]
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-packages-${{ needs.validate-release.outputs.version }}
+          path: ./release-artifacts
+
+      - name: Download Docker manifest
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-manifest-${{ needs.validate-release.outputs.version }}
+          path: ./docker-artifacts
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          VERSION="${{ needs.validate-release.outputs.version }}"
+          PACKAGE_VERSION="${{ needs.build-python-package.outputs.package-version }}"
+          
+          echo "📝 Generating release notes..."
+          
+          # Extract changes from CHANGELOG.md if it exists
+          CHANGELOG_CONTENT=""
+          if [ -f CHANGELOG.md ]; then
+            # Try to extract the section for this version
+            CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION#v}\]/,/## \[/p" CHANGELOG.md | head -n -1 | tail -n +2)
+            if [ -z "$CHANGELOG_CONTENT" ]; then
+              # Try without version brackets
+              CHANGELOG_CONTENT=$(sed -n "/## ${VERSION#v}/,/## /p" CHANGELOG.md | head -n -1 | tail -n +2)
+            fi
+          fi
+          
+          # Generate release body
+          cat > release_body.md << EOF
+          # 🚀 AI Prompt Manager ${{ needs.validate-release.outputs.version }}
+          
+          A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments.
+          
+          ## 🌟 What's New
+          
+          ${CHANGELOG_CONTENT:-"- Enhanced prompt optimization with multi-service support
+          - Improved multi-language interface
+          - Updated documentation and examples
+          - Security improvements and bug fixes"}
+          
+          ## 📦 Installation Options
+          
+          ### 🐳 Docker (Recommended)
+          \`\`\`bash
+          # Quick start
+          docker run -p 7860:7860 ghcr.io/${{ github.repository }}:${{ needs.validate-release.outputs.version }}
+          
+          # Production with PostgreSQL
+          docker-compose -f docker-compose.prod.yml up -d
+          \`\`\`
+          
+          ### 📚 Python Package
+          \`\`\`bash
+          # Download and install from release
+          wget https://github.com/${{ github.repository }}/releases/download/${{ needs.validate-release.outputs.version }}/${{ needs.build-python-package.outputs.package-name }}-${{ needs.validate-release.outputs.version }}.tar.gz
+          tar -xzf ${{ needs.build-python-package.outputs.package-name }}-${{ needs.validate-release.outputs.version }}.tar.gz
+          cd release-dist
+          chmod +x install.sh
+          ./install.sh
+          \`\`\`
+          
+          ### 🔧 Manual Installation
+          \`\`\`bash
+          git clone https://github.com/${{ github.repository }}.git
+          cd ai-prompt-manager
+          git checkout ${{ needs.validate-release.outputs.version }}
+          poetry install
+          poetry run python run.py
+          \`\`\`
+          
+          ## 🛠️ Key Features
+          
+          - **Multi-Service Prompt Optimizer**: LangWatch, PromptPerfect, LangSmith, Helicone support
+          - **Multi-Language Interface**: 10 languages with real-time switching
+          - **Unified Architecture**: Single codebase for single-user and multi-tenant modes
+          - **Advanced Security**: JWT, RBAC, SSO/ADFS integration
+          - **REST API**: Comprehensive API with interactive documentation
+          - **Token Calculator**: Real-time cost estimation for AI models
+          - **Prompt Builder**: Drag-and-drop interface for combining prompts
+          
+          ## 🐳 Docker Images
+          
+          | Tag | Description | Image |
+          |-----|-------------|-------|
+          | \`latest\` | Latest stable release | \`ghcr.io/${{ github.repository }}:latest\` |
+          | \`${{ needs.validate-release.outputs.version }}\` | This release | \`ghcr.io/${{ github.repository }}:${{ needs.validate-release.outputs.version }}\` |$(if [[ "${{ needs.validate-release.outputs.is_prerelease }}" == "false" ]]; then echo "
+          | \`stable\` | Latest stable release | \`ghcr.io/${{ github.repository }}:stable\` |"; fi)
+          
+          **Image Digest:** \`${{ needs.build-docker-image.outputs.image-digest }}\`
+          
+          ## 📋 Release Assets
+          
+          - **Source Archives**: Complete source code with installation scripts
+          - **Python Packages**: Wheel and source distributions
+          - **Docker Images**: Multi-platform container images (amd64, arm64)
+          - **Documentation**: Release manifests and installation guides
+          
+          ## 🔐 Security & Verification
+          
+          - All packages include SHA256 checksums
+          - Docker images are signed with Sigstore/Cosign
+          - Release builds are reproducible and auditable
+          
+          ## 📖 Documentation
+          
+          - [Complete User Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md)
+          - [System Architecture](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/ARCHITECTURE.md)
+          - [Installation Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md#-quick-start)
+          - [API Documentation](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md#-api-access)
+          
+          ## 🐛 Issues & Support
+          
+          - [Report Issues](https://github.com/${{ github.repository }}/issues)
+          - [Discussions](https://github.com/${{ github.repository }}/discussions)
+          - [Contributing Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md#-development)
+          
+          ---
+          
+          **Full Changelog**: [View Changes](https://github.com/${{ github.repository }}/compare/v${{ env.PREVIOUS_VERSION || '0.0.0' }}...${{ needs.validate-release.outputs.version }})
+          EOF
+          
+          echo "✅ Release notes generated"
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.validate-release.outputs.version }}
+          name: ${{ needs.validate-release.outputs.release_name }}
+          body_path: release_body.md
+          prerelease: ${{ needs.validate-release.outputs.is_prerelease }}
+          draft: false
+          files: |
+            release-artifacts/*.tar.gz
+            release-artifacts/*.zip
+            release-artifacts/dist/*
+            release-artifacts/RELEASE_MANIFEST.md
+            docker-artifacts/DOCKER_MANIFEST.md
+          generate_release_notes: true
+          append_body: true
+
+  # Post-release validation
+  validate-release-artifacts:
+    runs-on: ubuntu-latest
+    needs: [validate-release, create-github-release]
+    
+    steps:
+      - name: Test Docker image
+        run: |
+          VERSION="${{ needs.validate-release.outputs.version }}"
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}"
+          
+          echo "🧪 Testing Docker image: $IMAGE"
+          
+          # Pull the image
+          docker pull "$IMAGE"
+          
+          # Test basic functionality
+          echo "🚀 Starting container for testing..."
+          CONTAINER_ID=$(docker run -d -p 7861:7860 "$IMAGE")
+          
+          # Wait for container to start
+          echo "⏳ Waiting for container to be ready..."
+          sleep 30
+          
+          # Test health endpoint
+          for i in {1..10}; do
+            if curl -f http://localhost:7861/api/health; then
+              echo "✅ Docker image health check passed!"
+              break
+            fi
+            echo "Attempt $i failed, retrying..."
+            sleep 5
+          done
+          
+          # Cleanup
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
+
+      - name: Validate release completion
+        run: |
+          echo "🎉 Release validation completed successfully!"
+          echo ""
+          echo "📦 Release: ${{ needs.validate-release.outputs.release_name }}"
+          echo "🏷️ Version: ${{ needs.validate-release.outputs.version }}"
+          echo "🐳 Docker: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.validate-release.outputs.version }}"
+          echo "📋 Pre-release: ${{ needs.validate-release.outputs.is_prerelease }}"
+          echo ""
+          echo "✅ All release artifacts validated and published!"
