@@ -1174,3 +1174,60 @@ graph TB
 ---
 
 **🏗️ Architecture designed for scale • 🔐 Security by design • 🌐 Global accessibility • 🚀 Future-ready**
+
+---
+
+## 🖼️ Application Function Diagrams
+
+### 📝 Prompt Management
+```mermaid
+graph TD
+    U[User] --> UI[Gradio: Prompt Management Tab]
+    UI --> PM[Prompt Manager]
+    PM --> DM[Prompt Data Manager]
+    DM --> DB[(DB: SQLite/Postgres)]
+    PM --> API[AI Service Integration]
+    API --> EXT[AI Providers]
+```
+
+### 📚 Prompt Library
+```mermaid
+graph TD
+    U[User] --> UI[Gradio: Prompt Library Tab]
+    UI --> PM[Prompt Manager]
+    PM --> DM[Prompt Data Manager]
+    DM --> DB[(DB: SQLite/Postgres)]
+```
+
+### 🚀 Prompt Execution
+```mermaid
+graph TD
+    U[User] --> UI[Gradio: Prompt Execution Tab]
+    UI --> PM[Prompt Manager]
+    PM --> API[AI Service Integration]
+    API --> EXT[AI Providers]
+```
+
+### ⚡ Prompt Enhancement
+```mermaid
+graph TD
+    U[User] --> UI[Gradio: Prompt Enhancement Tab]
+    UI --> PM[Prompt Manager]
+    PM --> API[AI Service Integration]
+    API --> EXT[AI Providers]
+    PM --> DM[Prompt Data Manager]
+    DM --> DB[(DB: SQLite/Postgres)]
+```
+
+### ⚙️ Configuration
+```mermaid
+graph TD
+    U[User] --> UI[Gradio: Configuration Tab]
+    UI --> PM[Prompt Manager]
+    PM --> DM[Prompt Data Manager]
+    DM --> DB[(DB: SQLite/Postgres)]
+```
+
+---
+
+*Diagrams generated on 2025-06-10. Each Gradio tab is mapped to its backend interactions for clarity and onboarding.*

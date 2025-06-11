@@ -1,216 +1,295 @@
-# Instruere - AI Prompt Manager
+# 🚀 Instruere - AI Prompt Manager
 
-A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments. Features advanced authentication, real-time token cost estimation, AI-powered prompt optimization, and secure API access.
+> **The intelligent way to manage, optimize, and scale your AI prompts**
 
-## 🤖 Understanding AI Prompts
+A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments. Features advanced authentication, real-time cost estimation, AI-powered optimization, and secure API access.
 
-**What are prompts?** Prompts are instructions you give to AI systems like ChatGPT or Claude. Think of them as questions or commands that tell the AI what you want it to do.
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🤖 AI Prompts  →  📝 Management  →  🚀 Optimization  →  💰 Cost Control  │
+└─────────────────────────────────────────────────────────────┘
+```
 
-**System Prompts** set the AI's role and behavior. For example: "You are a helpful writing assistant. Always write in a friendly tone." These prompts stay active for the entire conversation.
+## 🎯 What is AI Prompt Management?
 
-**User Prompts** are your specific requests. For example: "Write a professional email declining a meeting invitation." These change with each request you make.
+**Prompts** are instructions you give to AI systems like ChatGPT or Claude - the quality of your prompts directly impacts the quality of AI responses and your costs.
 
-**Why good prompts matter:** Clear, specific prompts get better results. Vague prompts like "help me write" often produce unhelpful responses. Detailed prompts like "write a 200-word product description for wireless headphones targeting college students" give you exactly what you need.
+### The Challenge
+```
+❌ Scattered prompts across files
+❌ No cost visibility  
+❌ Manual optimization
+❌ No team collaboration
+❌ Repetitive prompt creation
+```
 
-**The cost problem:** AI services charge based on how many words (tokens) you use. Longer prompts cost more money. Finding the right balance between detail and brevity saves money while getting good results.
+### The Solution
+```
+✅ Centralized prompt library
+✅ Real-time cost calculation
+✅ AI-powered optimization  
+✅ Multi-tenant collaboration
+✅ Prompt building & reuse
+```
 
-**Why you need prompt management:** If you use AI regularly, you'll create many prompts for different tasks. This application helps you store, organize, improve, and reuse your best prompts. You can also calculate costs, combine prompts for complex tasks, and share prompts with your team.
+### Why Instruere?
+- **💰 Cost Control**: Real-time token estimation prevents expensive mistakes
+- **🚀 Optimization**: AI-powered improvements using LangWatch, PromptPerfect, and more
+- **🧩 Builder Interface**: Drag-and-drop prompt combination
+- **🌐 Multi-Language**: 10 languages with automatic translation
+- **🏢 Enterprise Ready**: Multi-tenant with SSO, RBAC, and audit trails
+- **🔌 Developer Friendly**: Complete REST API with comprehensive documentation
 
 ## 📋 Table of Contents
 
-- [🤖 Understanding AI Prompts](#-understanding-ai-prompts)
-- [🌟 Key Features](#-key-features)
-- [🚀 Quick Start](#-quick-start)
-- [⚙️ Configuration](#️-configuration)
-- [🌐 Multi-Language Support](#-multi-language-support)
-- [🧮 Token Calculator Guide](#-token-calculator-guide)
-- [📝 Prompt Management](#-prompt-management)
-- [🚀 Prompt Optimizer Guide](#-prompt-optimizer-guide)
-- [🧩 Prompt Builder Guide](#-prompt-builder-guide)
-- [🔑 API Access](#-api-access)
-- [🔵 Azure AI & Entra ID Integration](#-azure-ai--entra-id-integration)
-- [🏢 Multi-Tenant Features](#-multi-tenant-features)
-- [🚀 Development](#-development)
-- [🔒 Production Deployment](#-production-deployment)
-- [🚀 Multi-Language Quick Reference](#-multi-language-quick-reference)
-- [📚 Additional Resources](#-additional-resources)
-- [📄 License](#-license)
+### 🚀 Getting Started
+- [⚡ Quick Start](#-quick-start) - Get up and running in 5 minutes
+- [🏗️ System Architecture](#️-system-architecture) - Understanding the design
+- [⚙️ Configuration](#️-configuration) - Setup and customization
 
-## 🌟 Key Features
+### 🎯 Core Features  
+- [📝 Prompt Management](#-prompt-management) - Create, organize, and manage prompts
+- [🧮 Token Calculator](#-token-calculator) - Real-time cost estimation
+- [🚀 AI-Powered Optimization](#-ai-powered-optimization) - Improve prompt quality
+- [🧩 Prompt Builder](#-prompt-builder) - Drag-and-drop prompt combination
 
-### 🏗️ **Unified Architecture**
-- **Single Codebase**: Supports both single-user and multi-tenant modes
-- **Environment-Based Configuration**: Switch modes via environment variables
-- **Backward Compatible**: Existing installations continue working unchanged
+### 🌐 Advanced Features
+- [🌍 Multi-Language Support](#-multi-language-support) - 10 languages with translation
+- [🔑 API Access](#-api-access) - REST API for developers
+- [🔵 Azure AI Integration](#-azure-ai-integration) - Enterprise AI services
 
-### 🔐 **Security & Authentication**
-- **Multi-Tenant Isolation**: Complete data separation between organizations
-- **SSO/ADFS Integration**: Enterprise authentication with Microsoft Azure AD
-- **Entra ID Support**: Modern Azure Active Directory authentication with Microsoft Graph API integration
-- **Role-Based Access**: Admin, User, and Read-only permission levels
-- **JWT Session Management**: Secure, stateless authentication tokens
-- **API Token System**: Secure programmatic access with expiring tokens
+### 🏢 Enterprise & Deployment
+- [🏢 Multi-Tenant Features](#-multi-tenant-features) - Organization management
+- [🔒 Production Deployment](#-production-deployment) - Scale and security
+- [🛠️ Development](#️-development) - Contributing and extending
 
-### 🧮 **Advanced AI Features**
-- **Token Calculator**: Real-time cost estimation for all major AI models including Azure OpenAI and Azure AI Studio
-- **Multi-Service Prompt Optimizer**: AI-powered optimization with LangWatch, PromptPerfect, LangSmith, Helicone support
-- **Prompt Builder**: Drag-and-drop interface to combine multiple prompts into new ones
-- **Multi-Provider Support**: OpenAI, Claude, Gemini, Azure OpenAI, Azure AI Studio, LM Studio, Ollama, Llama.cpp
-- **Enhancement Engine**: Improve prompts using different AI models
+### 📚 Resources
+- [🚀 Quick Reference](#-quick-reference) - Commands and shortcuts
+- [🔧 Troubleshooting](#-troubleshooting) - Common issues and solutions
+- [📄 License](#-license) - Usage terms
 
-### 🌐 **Modern User Experience**
-- **Multi-Language Support**: 10 languages with real-time switching
-- **Responsive Design**: Mobile-first, adaptive interface
-- **Modern UI Components**: Professional styling with accessibility features
-- **Dark Mode Support**: Automatic theme switching
-- **Intuitive Navigation**: Simplified, context-aware interface
+## 🏗️ System Architecture
 
-### 🔌 **Developer Experience**
-- **REST API**: Comprehensive API with interactive documentation
-- **Docker Support**: Production-ready containerization
-- **Database Flexibility**: SQLite for development, PostgreSQL for production
-- **Comprehensive Testing**: Full test suite with isolation verification
+Instruere is built on a **unified, modular architecture** that scales from single-user development to enterprise multi-tenant deployments.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    🌐 Client Layer                          │
+│  📱 Web UI    🔌 API Clients    📱 Mobile    ⌨️ CLI Tools   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                  🚀 Application Layer                       │
+│  🎨 Gradio UI  │  ⚡ FastAPI  │  🔐 Auth  │  🧩 Builder    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                  🧠 Business Logic                          │
+│  📝 Prompts  │  🧮 Calculator  │  🚀 Optimizer  │  👥 Users │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                    💾 Data Layer                            │
+│          📁 SQLite (Dev)  │  🐘 PostgreSQL (Prod)          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🔑 Key Architectural Principles
+- **🏗️ Unified Codebase**: Single application, multiple deployment modes
+- **🔐 Tenant Isolation**: Complete data separation between organizations  
+- **📦 Modular Design**: Loosely coupled, independently testable components
+- **🔌 API-First**: RESTful API with comprehensive OpenAPI documentation
+- **⚡ Performance**: Efficient database queries and caching strategies
+
+> 📖 **[Complete Architecture Documentation](ARCHITECTURE.md)** - Detailed system design, data flows, and deployment patterns
 
 ---
 
-## 🚀 Quick Start
+## ⚡ Quick Start
 
-### Prerequisites
-- Python 3.12+
-- Poetry (recommended) or pip
-- Optional: PostgreSQL for production
+Get Instruere running in under 5 minutes with these simple steps:
 
-### Installation
-
-1. **Clone and Setup**
 ```bash
+✅ Python 3.12+
+✅ Poetry (recommended) or pip  
+✅ Optional: PostgreSQL for production
+```
+
+### 🐳 Option 1: Docker (Easiest)
+
+```bash
+# 1️⃣ Run with Docker (recommended for testing)
+docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:latest
+
+# 2️⃣ Open browser to http://localhost:7860
+# 3️⃣ Login: admin@localhost / admin123
+```
+
+### 🐍 Option 2: Python Installation
+
+```bash
+# 1️⃣ Clone and install
 git clone <repository-url>
 cd ai-prompt-manager
 poetry install
 
-# Copy and customize configuration
+# 2️⃣ Configure (optional)
 cp .env.example .env
-# Edit .env file for your specific setup
-```
+# Edit .env for custom settings
 
-2. **Launch Application**
-```bash
-# Universal launcher with smart defaults (recommended)
+# 3️⃣ Launch application
 poetry run python run.py
 
-# Command line mode selection
-poetry run python run.py --single-user     # Single-user mode
-poetry run python run.py --with-api        # Multi-tenant + API
-poetry run python run.py --single-user --with-api  # Single-user + API
-
-# Custom server configuration
-poetry run python run.py --port 8080 --host 127.0.0.1
-python run.py --help  # See all options
+# 4️⃣ Open browser to http://localhost:7860
 ```
 
-3. **Access Application**
-- Open browser to `http://localhost:7860`
-- Login with: `admin@localhost` / `admin123` (multi-tenant)
+### 🚀 Deployment Options
 
-### Docker Deployment
+| Environment | Command | Use Case |
+|-------------|---------|----------|
+| **🧪 Development** | `poetry run python run.py --single-user` | Personal use, testing |
+| **🏢 Multi-Tenant** | `poetry run python run.py` | Teams, organizations |
+| **🔌 With API** | `poetry run python run.py --with-api` | Developer integration |
+| **🐳 Production** | `docker-compose -f docker-compose.prod.yml up -d` | Scalable deployment |
+
+### ✅ Verify Installation
+
 ```bash
-# Quick start with latest release
-docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:latest
+# Check system health
+curl http://localhost:7860/api/health
 
-# Specific version
-docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:v1.0.0
-
-# Production with PostgreSQL
-docker-compose -f docker-compose.prod.yml up -d
-
-# Development
-docker-compose up -d
+# Expected response: {"status": "healthy"}
 ```
 
 ---
 
 ## ⚙️ Configuration
 
-### Application Modes
+Configure Instruere for your specific needs - from development to enterprise deployment.
 
-The unified AI Prompt Manager supports multiple deployment modes controlled by environment variables:
-
-#### Environment Variables
-
-Create a `.env` file or set these environment variables:
+### 🚀 Quick Configuration
 
 ```bash
-# Application Mode
-MULTITENANT_MODE=true          # Enable multi-tenant mode (default: true)
-ENABLE_API=false               # Enable REST API endpoints (default: false)
+# 1️⃣ Copy template
+cp .env.example .env
 
-# Server Configuration  
-SERVER_HOST=0.0.0.0           # Server host (default: 0.0.0.0)
-SERVER_PORT=7860              # Server port (default: 7860)
+# 2️⃣ Edit for your environment
+nano .env  # or your preferred editor
 
-# Database Configuration
-DB_TYPE=sqlite                # Database type: sqlite or postgres (default: sqlite)
-DB_PATH=prompts.db           # SQLite database path (default: prompts.db)
-POSTGRES_DSN=postgresql://... # PostgreSQL connection string (if using postgres)
-
-# Development
-DEBUG=false                   # Enable debug mode (default: false)
-LOCAL_DEV_MODE=true          # Enable local development features (default: false)
+# 3️⃣ Restart application
+poetry run python run.py
 ```
 
-#### Mode Combinations
+### 📋 Essential Settings
 
-1. **Single-User Mode** (Legacy compatibility)
-   ```bash
-   MULTITENANT_MODE=false
-   ENABLE_API=false
-   ```
+The most important configuration options organized by priority:
 
-2. **Multi-Tenant Mode** (Recommended)
-   ```bash
-   MULTITENANT_MODE=true
-   ENABLE_API=false
-   ```
+#### 🏗️ Application Mode (Choose One)
 
-3. **Multi-Tenant with API** (Full featured)
-   ```bash
-   MULTITENANT_MODE=true
-   ENABLE_API=true
-   ```
-
-### Quick Mode Examples
-
-**Using Command Line Arguments:**
 ```bash
-# Single-user mode (no authentication)
-python run.py --single-user
+# 👤 Single-User (Personal Use)
+MULTITENANT_MODE=false
+ENABLE_API=false
 
-# Multi-tenant mode with API
-python run.py --with-api
+# 🏢 Multi-Tenant (Teams/Organizations)  
+MULTITENANT_MODE=true
+ENABLE_API=false
 
-# Single-user mode with API
-python run.py --single-user --with-api
+# 🔌 Full Enterprise (Multi-tenant + API)
+MULTITENANT_MODE=true
+ENABLE_API=true
+```
 
-# Custom server settings
+#### 🌐 Server Settings
+
+```bash
+SERVER_HOST=0.0.0.0     # Bind address (0.0.0.0 for external access)
+SERVER_PORT=7860        # Port number
+DEBUG=false            # Debug mode (true for development)
+```
+
+#### 💾 Database Configuration
+
+```bash
+# 🧪 Development (Default)
+DB_TYPE=sqlite
+DB_PATH=prompts.db
+
+# 🏢 Production (Recommended)  
+DB_TYPE=postgres
+POSTGRES_DSN=postgresql://user:pass@host:port/dbname
+```
+
+### ⚡ Command Line Overrides
+
+Override configuration without editing files:
+
+```bash
+# Mode selection
+python run.py --single-user              # Force single-user mode
+python run.py --with-api                 # Enable API
+python run.py --single-user --with-api   # Single-user + API
+
+# Server configuration
 python run.py --port 8080 --host 127.0.0.1
+python run.py --debug --share            # Debug + public access
 
-# Debug mode with public sharing
-python run.py --debug --share
+# Get help
+python run.py --help
 ```
 
-**Using Environment Variables:**
+### 🔧 Advanced Configuration
+
+#### 🔐 Authentication & Security
+
 ```bash
-# Single-user mode
-MULTITENANT_MODE=false python run.py
+# JWT Security
+SECRET_KEY=your-secure-secret-key    # Auto-generated if not set
+LOCAL_DEV_MODE=true                 # Development features
 
-# Multi-tenant with API
-ENABLE_API=true python run.py
+# SSO Integration
+SSO_ENABLED=false
+SSO_CLIENT_ID=your-application-id
+SSO_CLIENT_SECRET=your-client-secret
+SSO_AUTHORITY=https://login.microsoftonline.com/tenant-id
 
-# Production mode with PostgreSQL
-DB_TYPE=postgres POSTGRES_DSN="postgresql://user:pass@localhost/prompts" python run.py
+# Azure Entra ID
+ENTRA_ID_ENABLED=false
+ENTRA_CLIENT_ID=your-entra-client-id
+ENTRA_TENANT_ID=your-azure-tenant-id
+```
 
-# Full configuration
-MULTITENANT_MODE=true ENABLE_API=true SERVER_PORT=8080 DEBUG=false python run.py
+#### 🤖 AI Services
+
+```bash
+# Prompt Optimization
+PROMPT_OPTIMIZER=langwatch              # langwatch, promptperfect, builtin
+LANGWATCH_API_KEY=your-api-key
+PROMPTPERFECT_API_KEY=your-api-key
+
+# Azure AI Services  
+AZURE_AI_ENABLED=false
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+AZURE_OPENAI_KEY=your-azure-key
+
+# Translation Services
+TRANSLATION_SERVICE=openai             # openai, google, libre, mock
+OPENAI_API_KEY=your-openai-key
+```
+
+### 📊 Configuration Validation
+
+Check your configuration:
+
+```bash
+# Test configuration
+python -c "
+from auth_manager import AuthManager
+auth = AuthManager()
+print('✅ Configuration valid')
+print(f'Mode: {'Multi-tenant' if auth.is_multitenant_mode() else 'Single-user'}')
+print(f'API: {'Enabled' if auth.is_api_enabled() else 'Disabled'}')
+"
 ```
 
 ---
@@ -460,187 +539,175 @@ ai-prompt-manager/
 
 ---
 
-## 🧮 Token Calculator Guide
-
-### What are Tokens?
-
-**Tokens** are the basic units that AI models use to process text. Understanding tokens is crucial for:
-- **Cost Control**: AI services charge based on token usage
-- **Performance**: More tokens = longer processing time
-- **Limits**: Models have maximum token limits per request
-
-### How Tokenization Works
-
-- **Words aren't tokens**: "Hello world" = 2 tokens, but "artificial intelligence" = 4 tokens
-- **Subwords**: Long words are split (e.g., "understanding" = 2-3 tokens)
-- **Special characters**: Punctuation and symbols count as tokens
-- **Languages vary**: Non-English text may use more tokens
-
-### Using the Token Calculator
-
-#### 1. **Access the Calculator**
-- Navigate to **Prompt Management** tab after logging in
-- Find the **🧮 Token Calculator** section below the prompt content area
-
-#### 2. **Calculate Token Costs**
-
-1. **Enter your prompt** in the "Prompt Content" field
-2. **Select target AI model** from the dropdown:
-   - `gpt-4` - Most accurate, higher cost
-   - `gpt-3.5-turbo` - Fast and economical
-   - `claude-3-opus` - High-quality reasoning
-   - `gemini-pro` - Google's model
-3. **Set max completion tokens** - Expected response length (500-2000 typical)
-4. **Click "🧮 Calculate Tokens"**
-
-#### 3. **Understanding Results**
-
-The calculator provides:
-```
-🧮 Token Estimate for gpt-4
-
-📝 Prompt Tokens: 45        ← Your input text
-💬 Max Completion Tokens: 1,000  ← Expected response
-📊 Total Tokens: 1,045     ← Combined usage
-⚙️ Tokenizer: gpt-4        ← Method used
-
-💰 Estimated Cost: $0.0615 USD
-   • Input: $0.0014         ← Cost for your prompt
-   • Output: $0.0600        ← Cost for AI response
-
-⚠️ Suggestions:
-   • Large prompt may be expensive
-   • Consider breaking into smaller prompts
-```
-
-#### 4. **Cost Optimization Tips**
-
-**Reduce Costs:**
-- ✅ Use shorter, more focused prompts
-- ✅ Choose appropriate models (GPT-3.5 for simple tasks)
-- ✅ Set reasonable completion token limits
-- ✅ Remove repetitive content
-
-**Performance Tips:**
-- ⚡ Shorter prompts = faster responses
-- ⚡ Fewer tokens = less processing time
-- ⚡ Structure prompts clearly for better results
-
-#### 5. **Model Comparison**
-
-| Model | Best For | Cost | Speed | Quality |
-|-------|----------|------|-------|---------|
-| `gpt-4` | Complex reasoning, code | $$$ | Slower | Highest |
-| `gpt-3.5-turbo` | General tasks, chat | $ | Fast | Good |
-| `claude-3-opus` | Analysis, writing | $$$ | Moderate | Excellent |
-| `claude-3-haiku` | Simple tasks | $ | Fast | Good |
-| `gemini-pro` | Multimodal, research | $$ | Moderate | Very Good |
-
-### Token Calculator Features
-
-- **Real-time Estimation**: Instant cost calculation as you type
-- **Multi-Model Support**: Accurate tokenization for all major AI providers
-- **Cost Breakdown**: Separate input/output cost analysis
-- **Optimization Suggestions**: Automatic recommendations for efficiency
-- **Complexity Analysis**: Detects repetitive or overly long content
-
----
-
 ## 📝 Prompt Management
 
-### Creating Prompts
+Create, organize, and manage your AI prompts with powerful tools for optimization and collaboration.
 
-1. **Navigate to Prompt Management** tab
-2. **Fill in prompt details:**
-   - **Name**: Unique identifier (required)
-   - **Title**: Descriptive title
-   - **Category**: Organization (e.g., "Writing", "Analysis")
-   - **Content**: Your AI prompt text
-   - **Tags**: Comma-separated keywords
+### 🚀 Quick Start Workflow
 
-3. **Estimate costs** using the Token Calculator
-4. **Optimize if needed** with the Prompt Optimizer (see [🚀 Prompt Optimizer Guide](#-prompt-optimizer-guide))
-5. **Save prompt** with "➕ Add Prompt"
+```
+📝 Create → 🧮 Calculate Cost → 🚀 Optimize → 💾 Save → 🔄 Reuse
+```
 
-### Prompt Optimization
+### ✍️ Creating Prompts
 
-Improve your prompts with AI-powered suggestions using multiple optimization services:
+**Step-by-step process:**
 
-1. **Add optimization context** - Describe your prompt's purpose
-2. **Select target model** - Choose your intended AI model
-3. **Click "🚀 Optimize"** - Uses your configured optimization service
-4. **Review suggestions** - See score, reasoning, and improvements
-5. **Accept, retry, or reject** - Choose the best version
+1. **📂 Navigate** to the Prompt Management tab
+2. **📝 Fill in details:**
+   ```
+   Name: unique-prompt-name (required)
+   Title: Descriptive title for humans
+   Category: Writing, Analysis, Code, etc.
+   Content: Your actual AI prompt text
+   Tags: comma, separated, keywords
+   ```
+3. **🧮 Check costs** with the built-in Token Calculator
+4. **🚀 Optimize** using AI-powered suggestions (optional)
+5. **💾 Save** your prompt to the library
 
-For detailed optimization features and configuration, see the [🚀 Prompt Optimizer Guide](#-prompt-optimizer-guide).
+### 🧮 Token Calculator
 
-### Prompt Library
+**Understanding AI Costs in Real-Time**
 
-- **Browse all prompts** in organized tree view
-- **Search by keywords** - Name, title, content, or tags
-- **Filter by category** - Organize by type or purpose
-- **Quick actions** - Load, edit, or delete prompts
+```
+┌─────────────────────────────────────────┐
+│  💰 Cost Control Dashboard              │
+│                                         │
+│  📝 Input Tokens:    245 tokens        │
+│  💬 Output Tokens:   1,000 tokens      │
+│  📊 Total Cost:      $0.0615 USD       │
+│                                         │
+│  ⚠️  Large prompt detected             │
+│  💡 Tip: Split into smaller prompts    │
+└─────────────────────────────────────────┘
+```
+
+**Key Features:**
+- **⚡ Real-time estimation** as you type
+- **🎯 Multi-model support** (GPT-4, Claude, Gemini, etc.)
+- **📊 Cost breakdown** (input vs output costs)
+- **💡 Optimization suggestions** for cost reduction
+- **⚠️ Alert system** for expensive prompts
+
+**Model Comparison Quick Reference:**
+
+| Model | 💰 Cost | ⚡ Speed | 🎯 Quality | 🎓 Best For |
+|-------|---------|----------|------------|-------------|
+| GPT-4 | $$$ | Slow | Highest | Complex reasoning, code |
+| GPT-3.5 | $ | Fast | Good | General tasks, chat |
+| Claude Opus | $$$ | Medium | Excellent | Analysis, writing |
+| Gemini Pro | $$ | Medium | Very Good | Research, multimodal |
+
+### 📚 Prompt Library & Organization
+
+**Smart Organization System:**
+
+```
+📁 Prompt Library
+├── 📝 Writing
+│   ├── Blog Posts (12)
+│   ├── Emails (8)
+│   └── Social Media (15)
+├── 💻 Code  
+│   ├── Python (23)
+│   ├── Documentation (7)
+│   └── Debugging (11)
+└── 📊 Analysis
+    ├── Data Analysis (9)
+    ├── Research (14)
+    └── Reports (6)
+```
+
+**Features:**
+- **🔍 Smart search** - Find prompts by name, content, or tags
+- **🏷️ Category filtering** - Organize by type and purpose  
+- **⭐ Favorites system** - Quick access to your most-used prompts
+- **📊 Usage analytics** - See which prompts perform best
+- **🔄 Version history** - Track prompt evolution over time
 
 ---
 
-## 🚀 Prompt Optimizer Guide
+## 🚀 AI-Powered Optimization
 
-The **Prompt Optimizer** is an AI-powered system that analyzes and improves your prompts automatically, making them more effective, clear, and targeted for better AI model performance. The system supports multiple optimization services and provides detailed feedback to help you create superior prompts.
+Transform good prompts into great prompts with AI-powered analysis and improvement suggestions from multiple optimization services.
 
-### 🎯 What is Prompt Optimization?
+### ⚡ The Optimization Process
 
-Prompt optimization uses AI to analyze your prompts and suggest improvements based on:
-- **Clarity**: Making instructions more specific and unambiguous
-- **Effectiveness**: Improving response quality and accuracy  
-- **Structure**: Adding organization and logical flow
-- **Specificity**: Replacing vague terms with concrete directions
-- **Context**: Providing appropriate background information
-
-### 🔧 How to Use the Prompt Optimizer
-
-#### 1. **Access the Optimizer**
-- Navigate to **Prompt Management** tab
-- Create or edit a prompt in the content area
-- Find the **🚀 Prompt Optimizer** section below the prompt editor
-
-#### 2. **Configure Optimization Settings**
-- **Optimization Context**: Describe your prompt's purpose (optional but recommended)
-- **Target AI Model**: Select your intended model (GPT-4, Claude, etc.)
-- **Optimization Goals**: Choose what to improve (clarity, specificity, effectiveness)
-
-#### 3. **Run Optimization**
-- Click **🚀 Optimize with LangWatch** (or your configured service)
-- Wait for analysis - typically takes 5-15 seconds
-- Review the optimization results
-
-#### 4. **Review Results**
-The optimizer provides:
 ```
-🚀 Optimization Results
-
-📊 Optimization Score: 78.5/100
-🎯 Improvement: +23.5 points
-
-✨ Optimized Prompt:
-[Your improved prompt text here with better structure and clarity]
-
-💡 Key Improvements:
-• Added role definition for better responses
-• Structured approach for better organization  
-• Added output formatting instructions
-• Enhanced specificity for clearer results
-
-🧠 Reasoning:
-The optimization expanded the prompt with additional context, 
-defined the AI's role for better responses, and added structural 
-elements for clarity to enhance effectiveness and clarity.
+📝 Original Prompt → 🔍 AI Analysis → 💡 Improvements → ✨ Optimized Prompt
 ```
 
-#### 5. **Accept or Iterate**
-- **Accept**: Replace your original prompt with the optimized version
-- **Retry**: Run optimization again with different settings
-- **Reject**: Keep your original prompt
-- **Manual Edit**: Use suggestions to manually improve your prompt
+**What gets optimized:**
+- **🎯 Clarity** - Remove ambiguity, add specific instructions
+- **📊 Structure** - Logical flow and organization  
+- **🎨 Effectiveness** - Better response quality and accuracy
+- **📋 Context** - Appropriate background information
+- **🔧 Specificity** - Replace vague terms with concrete directions
+
+### 🛠️ Optimization Services
+
+Choose from multiple AI optimization providers:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🚀 LangWatch      ⭐⭐⭐⭐⭐  Enterprise-grade      │
+│  🔍 PromptPerfect  ⭐⭐⭐⭐   Creative optimization  │  
+│  🧠 LangSmith      ⭐⭐⭐⭐   LangChain integration │
+│  ⚡ Helicone       ⭐⭐⭐     Performance focused   │
+│  🧪 Built-in       ⭐⭐⭐     No setup required     │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 📊 Optimization Dashboard
+
+**Real-time optimization results:**
+
+```
+┌─────────────────────────────────────────┐
+│  🚀 Optimization Results                │
+│                                         │
+│  📊 Score: 78.5/100 (+23.5 improvement)│
+│  🎯 Goals: Clarity, Structure, Context  │
+│                                         │
+│  💡 Key Improvements:                   │
+│  • Added role definition                │
+│  • Structured approach                  │
+│  • Enhanced specificity                 │
+│  • Better output formatting             │
+│                                         │
+│  ✅ Accept  🔄 Retry  ❌ Reject        │
+└─────────────────────────────────────────┘
+```
+
+### 🎯 Optimization Workflow
+
+1. **📝 Create or edit** a prompt in the editor
+2. **⚙️ Configure settings**:
+   - Optimization context (purpose description)  
+   - Target AI model (GPT-4, Claude, etc.)
+   - Goals (clarity, effectiveness, structure)
+3. **🚀 Click "Optimize"** - Analysis takes 5-15 seconds
+4. **📊 Review results** with score and detailed improvements
+5. **✅ Accept, retry, or manual edit** based on suggestions
+
+### 🔧 Service Configuration
+
+**Quick setup for optimization services:**
+
+```bash
+# LangWatch (Recommended for enterprise)
+PROMPT_OPTIMIZER=langwatch
+LANGWATCH_API_KEY=your_api_key
+LANGWATCH_PROJECT_ID=your_project
+
+# PromptPerfect (Great for creative prompts)
+PROMPT_OPTIMIZER=promptperfect  
+PROMPTPERFECT_API_KEY=your_api_key
+
+# Built-in (No setup required)
+PROMPT_OPTIMIZER=builtin
+```
 
 ### 🛠️ Optimization Services
 
@@ -928,29 +995,60 @@ POST /api/prompts/optimize
 
 ---
 
-## 🧩 Prompt Builder Guide
+## 🧩 Prompt Builder
 
-The **Prompt Builder** is a powerful drag-and-drop interface that allows you to combine multiple existing prompts into sophisticated new ones. Perfect for creating complex, multi-layered prompts from your existing prompt library.
+Create sophisticated, multi-layered prompts by combining existing ones with an intuitive drag-and-drop interface.
 
-### 🎯 What is the Prompt Builder?
+### 🎯 What is Prompt Building?
 
-The Prompt Builder enables you to:
-- **Combine Multiple Prompts**: Merge 2 or more existing prompts into a single, comprehensive prompt
-- **Use Smart Templates**: Choose from 4 different combination methods
-- **Drag-and-Drop Interface**: Intuitive, visual prompt selection and organization  
-- **Live Preview**: See exactly how your combined prompt will look before saving
-- **Seamless Integration**: Open combined prompts directly in the main editor for further refinement
-
-### 🚀 Getting Started
-
-#### 1. **Access the Prompt Builder**
-- Navigate to the **🧩 Prompt Builder** tab in the main interface
-- Ensure you have some existing prompts created (minimum 2 prompts required)
-
-#### 2. **Basic Workflow**
+**The power of combination:**
 ```
-Available Prompts → Select & Combine → Choose Template → Preview → Edit
+📝 Prompt A + 📝 Prompt B + 📝 Prompt C = 🚀 Super Prompt
 ```
+
+Transform individual prompts into comprehensive workflows:
+- **🔗 Combine multiple prompts** into sophisticated sequences
+- **🎨 Choose from 4 templates** for different combination styles  
+- **👁️ Live preview** - See results before saving
+- **🖱️ Drag-and-drop interface** - Visual, intuitive building
+- **🔄 Seamless integration** - Edit combined prompts in main editor
+
+### 🏗️ Builder Interface
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 📚 Available Prompts    │  🎯 Selected Prompts         │
+│                         │                               │
+│ [📝 Email Template]     │  1. [📝 Email Template]      │
+│ [📊 Data Analysis]      │  2. [🎨 Brand Voice]         │  
+│ [🎨 Brand Voice]        │  3. [📋 Call-to-Action]      │
+│ [📋 Call-to-Action]     │                               │
+│ [💻 Code Review]        │  Template: 📑 Sections       │
+│                         │                               │
+│ 🔍 Search prompts...    │  👁️ Preview │ 🔗 Combine    │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 🎨 Template Gallery
+
+Choose the right combination style for your needs:
+
+| Template | Icon | Description | Best For |
+|----------|------|-------------|----------|
+| **📋 Sequential** | `1→2→3` | Step-by-step flow | Tutorials, processes |
+| **📑 Sections** | `[A][B][C]` | Organized sections | Reports, documentation |
+| **🏗️ Layered** | `Base+Layer1+Layer2` | Context building | Complex reasoning |
+| **🎨 Custom** | `{template}` | Your own format | Specialized needs |
+
+### ⚡ Quick Building Workflow
+
+1. **📂 Access** the Prompt Builder tab
+2. **🖱️ Drag prompts** from Available to Selected area
+3. **📝 Arrange order** by dragging within Selected area
+4. **🎨 Choose template** - Sequential, Sections, Layered, or Custom
+5. **👁️ Preview** your combined prompt in real-time
+6. **🔗 Combine** to generate the final prompt
+7. **📝 Edit** in main editor for final tweaks
 
 ### 📋 Step-by-Step Guide
 
@@ -1365,7 +1463,7 @@ Configure in the application's AI Service Settings.
 
 ---
 
-## 🔵 Azure AI & Entra ID Integration
+## 🔵 Azure AI Integration
 
 ### Overview
 
@@ -1758,100 +1856,168 @@ docker run -p 7860:7860 \
 
 ---
 
-## 🚀 Multi-Language Quick Reference
+## 🚀 Quick Reference
 
-### 🌐 **Language Codes & Commands**
+### ⚡ Essential Commands
 
-| Language | Code | Environment | URL Parameter | Native Name |
-|----------|------|-------------|---------------|-------------|
-| English | `en` | `DEFAULT_LANGUAGE=en` | `?lang=en` | English |
-| Spanish | `es` | `DEFAULT_LANGUAGE=es` | `?lang=es` | Español |
-| French | `fr` | `DEFAULT_LANGUAGE=fr` | `?lang=fr` | Français |
-| German | `de` | `DEFAULT_LANGUAGE=de` | `?lang=de` | Deutsch |
-| Chinese | `zh` | `DEFAULT_LANGUAGE=zh` | `?lang=zh` | 中文 |
-| Japanese | `ja` | `DEFAULT_LANGUAGE=ja` | `?lang=ja` | 日本語 |
-| Portuguese | `pt` | `DEFAULT_LANGUAGE=pt` | `?lang=pt` | Português |
-| Russian | `ru` | `DEFAULT_LANGUAGE=ru` | `?lang=ru` | Русский |
-| Arabic | `ar` | `DEFAULT_LANGUAGE=ar` | `?lang=ar` | العربية |
-| Hindi | `hi` | `DEFAULT_LANGUAGE=hi` | `?lang=hi` | हिन्दी |
+| Task | Command | Description |
+|------|---------|-------------|
+| **🚀 Start App** | `python run.py` | Default multi-tenant mode |
+| **👤 Single User** | `python run.py --single-user` | Personal use mode |
+| **🔌 With API** | `python run.py --with-api` | Enable REST endpoints |
+| **🐳 Docker** | `docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager` | Container deployment |
+| **🔧 Help** | `python run.py --help` | Show all options |
 
-### 🧩 **Prompt Builder Quick Reference**
+### 🌐 Multi-Language Quick Access
 
-| Action | Steps | Shortcut |
-|--------|-------|----------|
-| **Access Builder** | Navigate to 🧩 Prompt Builder tab | Direct tab access |
-| **Add Prompts** | Drag from Available → Selected | Click to select |
-| **Change Order** | Drag prompts within Selected area | Drag & drop |
-| **Remove Prompts** | Drag out of Selected area | Click X button |
-| **Preview** | Select template → Auto-preview | 👁️ Refresh button |
-| **Combine** | Click 🔗 Combine Prompts | Automatic generation |
-| **Edit Result** | Click 📝 Open in Editor | Direct transfer |
+| Language | Code | Environment Variable | URL Parameter |
+|----------|------|---------------------|---------------|
+| **English** | `en` | `DEFAULT_LANGUAGE=en` | `?lang=en` |
+| **Spanish** | `es` | `DEFAULT_LANGUAGE=es` | `?lang=es` |
+| **French** | `fr` | `DEFAULT_LANGUAGE=fr` | `?lang=fr` |
+| **German** | `de` | `DEFAULT_LANGUAGE=de` | `?lang=de` |
+| **Chinese** | `zh` | `DEFAULT_LANGUAGE=zh` | `?lang=zh` |
+| **Japanese** | `ja` | `DEFAULT_LANGUAGE=ja` | `?lang=ja` |
 
-### ⚡ **Quick Commands**
+### 🧩 Prompt Builder Shortcuts
 
-```bash
-# Start with Spanish interface
-DEFAULT_LANGUAGE=es python run.py
+| Action | Method | Tip |
+|--------|--------|-----|
+| **Add Prompts** | Drag from Available → Selected | Or click to select |
+| **Reorder** | Drag within Selected area | Order affects output |
+| **Remove** | Drag out or click X | Undo with Ctrl+Z |
+| **Preview** | Auto-updates on changes | 👁️ Refresh if needed |
+| **Templates** | 📋 Sequential, 📑 Sections, 🏗️ Layered, 🎨 Custom | Choose based on use case |
 
-# Start with Chinese interface  
-DEFAULT_LANGUAGE=zh python run.py
-
-# Access with URL parameter
-curl "http://localhost:7860/?lang=fr"
-
-# Multi-tenant with French
-DEFAULT_LANGUAGE=fr MULTITENANT_MODE=true python run.py
-
-# API with German interface
-DEFAULT_LANGUAGE=de ENABLE_API=true python run.py
-
-# Translation service with Spanish UI
-DEFAULT_LANGUAGE=es TRANSLATION_SERVICE=openai OPENAI_API_KEY=key python run.py
-```
-
-### 🌐 **Translation Configuration**
+### 🔧 Configuration Quick Setup
 
 ```bash
-# OpenAI translation (best quality)
+# Essential .env settings
+MULTITENANT_MODE=true    # Teams/organizations
+ENABLE_API=true         # Developer access  
+DB_TYPE=postgres        # Production database
+SECRET_KEY=secure-key   # JWT security
+
+# AI Services
+PROMPT_OPTIMIZER=langwatch
+LANGWATCH_API_KEY=your_key
 TRANSLATION_SERVICE=openai
-OPENAI_API_KEY=your_openai_key
-
-# Google Translate
-TRANSLATION_SERVICE=google
-GOOGLE_TRANSLATE_API_KEY=your_google_key
-
-# LibreTranslate (free)
-TRANSLATION_SERVICE=libre
-LIBRETRANSLATE_URL=https://libretranslate.de/translate
-
-# Mock for testing (default)
-TRANSLATION_SERVICE=mock
+OPENAI_API_KEY=your_key
 ```
 
-### 🔧 **Developer Integration**
+### 🚨 Emergency Commands
 
-```python
-# Quick language switching in code
-from i18n import i18n, t
+```bash
+# Reset admin password
+python -c "from auth_manager import AuthManager; auth = AuthManager(); auth.reset_admin_password()"
 
-# Available languages
-langs = i18n.get_available_languages()
+# Check system health
+curl http://localhost:7860/api/health
 
-# Switch language
-i18n.set_language('es')  # Spanish
-print(t('app.title'))    # "Gestor de Prompts IA"
+# Database backup
+cp prompts.db prompts.db.backup
 
-# With parameters
-print(t('auth.welcome', name='María'))  # "¡Bienvenido, María!"
-
-# Translation API
-from text_translator import text_translator
-
-# Check if translation is needed
-if text_translator.is_translation_needed():
-    success, translated, error = text_translator.translate_to_english("Hola mundo")
-    print(f"Translated: {translated}")
+# View logs
+tail -f application.log
 ```
+
+---
+
+## 🔧 Troubleshooting
+
+### 🚨 Common Issues & Quick Fixes
+
+#### 🔌 Application Won't Start
+
+```bash
+# Check port availability
+lsof -i :7860
+
+# Try different port
+python run.py --port 8080
+
+# Check Python version
+python --version  # Requires 3.12+
+```
+
+#### 🗄️ Database Issues
+
+```bash
+# SQLite permission errors
+chmod 664 prompts.db
+chown $USER:$USER prompts.db
+
+# PostgreSQL connection
+psql -h localhost -U username -d dbname  # Test connection
+```
+
+#### 🔐 Authentication Problems
+
+```bash
+# Reset admin password (emergency)
+python -c "
+from auth_manager import AuthManager
+auth = AuthManager('prompts.db')
+auth.create_user('tenant-id', 'admin@localhost', 'newpassword', 'Admin', 'User', 'admin')
+"
+
+# Check tenant configuration
+python -c "
+from auth_manager import AuthManager
+auth = AuthManager('prompts.db')
+tenants = auth.get_all_tenants()
+for t in tenants: print(f'Tenant: {t.name} ({t.subdomain})')
+"
+```
+
+#### 🌐 Network & Access Issues
+
+```bash
+# Check if service is running
+curl http://localhost:7860/api/health
+# Expected: {"status": "healthy"}
+
+# Test with debug mode
+python run.py --debug
+
+# Allow external access
+python run.py --host 0.0.0.0
+```
+
+#### 🐳 Docker Issues
+
+```bash
+# Check container logs
+docker logs ai-prompt-manager
+
+# Test database connectivity
+docker exec -it ai-prompt-manager python -c "
+from prompt_data_manager import PromptDataManager
+data = PromptDataManager('prompts.db')
+print('Database connection successful')
+"
+```
+
+#### 🤖 AI Service Issues
+
+```bash
+# Test optimization service
+python test_langwatch_integration.py
+
+# Verify API keys
+python -c "
+import os
+print('LangWatch:', 'Set' if os.getenv('LANGWATCH_API_KEY') else 'Missing')
+print('OpenAI:', 'Set' if os.getenv('OPENAI_API_KEY') else 'Missing')
+"
+```
+
+### 🆘 Getting Help
+
+- **📖 Documentation**: Check this README for detailed guides
+- **🐛 Bug Reports**: [GitHub Issues](https://github.com/MakerCorn/ai-prompt-manager/issues)
+- **💬 Community**: Join discussions for community support
+- **🔧 Self-Service**: Use the troubleshooting commands above
 
 ---
 
