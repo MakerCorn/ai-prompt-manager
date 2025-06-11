@@ -662,19 +662,29 @@ jobs:
           # Extract changes from CHANGELOG.md if it exists
           CHANGELOG_CONTENT=""
           if [ -f CHANGELOG.md ]; then
+            echo "🔍 Looking for changelog content for version: ${VERSION}"
             # Try to extract the section for this version with brackets
-            CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION}\]/,/## \[/p" CHANGELOG.md | head -n -1 | tail -n +2)
+            CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION}\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
             if [ -z "$CHANGELOG_CONTENT" ]; then
+              echo "🔍 Trying without 'v' prefix: [${VERSION#v}]"
               # Try without the 'v' prefix but with brackets
-              CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION#v}\]/,/## \[/p" CHANGELOG.md | head -n -1 | tail -n +2)
+              CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION#v}\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
             fi
             if [ -z "$CHANGELOG_CONTENT" ]; then
+              echo "🔍 Trying without brackets: ${VERSION}"
               # Try without brackets but with 'v' prefix
-              CHANGELOG_CONTENT=$(sed -n "/## ${VERSION}/,/## /p" CHANGELOG.md | head -n -1 | tail -n +2)
+              CHANGELOG_CONTENT=$(sed -n "/## ${VERSION}/,/## /p" CHANGELOG.md | sed '$d' | tail -n +2)
             fi
             if [ -z "$CHANGELOG_CONTENT" ]; then
+              echo "🔍 Trying without brackets and 'v' prefix: ${VERSION#v}"
               # Try without brackets and without 'v' prefix
-              CHANGELOG_CONTENT=$(sed -n "/## ${VERSION#v}/,/## /p" CHANGELOG.md | head -n -1 | tail -n +2)
+              CHANGELOG_CONTENT=$(sed -n "/## ${VERSION#v}/,/## /p" CHANGELOG.md | sed '$d' | tail -n +2)
+            fi
+            
+            if [ -n "$CHANGELOG_CONTENT" ]; then
+              echo "✅ Found changelog content for ${VERSION}"
+            else
+              echo "❌ No changelog content found for ${VERSION}"
             fi
           fi
           
@@ -686,10 +696,7 @@ jobs:
           
           ## 🌟 What's New
           
-          ${CHANGELOG_CONTENT:-"- Enhanced prompt optimization with multi-service support
-          - Improved multi-language interface
-          - Updated documentation and examples
-          - Security improvements and bug fixes"}
+          ${CHANGELOG_CONTENT}
           
           ## 📦 Installation Options
           
