@@ -1,6 +1,88 @@
 # Changelog
 
-## [v2.0.0] - 2025-01-09 - Unified Application
+## [v0.2.0] - 2025-06-11 - Enhanced Testing & Model Configuration
+
+### 🧪 New Testing Features
+
+#### **Prompt Testing in Editor**
+- **Test Prompt Section**: Added interactive testing capability directly in the prompt editor
+- **Test Input Field**: Optional context input to test prompts with specific scenarios
+- **Real-time Testing**: Test prompts using configured LLM models without leaving the editor
+- **Status Feedback**: Clear success/error indicators and detailed output display
+- **Compact UI**: Responsive design that integrates seamlessly with existing editor
+
+#### **Separate Model Configurations**
+- **Test Service Configuration**: Dedicated model configuration specifically for prompt testing
+- **Independent Settings**: Test service can use different API endpoints, keys, and models
+- **Fallback Logic**: Gracefully falls back to primary configuration if test config not set
+- **Configuration Management**: Full CRUD operations for test service settings
+
+### ⚙️ Configuration Enhancements
+
+#### **Three-Tier Model System**
+1. **Primary AI Service**: For general prompt execution and production use
+2. **Enhancement Service**: For prompt optimization and improvement (existing)
+3. **Test Service**: For prompt testing and development (new)
+
+#### **Flexible Model Selection**
+- **Service Types**: Support for OpenAI, LM Studio, Ollama, Llama.cpp across all configurations
+- **Model Optimization**: Use fast models for testing, powerful models for enhancement
+- **Cost Control**: Configure cheaper models for testing, premium models for production
+- **Environment Flexibility**: Different endpoints for different purposes
+
+### 🛠️ Technical Improvements
+
+#### **Backend Architecture**
+- **Configuration Storage**: Persistent storage for test service configurations
+- **User Isolation**: Test configurations are user-specific in multi-tenant mode
+- **Error Handling**: Comprehensive error handling for configuration and testing
+- **Validation**: Proper authentication and configuration validation
+
+#### **UI/UX Enhancements**
+- **Internationalization**: Added translation keys for testing functionality
+- **Consistent Design**: Testing UI follows existing design patterns
+- **Responsive Layout**: Works across desktop and mobile interfaces
+- **Status Indicators**: Clear visual feedback for all testing operations
+
+### 🔧 Code Quality
+
+#### **Function Organization**
+- **Modular Functions**: Clean separation of test and configuration logic
+- **Event Handling**: Proper Gradio event handler implementation
+- **Code Reuse**: Leveraged existing AI service integration
+- **Documentation**: Clear function documentation and comments
+
+### 📋 Configuration Structure
+
+```python
+# Test Configuration Example
+{
+    'service_type': 'openai',
+    'api_endpoint': 'http://localhost:1234/v1',
+    'api_key': '',
+    'model_name': 'gpt-3.5-turbo'  # Fast model for testing
+}
+
+# Enhancement Configuration Example  
+{
+    'service_type': 'openai',
+    'api_endpoint': 'https://api.openai.com/v1',
+    'api_key': 'sk-...',
+    'model_name': 'gpt-4'  # Powerful model for enhancement
+}
+```
+
+### ✨ User Benefits
+
+1. **Rapid Iteration**: Test prompts immediately during development
+2. **Cost Efficiency**: Use appropriate models for different tasks
+3. **Better Workflow**: Seamless testing without configuration switching
+4. **Quality Assurance**: Validate prompts before saving or deployment
+5. **Flexibility**: Configure optimal models for each use case
+
+---
+
+## [v0.1.0] - 2025-06-09 - Unified Application
 
 ### 🚀 Major Changes
 

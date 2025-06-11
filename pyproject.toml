@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "ai-prompt-manager"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI Prompt Management System"
 authors = [
     {name = "MakerCorn",email = "corn.mendoza@outlook.com"}
@@ -27,7 +27,7 @@ dependencies = [
 
 [tool.poetry]
 name = "ai-prompt-manager"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI Prompt Management System"
 authors = ["MakerCorn <corn.mendoza@outlook.com>"]
 license = "Non-Commercial"
