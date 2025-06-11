@@ -2,8 +2,23 @@
 
 A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments. Features advanced authentication, real-time token cost estimation, AI-powered prompt optimization, and secure API access.
 
+## 🤖 Understanding AI Prompts
+
+**What are prompts?** Prompts are instructions you give to AI systems like ChatGPT or Claude. Think of them as questions or commands that tell the AI what you want it to do.
+
+**System Prompts** set the AI's role and behavior. For example: "You are a helpful writing assistant. Always write in a friendly tone." These prompts stay active for the entire conversation.
+
+**User Prompts** are your specific requests. For example: "Write a professional email declining a meeting invitation." These change with each request you make.
+
+**Why good prompts matter:** Clear, specific prompts get better results. Vague prompts like "help me write" often produce unhelpful responses. Detailed prompts like "write a 200-word product description for wireless headphones targeting college students" give you exactly what you need.
+
+**The cost problem:** AI services charge based on how many words (tokens) you use. Longer prompts cost more money. Finding the right balance between detail and brevity saves money while getting good results.
+
+**Why you need prompt management:** If you use AI regularly, you'll create many prompts for different tasks. This application helps you store, organize, improve, and reuse your best prompts. You can also calculate costs, combine prompts for complex tasks, and share prompts with your team.
+
 ## 📋 Table of Contents
 
+- [🤖 Understanding AI Prompts](#-understanding-ai-prompts)
 - [🌟 Key Features](#-key-features)
 - [🚀 Quick Start](#-quick-start)
 - [⚙️ Configuration](#️-configuration)
