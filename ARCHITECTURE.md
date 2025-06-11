@@ -1,9 +1,9 @@
-# 🏗️ Instruere AI Prompt Manager - System Architecture
+# 🏗️ AI Prompt Manager - System Architecture
 
 ## 📋 Table of Contents
 
 - [🎯 Architectural Overview](#-architectural-overview)
-- [🏛️ System Architecture](#️-system-architecture)
+- [🏛️ Modern Architecture Design](#️-modern-architecture-design)
 - [🔄 Component Interaction Flow](#-component-interaction-flow)
 - [🛡️ Security Architecture](#️-security-architecture)
 - [📊 Data Architecture](#-data-architecture)
@@ -18,306 +18,410 @@
 
 ## 🎯 Architectural Overview
 
-The AI Prompt Manager is built on a **unified, modular architecture** that supports both single-user and multi-tenant deployments through a single codebase. The system follows **Domain-Driven Design (DDD)** principles with clear separation of concerns and **microservice-ready components**.
+The AI Prompt Manager is built on a **modern, modular architecture** implementing clean separation of concerns through **Service Layer**, **Repository Pattern**, and **Domain-Driven Design (DDD)** principles. The system supports both single-user and multi-tenant deployments through a unified codebase with comprehensive type safety and testing.
 
 ### 🔑 Key Architectural Principles
 
-- **🏗️ Unified Codebase**: Single application supporting multiple deployment modes
-- **🔐 Tenant Isolation**: Complete data and security separation
-- **📦 Modular Design**: Loosely coupled, independently testable components
+- **🏗️ Modular Design**: Clear separation of concerns with Service, Repository, and Model layers
+- **🔐 Multi-Tenant Security**: Complete data isolation with tenant-aware operations
+- **📦 Type Safety**: Comprehensive type hints and validation throughout
 - **🔌 API-First**: RESTful API with comprehensive OpenAPI documentation
 - **🌐 Internationalization**: Multi-language support at the core
-- **⚡ Performance**: Efficient database queries and caching strategies
-- **🛡️ Security**: Multi-layer security with JWT and RBAC
+- **⚡ Performance**: Efficient queries with caching and optimization strategies
+- **🛡️ Modern Security**: JWT, RBAC, and modern password handling
+- **🧪 Comprehensive Testing**: Unit and integration tests with dependency injection
 
 ---
 
-## 🏛️ System Architecture
+## 🏛️ Modern Architecture Design
+
+### 📁 New Modular Structure
+
+```
+ai-prompt-manager/
+├── src/                                    # New modular source code
+│   ├── core/                              # Core infrastructure
+│   │   ├── base/                          # Base classes
+│   │   │   ├── database_manager.py        # Database operations base
+│   │   │   ├── service_base.py            # Service layer base
+│   │   │   └── repository_base.py         # Repository pattern base
+│   │   ├── config/                        # Configuration management
+│   │   │   └── settings.py                # Type-safe centralized config
+│   │   ├── exceptions/                    # Exception hierarchy
+│   │   │   └── base.py                    # Structured exceptions
+│   │   └── utils/                         # Shared utilities
+│   │       ├── validators.py              # Input validation
+│   │       └── logging_config.py          # Centralized logging
+│   ├── auth/                              # Authentication module
+│   │   ├── models/                        # Data models
+│   │   │   ├── user.py                    # User entity with RBAC
+│   │   │   └── tenant.py                  # Multi-tenant entity
+│   │   ├── services/                      # Authentication business logic
+│   │   ├── repositories/                  # Data access layer
+│   │   └── security/                      # Security utilities
+│   │       ├── password_handler.py        # Modern password hashing
+│   │       └── token_manager.py           # JWT management
+│   ├── prompts/                           # Prompt management
+│   │   ├── models/                        # Prompt data models
+│   │   │   └── prompt.py                  # Rich prompt entity
+│   │   ├── repositories/                  # Data access
+│   │   │   └── prompt_repository.py       # Tenant-aware data operations
+│   │   └── services/                      # Business logic
+│   │       └── prompt_service.py          # Prompt operations service
+│   ├── api/                               # API layer (planned)
+│   ├── ui/                                # User interface (planned)
+│   └── utils/                             # Shared utilities
+├── tests/                                 # Comprehensive test suite
+│   ├── unit/                              # Unit tests
+│   ├── integration/                       # Integration tests
+│   └── fixtures/                          # Test fixtures
+├── *.py                                   # Legacy components (being migrated)
+└── docs/                                  # Documentation
+```
+
+### 🏗️ Architecture Layers
 
 ```mermaid
 graph TB
-    %% Client Layer
-    subgraph "🌐 Client Layer"
-        WEB[🖥️ Web Browser]
-        MOB[📱 Mobile Apps]
-        API_CLIENT[🔧 API Clients]
-        CLI[⌨️ CLI Tools]
+    subgraph "🎨 Presentation Layer"
+        GRADIO[🎨 Gradio UI]
+        API[🔌 REST API]
+        CLI[⌨️ CLI Interface]
     end
 
-    %% Load Balancer
-    LB[⚖️ Load Balancer<br/>NGINX/HAProxy]
-
-    %% Application Layer
-    subgraph "🚀 Application Layer"
-        subgraph "📱 Web Interface"
-            GRADIO[🎨 Gradio UI<br/>Multi-Language]
-            AUTH_UI[🔐 Auth Interface]
-            BUILDER_UI[🧩 Prompt Builder]
-        end
-        
-        subgraph "🔌 API Layer"
-            FASTAPI[⚡ FastAPI<br/>REST Endpoints]
-            AUTH_API[🔑 Auth API]
-            PROMPT_API[📝 Prompt API]
-            ADMIN_API[🛡️ Admin API]
-        end
+    subgraph "🧠 Service Layer"
+        PROMPT_SVC[📝 Prompt Service]
+        AUTH_SVC[🔐 Auth Service]
+        USER_SVC[👤 User Service]
+        CONFIG_SVC[⚙️ Config Service]
     end
 
-    %% Business Logic Layer
-    subgraph "🧠 Business Logic Layer"
-        subgraph "👤 User Management"
-            AUTH_MGR[🔐 Auth Manager]
-            USER_MGR[👥 User Manager]
-            TENANT_MGR[🏢 Tenant Manager]
-            TOKEN_MGR[🔑 Token Manager]
-        end
-        
-        subgraph "📝 Prompt Management"
-            PROMPT_MGR[📄 Prompt Manager]
-            BUILDER[🧩 Prompt Builder]
-            OPTIMIZER[🚀 Multi-Service Optimizer]
-            CALCULATOR[🧮 Token Calculator]
-        end
-        
-        subgraph "🌐 Core Services"
-            I18N[🌍 Internationalization]
-            TRANSLATOR[🔄 Text Translator]
-            UI_COMP[🎨 UI Components]
-        end
+    subgraph "💾 Repository Layer"
+        PROMPT_REPO[📄 Prompt Repository]
+        USER_REPO[👤 User Repository]
+        TENANT_REPO[🏢 Tenant Repository]
+        CONFIG_REPO[⚙️ Config Repository]
     end
 
-    %% Data Access Layer
-    subgraph "💾 Data Access Layer"
-        DATA_MGR[🗄️ Data Manager<br/>Tenant-Aware]
-        API_TOKEN_MGR[🔐 API Token Manager]
-        CONFIG_MGR[⚙️ Config Manager]
+    subgraph "📊 Model Layer"
+        PROMPT_MODEL[📝 Prompt Model]
+        USER_MODEL[👤 User Model]
+        TENANT_MODEL[🏢 Tenant Model]
+        CONFIG_MODEL[⚙️ Config Model]
     end
 
-    %% External Services
-    subgraph "🌍 External Services"
-        OPT_SERVICES[🚀 Optimization Services<br/>LangWatch/PromptPerfect<br/>LangSmith/Helicone]
-        AI_MODELS[🤖 AI Models<br/>OpenAI/Local]
-        TRANSLATE_SVC[🔄 Translation Services<br/>OpenAI/Google/Libre]
-        SSO[🔗 SSO/ADFS<br/>Microsoft Azure]
-    end
-
-    %% Database Layer
     subgraph "🗄️ Database Layer"
-        SQLITE[(📁 SQLite<br/>Development)]
-        POSTGRES[(🐘 PostgreSQL<br/>Production)]
+        SQLITE[(📁 SQLite)]
+        POSTGRES[(🐘 PostgreSQL)]
+    end
+
+    subgraph "🌍 External Services"
+        AI_SERVICES[🤖 AI Models]
+        OPT_SERVICES[🚀 Optimization]
+        TRANSLATE[🌐 Translation]
     end
 
     %% Connections
-    WEB --> LB
-    MOB --> LB
-    API_CLIENT --> LB
-    CLI --> LB
-    
-    LB --> GRADIO
-    LB --> FASTAPI
-    
-    GRADIO --> AUTH_MGR
-    GRADIO --> PROMPT_MGR
-    GRADIO --> I18N
-    
-    FASTAPI --> AUTH_API
-    FASTAPI --> PROMPT_API
-    FASTAPI --> ADMIN_API
-    
-    AUTH_MGR --> DATA_MGR
-    PROMPT_MGR --> DATA_MGR
-    BUILDER --> PROMPT_MGR
-    
-    DATA_MGR --> SQLITE
-    DATA_MGR --> POSTGRES
-    
-    OPTIMIZER --> OPT_SERVICES
-    CALCULATOR --> AI_MODELS
-    TRANSLATOR --> TRANSLATE_SVC
-    AUTH_MGR --> SSO
+    GRADIO --> PROMPT_SVC
+    GRADIO --> AUTH_SVC
+    API --> PROMPT_SVC
+    API --> AUTH_SVC
+    CLI --> PROMPT_SVC
 
-    %% Styling
-    classDef clientLayer fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef appLayer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef businessLayer fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef dataLayer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef externalLayer fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef dbLayer fill:#f1f8e9,stroke:#689f38,stroke-width:2px
+    PROMPT_SVC --> PROMPT_REPO
+    AUTH_SVC --> USER_REPO
+    USER_SVC --> USER_REPO
+    CONFIG_SVC --> CONFIG_REPO
 
-    class WEB,MOB,API_CLIENT,CLI clientLayer
-    class GRADIO,AUTH_UI,BUILDER_UI,FASTAPI,AUTH_API,PROMPT_API,ADMIN_API appLayer
-    class AUTH_MGR,USER_MGR,TENANT_MGR,TOKEN_MGR,PROMPT_MGR,BUILDER,OPTIMIZER,CALCULATOR,I18N,TRANSLATOR,UI_COMP businessLayer
-    class DATA_MGR,API_TOKEN_MGR,CONFIG_MGR dataLayer
-    class OPT_SERVICES,AI_MODELS,TRANSLATE_SVC,SSO externalLayer
-    class SQLITE,POSTGRES dbLayer
+    PROMPT_REPO --> PROMPT_MODEL
+    USER_REPO --> USER_MODEL
+    TENANT_REPO --> TENANT_MODEL
+    CONFIG_REPO --> CONFIG_MODEL
+
+    PROMPT_REPO --> SQLITE
+    PROMPT_REPO --> POSTGRES
+    USER_REPO --> SQLITE
+    USER_REPO --> POSTGRES
+
+    PROMPT_SVC --> AI_SERVICES
+    PROMPT_SVC --> OPT_SERVICES
+    CONFIG_SVC --> TRANSLATE
+
+    classDef presentation fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef service fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef repository fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef model fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef database fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef external fill:#f1f8e9,stroke:#689f38,stroke-width:2px
+
+    class GRADIO,API,CLI presentation
+    class PROMPT_SVC,AUTH_SVC,USER_SVC,CONFIG_SVC service
+    class PROMPT_REPO,USER_REPO,TENANT_REPO,CONFIG_REPO repository
+    class PROMPT_MODEL,USER_MODEL,TENANT_MODEL,CONFIG_MODEL model
+    class SQLITE,POSTGRES database
+    class AI_SERVICES,OPT_SERVICES,TRANSLATE external
+```
+
+### 🔧 Base Class Architecture
+
+```mermaid
+graph TB
+    subgraph "🏗️ Core Base Classes"
+        BASE_DB[🗄️ BaseDatabaseManager]
+        BASE_SVC[🧠 BaseService]
+        BASE_REPO[💾 BaseRepository]
+        TENANT_REPO[🏢 TenantAwareRepository]
+    end
+
+    subgraph "🔧 Service Classes"
+        PROMPT_SERVICE[📝 PromptService]
+        AUTH_SERVICE[🔐 AuthService]
+        USER_SERVICE[👤 UserService]
+    end
+
+    subgraph "💾 Repository Classes"
+        PROMPT_REPO[📄 PromptRepository]
+        USER_REPO[👤 UserRepository]
+        TENANT_REPO_IMPL[🏢 TenantRepository]
+    end
+
+    subgraph "🗄️ Database Managers"
+        DB_MANAGER[🗃️ DatabaseManager]
+        PROMPT_DB[📝 PromptDatabaseManager]
+        AUTH_DB[🔐 AuthDatabaseManager]
+    end
+
+    BASE_DB --> DB_MANAGER
+    BASE_DB --> PROMPT_DB
+    BASE_DB --> AUTH_DB
+
+    BASE_SVC --> PROMPT_SERVICE
+    BASE_SVC --> AUTH_SERVICE
+    BASE_SVC --> USER_SERVICE
+
+    BASE_REPO --> TENANT_REPO
+    TENANT_REPO --> PROMPT_REPO
+    BASE_REPO --> USER_REPO
+    BASE_REPO --> TENANT_REPO_IMPL
+
+    PROMPT_SERVICE --> PROMPT_REPO
+    AUTH_SERVICE --> USER_REPO
+    USER_SERVICE --> USER_REPO
+
+    PROMPT_REPO --> DB_MANAGER
+    USER_REPO --> DB_MANAGER
+    TENANT_REPO_IMPL --> DB_MANAGER
+
+    classDef base fill:#e8f5e8,stroke:#388e3c,stroke-width:3px
+    classDef service fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef repository fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef database fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+
+    class BASE_DB,BASE_SVC,BASE_REPO,TENANT_REPO base
+    class PROMPT_SERVICE,AUTH_SERVICE,USER_SERVICE service
+    class PROMPT_REPO,USER_REPO,TENANT_REPO_IMPL repository
+    class DB_MANAGER,PROMPT_DB,AUTH_DB database
 ```
 
 ---
 
 ## 🔄 Component Interaction Flow
 
-### 📝 Prompt Management Flow
+### 📝 Modern Prompt Management Flow
 
 ```mermaid
 sequenceDiagram
     participant U as 👤 User
     participant UI as 🎨 Gradio UI
-    participant PM as 📄 Prompt Manager
-    participant DM as 🗄️ Data Manager
+    participant PS as 📝 PromptService
+    participant PR as 📄 PromptRepository
     participant DB as 💾 Database
     participant AI as 🤖 AI Service
 
     U->>UI: Create/Edit Prompt
-    UI->>PM: validate_prompt(content)
-    PM->>DM: save_prompt(prompt_data)
-    DM->>DB: INSERT/UPDATE with tenant_id
-    DB-->>DM: confirm_save
-    DM-->>PM: success_response
-    PM->>AI: calculate_tokens(content)
-    AI-->>PM: token_estimate
-    PM-->>UI: prompt_saved + metrics
-    UI-->>U: success_notification
+    UI->>PS: create_prompt(prompt_data)
+    
+    PS->>PS: validate_input(data)
+    PS->>PR: set_tenant_context(tenant_id)
+    PS->>PR: name_exists(name)
+    PR->>DB: SELECT with tenant_id filter
+    DB-->>PR: result
+    PR-->>PS: exists_status
+    
+    alt Name Available
+        PS->>PR: save(prompt_entity)
+        PR->>DB: INSERT with tenant isolation
+        DB-->>PR: prompt_with_id
+        PR-->>PS: saved_prompt
+        PS->>AI: calculate_tokens(content)
+        AI-->>PS: token_estimate
+        PS-->>UI: ServiceResult(success, prompt, metrics)
+        UI-->>U: success_notification
+    else Name Exists
+        PS-->>UI: ServiceResult(error: "Name exists")
+        UI-->>U: error_message
+    end
 ```
 
-### 🔐 Authentication Flow
+### 🔐 Modern Authentication Flow
 
 ```mermaid
 sequenceDiagram
     participant U as 👤 User
     participant UI as 🎨 Login UI
-    participant AM as 🔐 Auth Manager
+    participant AS as 🔐 AuthService
+    participant UR as 👤 UserRepository
+    parameter PH as 🔒 PasswordHandler
+    participant TM as 🎫 TokenManager
     participant DB as 💾 Database
-    participant SSO as 🔗 SSO Provider
 
-    alt Standard Login
-        U->>UI: email/password + tenant
-        UI->>AM: authenticate(credentials)
-        AM->>DB: verify_user(email, tenant_id)
-        DB-->>AM: user_data
-        AM->>AM: validate_password
-        AM->>AM: create_jwt_token
-        AM-->>UI: jwt_token + user_info
-        UI-->>U: redirect_to_app
-    else SSO Login
-        U->>UI: click_sso_login
-        UI->>SSO: redirect_to_provider
-        SSO-->>AM: callback_with_token
-        AM->>AM: validate_sso_token
-        AM->>DB: get_or_create_user
-        AM-->>UI: jwt_token + user_info
-        UI-->>U: redirect_to_app
+    U->>UI: Login(email, password, tenant)
+    UI->>AS: authenticate(credentials)
+    
+    AS->>UR: set_tenant_context(tenant_id)
+    AS->>UR: find_by_email(email)
+    UR->>DB: SELECT user with tenant filter
+    DB-->>UR: user_data
+    UR-->>AS: user_entity
+    
+    alt User Found
+        AS->>PH: verify_password(password, hash)
+        PH-->>AS: verification_result
+        
+        alt Password Valid
+            AS->>TM: create_token(user, tenant)
+            TM-->>AS: jwt_token
+            AS-->>UI: AuthResult(success, token, user)
+            UI-->>U: redirect_to_dashboard
+        else Password Invalid
+            AS-->>UI: AuthResult(error: "Invalid credentials")
+            UI-->>U: error_message
+        end
+    else User Not Found
+        AS-->>UI: AuthResult(error: "User not found")
+        UI-->>U: error_message
     end
 ```
 
-### 🧩 Prompt Builder Flow
+### 🧩 Type-Safe Data Flow
 
 ```mermaid
 sequenceDiagram
-    participant U as 👤 User
-    participant PB as 🧩 Prompt Builder UI
-    participant PBS as 🔧 Prompt Builder Service
-    participant PM as 📄 Prompt Manager
-    participant DM as 🗄️ Data Manager
+    participant C as 📞 Client
+    participant S as 🧠 Service
+    parameter V as ✅ Validator
+    participant R as 💾 Repository
+    participant M as 📊 Model
+    participant DB as 🗄️ Database
 
-    U->>PB: Select Prompts to Combine
-    PB->>DM: get_available_prompts()
-    DM-->>PB: prompt_list
-    PB-->>U: Display Available Prompts
+    C->>S: request(data: Dict)
+    S->>V: validate_input(data)
+    V-->>S: validated_data: TypedDict
     
-    U->>PB: Drag & Drop Selection
-    PB->>PB: update_selected_prompts
-    PB->>PBS: generate_preview(selected, template)
-    PBS-->>PB: preview_content
-    PB-->>U: Show Live Preview
+    S->>M: create_entity(validated_data)
+    M->>M: __post_init__() validation
+    M-->>S: entity: DataClass
     
-    U->>PB: Combine Prompts
-    PB->>PBS: combine_prompts(selected, template, options)
-    PBS->>PBS: apply_template_logic
-    PBS-->>PB: combined_prompt_data
-    PB->>PM: open_in_editor(combined_data)
-    PM-->>U: Editor with Combined Prompt
+    S->>R: save(entity)
+    R->>R: _entity_to_dict(entity)
+    R->>DB: INSERT/UPDATE
+    DB-->>R: row_data
+    R->>R: _row_to_entity(row_data)
+    R-->>S: saved_entity: DataClass
+    
+    S-->>C: ServiceResult[T](success, entity, message)
 ```
 
 ---
 
 ## 🛡️ Security Architecture
 
-### 🔐 Multi-Layer Security Model
+### 🔐 Modern Security Implementation
 
 ```mermaid
-graph TD
-    subgraph "🌐 Network Layer"
+graph TB
+    subgraph "🌐 Network Security"
         HTTPS[🔒 HTTPS/TLS 1.3]
-        WAF[🛡️ Web Application Firewall]
         RATE[⏱️ Rate Limiting]
+        CORS[🔗 CORS Protection]
     end
 
-    subgraph "🔑 Authentication Layer"
+    subgraph "🔑 Authentication & Authorization"
         JWT[🎫 JWT Tokens]
-        SSO[🔗 SSO/ADFS Integration]
+        RBAC[👥 Role-Based Access Control]
         MFA[📱 Multi-Factor Auth]
-        RBAC[👥 Role-Based Access]
+        SSO[🔗 SSO Integration]
     end
 
-    subgraph "🏢 Authorization Layer"
-        TENANT[🏢 Tenant Isolation]
-        USER_PERM[👤 User Permissions]
-        API_AUTH[🔐 API Token Auth]
-        RESOURCE[📄 Resource-Level Auth]
+    subgraph "🏢 Multi-Tenant Security"
+        TENANT_CTX[🏢 Tenant Context]
+        DATA_ISOLATION[🔐 Data Isolation]
+        RESOURCE_AUTH[📄 Resource Authorization]
+        AUDIT_LOG[📊 Audit Logging]
     end
 
-    subgraph "💾 Data Layer"
+    subgraph "🔒 Data Protection"
+        MODERN_HASH[#️⃣ Modern Password Hashing]
         ENCRYPT[🔐 Data Encryption]
-        HASH[#️⃣ Password Hashing]
-        AUDIT[📊 Audit Logging]
-        BACKUP[💾 Secure Backups]
+        SECRETS[🔐 Secrets Management]
+        VALIDATION[✅ Input Validation]
+    end
+
+    subgraph "🛡️ Security Services"
+        PASSWORD_SVC[🔒 PasswordHandler]
+        TOKEN_SVC[🎫 TokenManager]
+        SECURITY_UTILS[🛡️ SecurityUtils]
+        VALIDATORS[✅ ValidatorService]
     end
 
     HTTPS --> JWT
-    WAF --> SSO
-    RATE --> MFA
-    
-    JWT --> TENANT
-    SSO --> USER_PERM
-    RBAC --> API_AUTH
-    
-    TENANT --> ENCRYPT
-    USER_PERM --> HASH
-    API_AUTH --> AUDIT
-    RESOURCE --> BACKUP
+    RATE --> RBAC
+    CORS --> MFA
 
-    classDef networkLayer fill:#ffebee,stroke:#d32f2f,stroke-width:2px
-    classDef authLayer fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef authzLayer fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef dataLayer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    JWT --> TENANT_CTX
+    RBAC --> DATA_ISOLATION
+    MFA --> RESOURCE_AUTH
+    SSO --> AUDIT_LOG
 
-    class HTTPS,WAF,RATE networkLayer
-    class JWT,SSO,MFA,RBAC authLayer
-    class TENANT,USER_PERM,API_AUTH,RESOURCE authzLayer
-    class ENCRYPT,HASH,AUDIT,BACKUP dataLayer
+    TENANT_CTX --> MODERN_HASH
+    DATA_ISOLATION --> ENCRYPT
+    RESOURCE_AUTH --> SECRETS
+    AUDIT_LOG --> VALIDATION
+
+    MODERN_HASH --> PASSWORD_SVC
+    ENCRYPT --> TOKEN_SVC
+    SECRETS --> SECURITY_UTILS
+    VALIDATION --> VALIDATORS
+
+    classDef network fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef auth fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef tenant fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef data fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef services fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+
+    class HTTPS,RATE,CORS network
+    class JWT,RBAC,MFA,SSO auth
+    class TENANT_CTX,DATA_ISOLATION,RESOURCE_AUTH,AUDIT_LOG tenant
+    class MODERN_HASH,ENCRYPT,SECRETS,VALIDATION data
+    class PASSWORD_SVC,TOKEN_SVC,SECURITY_UTILS,VALIDATORS services
 ```
 
-### 🔐 Security Implementation Details
+### 🔒 Enhanced Security Features
 
-| **Layer** | **Component** | **Implementation** | **Purpose** |
-|-----------|---------------|-------------------|-------------|
-| **🌐 Network** | HTTPS/TLS | Mandatory SSL encryption | Data in transit protection |
-| | Rate Limiting | 100 req/min per API token | DDoS and abuse prevention |
-| | CORS | Configured origins only | Cross-origin attack prevention |
-| **🔑 Authentication** | JWT Tokens | HS256 signed, 24h expiry | Stateless session management |
-| | Password Hashing | PBKDF2 with salt | Secure credential storage |
-| | SSO Integration | Microsoft Azure AD | Enterprise authentication |
-| **🏢 Authorization** | Tenant Isolation | Row-level security | Complete data separation |
-| | RBAC | Admin/User/Readonly roles | Granular permission control |
-| | API Tokens | Bearer token authentication | Secure programmatic access |
-| **💾 Data** | Database Encryption | AES-256 at rest | Sensitive data protection |
-| | Audit Logging | All operations logged | Compliance and monitoring |
+| **Component** | **Implementation** | **Modern Upgrade** |
+|---------------|-------------------|-------------------|
+| **Password Hashing** | PBKDF2 (legacy) → Argon2/bcrypt | Configurable algorithms with auto-migration |
+| **Session Management** | Basic JWT → Enhanced JWT | Token rotation, refresh tokens, secure storage |
+| **Input Validation** | Basic checks → Comprehensive validation | Type-safe validation with custom validators |
+| **Tenant Isolation** | Manual filtering → Automatic isolation | Repository-level tenant context enforcement |
+| **Audit Logging** | Print statements → Structured logging | Centralized logging with audit trails |
+| **Error Handling** | Bare exceptions → Structured exceptions | Exception hierarchy with proper error context |
 
 ---
 
 ## 📊 Data Architecture
 
-### 🗄️ Database Schema Design
+### 🗄️ Modern Database Schema
 
 ```mermaid
 erDiagram
@@ -327,6 +431,7 @@ erDiagram
         string subdomain UK
         integer max_users
         boolean is_active
+        json metadata
         timestamp created_at
         timestamp updated_at
     }
@@ -334,15 +439,18 @@ erDiagram
     USERS {
         uuid id PK
         uuid tenant_id FK
-        string email
+        string email UK
         string password_hash
         string first_name
         string last_name
         enum role
         string sso_id
         boolean is_active
+        json permissions
+        json metadata
         timestamp created_at
         timestamp last_login
+        timestamp updated_at
     }
 
     PROMPTS {
@@ -355,6 +463,7 @@ erDiagram
         string category
         string tags
         boolean is_enhancement_prompt
+        json metadata
         timestamp created_at
         timestamp updated_at
     }
@@ -366,6 +475,7 @@ erDiagram
         string name
         string token_hash
         string token_prefix
+        json permissions
         timestamp expires_at
         timestamp last_used
         timestamp created_at
@@ -375,22 +485,15 @@ erDiagram
         integer id PK
         uuid tenant_id FK
         uuid user_id FK
-        string key
+        string key UK
         text value
+        string value_type
         timestamp created_at
         timestamp updated_at
     }
 
-    SESSIONS {
-        uuid id PK
-        uuid user_id FK
-        string token_hash
-        timestamp expires_at
-        timestamp created_at
-    }
-
-    %% Relationships
-    TENANTS ||--o{ USERS : "has many"
+    %% Relationships with proper constraints
+    TENANTS ||--o{ USERS : "manages"
     TENANTS ||--o{ PROMPTS : "isolates"
     TENANTS ||--o{ API_TOKENS : "owns"
     TENANTS ||--o{ CONFIG : "configures"
@@ -398,135 +501,155 @@ erDiagram
     USERS ||--o{ PROMPTS : "creates"
     USERS ||--o{ API_TOKENS : "generates"
     USERS ||--o{ CONFIG : "personalizes"
-    USERS ||--o{ SESSIONS : "maintains"
 ```
 
-### 📈 Data Flow Architecture
+### 📈 Repository Pattern Implementation
 
 ```mermaid
-graph LR
-    subgraph "📥 Input Layer"
-        UI[🎨 UI Input]
-        API[🔌 API Request]
-        FILE[📁 File Import]
+graph TB
+    subgraph "🏗️ Repository Base Classes"
+        BASE_REPO[💾 BaseRepository<T>]
+        TENANT_REPO[🏢 TenantAwareRepository<T>]
     end
 
-    subgraph "🔄 Processing Layer"
-        VALID[✅ Validation]
-        TRANS[🔄 Transformation]
-        AUTH[🔐 Authorization]
+    subgraph "📊 Entity Models"
+        PROMPT_MODEL[📝 Prompt DataClass]
+        USER_MODEL[👤 User DataClass]
+        TENANT_MODEL[🏢 Tenant DataClass]
     end
 
-    subgraph "💾 Storage Layer"
-        CACHE[⚡ Redis Cache]
-        DB[🗄️ Database]
-        BACKUP[💾 Backup Storage]
+    subgraph "💾 Concrete Repositories"
+        PROMPT_REPO[📄 PromptRepository]
+        USER_REPO[👤 UserRepository]
+        TENANT_REPO_IMPL[🏢 TenantRepository]
     end
 
-    subgraph "📤 Output Layer"
-        RESPONSE[📤 API Response]
-        EXPORT[📁 File Export]
-        METRICS[📊 Analytics]
+    subgraph "🔧 Repository Operations"
+        CRUD[📋 CRUD Operations]
+        SEARCH[🔍 Search & Filter]
+        TENANT_FILTER[🏢 Tenant Filtering]
+        VALIDATION[✅ Data Validation]
     end
 
-    UI --> VALID
-    API --> VALID
-    FILE --> VALID
-    
-    VALID --> TRANS
-    TRANS --> AUTH
-    AUTH --> CACHE
-    
-    CACHE --> DB
-    DB --> BACKUP
-    
-    DB --> RESPONSE
-    DB --> EXPORT
-    DB --> METRICS
+    BASE_REPO --> TENANT_REPO
+    TENANT_REPO --> PROMPT_REPO
+    BASE_REPO --> USER_REPO
+    BASE_REPO --> TENANT_REPO_IMPL
 
-    classDef inputLayer fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef processLayer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef storageLayer fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef outputLayer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    PROMPT_MODEL --> PROMPT_REPO
+    USER_MODEL --> USER_REPO
+    TENANT_MODEL --> TENANT_REPO_IMPL
 
-    class UI,API,FILE inputLayer
-    class VALID,TRANS,AUTH processLayer
-    class CACHE,DB,BACKUP storageLayer
-    class RESPONSE,EXPORT,METRICS outputLayer
+    PROMPT_REPO --> CRUD
+    PROMPT_REPO --> SEARCH
+    PROMPT_REPO --> TENANT_FILTER
+    PROMPT_REPO --> VALIDATION
+
+    classDef base fill:#e8f5e8,stroke:#388e3c,stroke-width:3px
+    classDef model fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef repository fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef operations fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+
+    class BASE_REPO,TENANT_REPO base
+    class PROMPT_MODEL,USER_MODEL,TENANT_MODEL model
+    class PROMPT_REPO,USER_REPO,TENANT_REPO_IMPL repository
+    class CRUD,SEARCH,TENANT_FILTER,VALIDATION operations
 ```
 
 ---
 
 ## 🌐 Deployment Architectures
 
-### 🚀 Single-Node Deployment
+### 🚀 Containerized Development
 
 ```mermaid
 graph TB
-    subgraph "🖥️ Single Server"
-        subgraph "🐳 Docker Containers"
-            APP[🚀 AI Prompt Manager<br/>Port 7860]
-            DB[🐘 PostgreSQL<br/>Port 5432]
-            REDIS[⚡ Redis Cache<br/>Port 6379]
+    subgraph "🐳 Docker Development Stack"
+        subgraph "🚀 Application Container"
+            APP[🎨 AI Prompt Manager<br/>New + Legacy Architecture]
+            GRADIO[🖥️ Gradio UI :7860]
+            API[🔌 FastAPI :8000]
         end
         
-        subgraph "📁 Volumes"
-            DATA[💾 Database Data]
-            LOGS[📋 Application Logs]
-            CONFIG[⚙️ Configuration]
+        subgraph "💾 Database Container"
+            POSTGRES[🐘 PostgreSQL :5432]
+            SQLITE[📁 SQLite Volume]
+        end
+        
+        subgraph "⚡ Cache Container"
+            REDIS[⚡ Redis :6379]
+        end
+        
+        subgraph "📁 Persistent Volumes"
+            DB_DATA[💾 Database Data]
+            APP_LOGS[📋 Application Logs]
+            CONFIG_VOL[⚙️ Configuration]
         end
     end
 
-    INTERNET[🌍 Internet] --> APP
-    APP --> DB
+    INTERNET[🌍 Internet] --> GRADIO
+    INTERNET --> API
+    
+    APP --> POSTGRES
+    APP --> SQLITE
     APP --> REDIS
     
-    DB --> DATA
-    APP --> LOGS
-    APP --> CONFIG
+    POSTGRES --> DB_DATA
+    APP --> APP_LOGS
+    APP --> CONFIG_VOL
 
     classDef container fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef volume fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef service fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef volume fill:#fff3e0,stroke:#f57c00,stroke-width:2px
 
-    class APP,DB,REDIS container
-    class DATA,LOGS,CONFIG volume
+    class APP,POSTGRES,REDIS container
+    class GRADIO,API,SQLITE service
+    class DB_DATA,APP_LOGS,CONFIG_VOL volume
 ```
 
-### 🏢 Enterprise Multi-Node Deployment
+### 🏢 Enterprise Production Deployment
 
 ```mermaid
 graph TB
-    subgraph "🌐 Load Balancer Tier"
+    subgraph "🌐 Edge Layer"
+        CDN[🌍 Global CDN]
+        WAF[🛡️ Web Application Firewall]
+    end
+
+    subgraph "⚖️ Load Balancer Layer"
         LB1[⚖️ Load Balancer 1]
         LB2[⚖️ Load Balancer 2]
     end
 
-    subgraph "🚀 Application Tier"
-        APP1[🚀 App Instance 1<br/>Node 1]
-        APP2[🚀 App Instance 2<br/>Node 2]
-        APP3[🚀 App Instance 3<br/>Node 3]
+    subgraph "🚀 Application Tier (New Architecture)"
+        APP1[🎨 App Instance 1<br/>src/ + legacy/]
+        APP2[🎨 App Instance 2<br/>src/ + legacy/]
+        APP3[🎨 App Instance 3<br/>src/ + legacy/]
     end
 
-    subgraph "💾 Database Tier"
-        DB_PRIMARY[🐘 PostgreSQL Primary]
-        DB_REPLICA1[🐘 PostgreSQL Replica 1]
-        DB_REPLICA2[🐘 PostgreSQL Replica 2]
+    subgraph "💾 Database Cluster"
+        DB_PRIMARY[🐘 PostgreSQL Primary<br/>Write Operations]
+        DB_REPLICA1[🐘 PostgreSQL Replica 1<br/>Read Operations]
+        DB_REPLICA2[🐘 PostgreSQL Replica 2<br/>Read Operations]
     end
 
-    subgraph "⚡ Cache Tier"
+    subgraph "⚡ Cache Cluster"
         REDIS_MASTER[⚡ Redis Master]
         REDIS_SLAVE1[⚡ Redis Slave 1]
         REDIS_SLAVE2[⚡ Redis Slave 2]
     end
 
-    subgraph "🔍 Monitoring Tier"
-        PROMETHEUS[📊 Prometheus]
-        GRAFANA[📈 Grafana]
-        LOGS[📋 ELK Stack]
+    subgraph "📊 Monitoring & Logging"
+        PROMETHEUS[📈 Prometheus Metrics]
+        GRAFANA[📊 Grafana Dashboard]
+        ELK[📋 ELK Stack Logging]
+        JAEGER[🔍 Distributed Tracing]
     end
 
-    INTERNET[🌍 Internet] --> LB1
-    INTERNET --> LB2
+    INTERNET[🌍 Internet] --> CDN
+    CDN --> WAF
+    WAF --> LB1
+    WAF --> LB2
     
     LB1 --> APP1
     LB1 --> APP2
@@ -540,694 +663,420 @@ graph TB
     APP1 --> REDIS_MASTER
     APP2 --> REDIS_SLAVE1
     APP3 --> REDIS_SLAVE2
-    
-    DB_PRIMARY -.-> DB_REPLICA1
-    DB_PRIMARY -.-> DB_REPLICA2
-    REDIS_MASTER -.-> REDIS_SLAVE1
-    REDIS_MASTER -.-> REDIS_SLAVE2
 
-    classDef lb fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    APP1 --> PROMETHEUS
+    APP2 --> GRAFANA
+    APP3 --> ELK
+    APP1 --> JAEGER
+
+    classDef edge fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef lb fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
     classDef app fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef db fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef database fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     classDef cache fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef monitor fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef monitoring fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
 
+    class CDN,WAF edge
     class LB1,LB2 lb
     class APP1,APP2,APP3 app
-    class DB_PRIMARY,DB_REPLICA1,DB_REPLICA2 db
+    class DB_PRIMARY,DB_REPLICA1,DB_REPLICA2 database
     class REDIS_MASTER,REDIS_SLAVE1,REDIS_SLAVE2 cache
-    class PROMETHEUS,GRAFANA,LOGS monitor
-```
-
-### ☁️ Cloud-Native Kubernetes Deployment
-
-```mermaid
-graph TB
-    subgraph "☁️ Kubernetes Cluster"
-        subgraph "🔄 Ingress"
-            INGRESS[🌐 NGINX Ingress<br/>SSL Termination]
-        end
-        
-        subgraph "🚀 Application Pods"
-            POD1[🚀 App Pod 1]
-            POD2[🚀 App Pod 2]
-            POD3[🚀 App Pod 3]
-        end
-        
-        subgraph "💾 StatefulSets"
-            DB_POD[🐘 PostgreSQL Pod]
-            REDIS_POD[⚡ Redis Pod]
-        end
-        
-        subgraph "📦 Storage"
-            PVC_DB[💾 DB Persistent Volume]
-            PVC_REDIS[💾 Redis Persistent Volume]
-        end
-        
-        subgraph "⚙️ ConfigMaps & Secrets"
-            CONFIG_MAP[📋 ConfigMap]
-            SECRETS[🔐 Secrets]
-        end
-    end
-
-    INTERNET[🌍 Internet] --> INGRESS
-    INGRESS --> POD1
-    INGRESS --> POD2
-    INGRESS --> POD3
-    
-    POD1 --> DB_POD
-    POD2 --> DB_POD
-    POD3 --> DB_POD
-    
-    POD1 --> REDIS_POD
-    POD2 --> REDIS_POD
-    POD3 --> REDIS_POD
-    
-    DB_POD --> PVC_DB
-    REDIS_POD --> PVC_REDIS
-    
-    POD1 --> CONFIG_MAP
-    POD1 --> SECRETS
-    POD2 --> CONFIG_MAP
-    POD2 --> SECRETS
-    POD3 --> CONFIG_MAP
-    POD3 --> SECRETS
-
-    classDef ingress fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef pod fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef stateful fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef storage fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef config fill:#ffebee,stroke:#d32f2f,stroke-width:2px
-
-    class INGRESS ingress
-    class POD1,POD2,POD3 pod
-    class DB_POD,REDIS_POD stateful
-    class PVC_DB,PVC_REDIS storage
-    class CONFIG_MAP,SECRETS config
+    class PROMETHEUS,GRAFANA,ELK,JAEGER monitoring
 ```
 
 ---
 
 ## 🔌 API Architecture
 
-### 📊 API Design Pattern
+### 📋 Modern API Design
 
 ```mermaid
-graph LR
-    subgraph "🔌 API Gateway"
-        GATEWAY[🌐 FastAPI Gateway]
-        AUTH[🔐 Auth Middleware]
-        RATE[⏱️ Rate Limiter]
-        CORS[🔗 CORS Handler]
+graph TB
+    subgraph "🌐 API Gateway Layer"
+        GATEWAY[🚀 FastAPI Gateway]
+        AUTH_MW[🔐 Auth Middleware]
+        TENANT_MW[🏢 Tenant Middleware]
+        RATE_MW[⏱️ Rate Limit Middleware]
+        CORS_MW[🔗 CORS Middleware]
     end
 
-    subgraph "📋 API Routers"
-        PROMPT_ROUTER[📝 Prompt Router]
-        USER_ROUTER[👤 User Router]
-        ADMIN_ROUTER[🛡️ Admin Router]
-        HEALTH_ROUTER[❤️ Health Router]
+    subgraph "🎯 API Routers"
+        PROMPT_ROUTER[📝 /api/prompts]
+        AUTH_ROUTER[🔐 /api/auth]
+        USER_ROUTER[👤 /api/users]
+        CONFIG_ROUTER[⚙️ /api/config]
+        HEALTH_ROUTER[❤️ /api/health]
     end
 
-    subgraph "🎯 Endpoints"
-        GET_PROMPTS[GET /api/prompts]
-        POST_PROMPT[POST /api/prompts]
-        GET_USER[GET /api/user/info]
-        GET_HEALTH[GET /api/health]
+    subgraph "🧠 Service Integration"
+        PROMPT_SVC[📝 PromptService]
+        AUTH_SVC[🔐 AuthService]
+        USER_SVC[👤 UserService]
+        CONFIG_SVC[⚙️ ConfigService]
+    end
+
+    subgraph "📊 Response Handling"
+        SUCCESS_RESP[✅ Success Response]
+        ERROR_RESP[❌ Error Response]
+        VALIDATION_RESP[⚠️ Validation Response]
+        SCHEMA_RESP[📋 OpenAPI Schema]
     end
 
     CLIENT[👤 API Client] --> GATEWAY
-    GATEWAY --> AUTH
-    AUTH --> RATE
-    RATE --> CORS
-    CORS --> PROMPT_ROUTER
-    CORS --> USER_ROUTER
-    CORS --> ADMIN_ROUTER
-    CORS --> HEALTH_ROUTER
+    GATEWAY --> AUTH_MW
+    AUTH_MW --> TENANT_MW
+    TENANT_MW --> RATE_MW
+    RATE_MW --> CORS_MW
     
-    PROMPT_ROUTER --> GET_PROMPTS
-    PROMPT_ROUTER --> POST_PROMPT
-    USER_ROUTER --> GET_USER
-    HEALTH_ROUTER --> GET_HEALTH
+    CORS_MW --> PROMPT_ROUTER
+    CORS_MW --> AUTH_ROUTER
+    CORS_MW --> USER_ROUTER
+    CORS_MW --> CONFIG_ROUTER
+    CORS_MW --> HEALTH_ROUTER
+    
+    PROMPT_ROUTER --> PROMPT_SVC
+    AUTH_ROUTER --> AUTH_SVC
+    USER_ROUTER --> USER_SVC
+    CONFIG_ROUTER --> CONFIG_SVC
+    
+    PROMPT_SVC --> SUCCESS_RESP
+    AUTH_SVC --> ERROR_RESP
+    USER_SVC --> VALIDATION_RESP
+    CONFIG_SVC --> SCHEMA_RESP
 
     classDef gateway fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
     classDef router fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef endpoint fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef service fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef response fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
 
-    class GATEWAY,AUTH,RATE,CORS gateway
-    class PROMPT_ROUTER,USER_ROUTER,ADMIN_ROUTER,HEALTH_ROUTER router
-    class GET_PROMPTS,POST_PROMPT,GET_USER,GET_HEALTH endpoint
-```
-
-### 🔐 API Security Flow
-
-```mermaid
-sequenceDiagram
-    participant C as 👤 Client
-    participant GW as 🌐 API Gateway
-    participant AUTH as 🔐 Auth Service
-    participant EP as 🎯 Endpoint
-    participant DB as 💾 Database
-
-    C->>GW: API Request + Bearer Token
-    GW->>AUTH: Validate Token
-    
-    alt Valid Token
-        AUTH->>AUTH: Extract User/Tenant Info
-        AUTH->>DB: Verify Token Status
-        DB-->>AUTH: Token Valid
-        AUTH-->>GW: User Context
-        GW->>EP: Request + User Context
-        EP->>DB: Query with Tenant Filter
-        DB-->>EP: Filtered Results
-        EP-->>GW: Response Data
-        GW-->>C: 200 OK + Data
-    else Invalid Token
-        AUTH-->>GW: Token Invalid
-        GW-->>C: 403 Forbidden
-    else Rate Limit Exceeded
-        GW-->>C: 429 Too Many Requests
-    end
+    class GATEWAY,AUTH_MW,TENANT_MW,RATE_MW,CORS_MW gateway
+    class PROMPT_ROUTER,AUTH_ROUTER,USER_ROUTER,CONFIG_ROUTER,HEALTH_ROUTER router
+    class PROMPT_SVC,AUTH_SVC,USER_SVC,CONFIG_SVC service
+    class SUCCESS_RESP,ERROR_RESP,VALIDATION_RESP,SCHEMA_RESP response
 ```
 
 ---
 
 ## 🌍 Multi-Language Architecture
 
-### 🔄 Internationalization System
+### 🔄 Enhanced I18N System
 
 ```mermaid
 graph TB
-    subgraph "🌐 Language Detection"
-        URL_PARAM[🔗 URL Parameter]
-        ENV_VAR[⚙️ Environment Variable]
+    subgraph "🌐 Language Detection & Management"
+        URL_LANG[🔗 URL Language Parameter]
         USER_PREF[👤 User Preference]
-        BROWSER[🌐 Browser Accept-Language]
+        BROWSER_LANG[🌐 Browser Language]
+        TENANT_DEFAULT[🏢 Tenant Default]
     end
 
-    subgraph "🏗️ I18N Core System"
-        I18N_ENGINE[🔧 I18N Engine]
-        LANG_STORE[📚 Language Store]
-        FALLBACK[🔄 Fallback Handler]
+    subgraph "🏗️ I18N Service Architecture"
+        I18N_SERVICE[🔧 I18nService]
+        LANG_MANAGER[📚 LanguageManager]
+        TRANSLATOR_SVC[🔄 TranslatorService]
+        FALLBACK_SVC[🔄 FallbackService]
     end
 
-    subgraph "📚 Translation Storage"
-        EN[🇺🇸 English]
-        ES[🇪🇸 Spanish]
-        FR[🇫🇷 French]
-        DE[🇩🇪 German]
-        ZH[🇨🇳 Chinese]
-        JA[🇯🇵 Japanese]
-        PT[🇵🇹 Portuguese]
-        RU[🇷🇺 Russian]
-        AR[🇸🇦 Arabic]
-        HI[🇮🇳 Hindi]
+    subgraph "📚 Translation Storage & Cache"
+        LANG_FILES[📁 Language Files]
+        REDIS_CACHE[⚡ Redis Translation Cache]
+        DB_TRANSLATIONS[💾 Database Translations]
+        REMOTE_API[🌍 Remote Translation APIs]
     end
 
-    subgraph "🎨 UI Components"
-        SELECTOR[🌐 Language Selector]
-        LABELS[🏷️ Form Labels]
-        MESSAGES[💬 Status Messages]
-        HELP[❓ Help Text]
+    subgraph "🎨 UI Integration"
+        GRADIO_I18N[🎨 Gradio I18N Components]
+        DYNAMIC_LABELS[🏷️ Dynamic Labels]
+        ERROR_MESSAGES[❌ Localized Errors]
+        HELP_TEXT[❓ Contextual Help]
     end
 
-    URL_PARAM --> I18N_ENGINE
-    ENV_VAR --> I18N_ENGINE
-    USER_PREF --> I18N_ENGINE
-    BROWSER --> I18N_ENGINE
+    URL_LANG --> I18N_SERVICE
+    USER_PREF --> I18N_SERVICE
+    BROWSER_LANG --> I18N_SERVICE
+    TENANT_DEFAULT --> I18N_SERVICE
     
-    I18N_ENGINE --> LANG_STORE
-    I18N_ENGINE --> FALLBACK
+    I18N_SERVICE --> LANG_MANAGER
+    I18N_SERVICE --> TRANSLATOR_SVC
+    I18N_SERVICE --> FALLBACK_SVC
     
-    LANG_STORE --> EN
-    LANG_STORE --> ES
-    LANG_STORE --> FR
-    LANG_STORE --> DE
-    LANG_STORE --> ZH
-    LANG_STORE --> JA
-    LANG_STORE --> PT
-    LANG_STORE --> RU
-    LANG_STORE --> AR
-    LANG_STORE --> HI
+    LANG_MANAGER --> LANG_FILES
+    LANG_MANAGER --> REDIS_CACHE
+    TRANSLATOR_SVC --> DB_TRANSLATIONS
+    TRANSLATOR_SVC --> REMOTE_API
     
-    I18N_ENGINE --> SELECTOR
-    I18N_ENGINE --> LABELS
-    I18N_ENGINE --> MESSAGES
-    I18N_ENGINE --> HELP
+    I18N_SERVICE --> GRADIO_I18N
+    I18N_SERVICE --> DYNAMIC_LABELS
+    I18N_SERVICE --> ERROR_MESSAGES
+    I18N_SERVICE --> HELP_TEXT
 
     classDef detection fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef core fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef service fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
     classDef storage fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     classDef ui fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
 
-    class URL_PARAM,ENV_VAR,USER_PREF,BROWSER detection
-    class I18N_ENGINE,LANG_STORE,FALLBACK core
-    class EN,ES,FR,DE,ZH,JA,PT,RU,AR,HI storage
-    class SELECTOR,LABELS,MESSAGES,HELP ui
-```
-
-### 🔄 Translation Service Architecture
-
-```mermaid
-graph LR
-    subgraph "📝 Content Input"
-        UI_TEXT[🎨 UI Text Input]
-        PROMPT_TEXT[📄 Prompt Content]
-        USER_LANG[🌐 User Language]
-    end
-
-    subgraph "🔄 Translation Engine"
-        DETECTOR[🔍 Language Detector]
-        TRANSLATOR[🔄 Translation Service]
-        VALIDATOR[✅ Content Validator]
-    end
-
-    subgraph "🌍 Translation Services"
-        OPENAI[🤖 OpenAI GPT]
-        GOOGLE[🔍 Google Translate]
-        LIBRE[🆓 LibreTranslate]
-        MOCK[🧪 Mock Service]
-    end
-
-    subgraph "📤 Output"
-        TRANSLATED[📝 Translated Text]
-        STATUS[📊 Translation Status]
-        ERROR[❌ Error Handling]
-    end
-
-    UI_TEXT --> DETECTOR
-    PROMPT_TEXT --> DETECTOR
-    USER_LANG --> DETECTOR
-    
-    DETECTOR --> TRANSLATOR
-    TRANSLATOR --> OPENAI
-    TRANSLATOR --> GOOGLE
-    TRANSLATOR --> LIBRE
-    TRANSLATOR --> MOCK
-    
-    OPENAI --> VALIDATOR
-    GOOGLE --> VALIDATOR
-    LIBRE --> VALIDATOR
-    MOCK --> VALIDATOR
-    
-    VALIDATOR --> TRANSLATED
-    VALIDATOR --> STATUS
-    VALIDATOR --> ERROR
-
-    classDef input fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef engine fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef service fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef output fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-
-    class UI_TEXT,PROMPT_TEXT,USER_LANG input
-    class DETECTOR,TRANSLATOR,VALIDATOR engine
-    class OPENAI,GOOGLE,LIBRE,MOCK service
-    class TRANSLATED,STATUS,ERROR output
+    class URL_LANG,USER_PREF,BROWSER_LANG,TENANT_DEFAULT detection
+    class I18N_SERVICE,LANG_MANAGER,TRANSLATOR_SVC,FALLBACK_SVC service
+    class LANG_FILES,REDIS_CACHE,DB_TRANSLATIONS,REMOTE_API storage
+    class GRADIO_I18N,DYNAMIC_LABELS,ERROR_MESSAGES,HELP_TEXT ui
 ```
 
 ---
 
 ## 🧩 Prompt Builder Architecture
 
-### 🔧 Builder Component System
+### 🔧 Enhanced Builder System
 
 ```mermaid
 graph TB
-    subgraph "🎨 UI Layer"
-        AVAILABLE[📋 Available Prompts Panel]
-        SELECTED[🎯 Selected Prompts Panel]
-        TEMPLATE[🎨 Template Selector]
-        PREVIEW[👁️ Preview Panel]
-        OPTIONS[⚙️ Options Panel]
+    subgraph "🎨 Modern UI Components"
+        DRAG_DROP[🖱️ Drag & Drop Interface]
+        LIVE_PREVIEW[👁️ Live Preview]
+        TEMPLATE_GALLERY[🎨 Template Gallery]
+        OPTIONS_PANEL[⚙️ Advanced Options]
     end
 
-    subgraph "🔄 State Management"
-        BUILDER_STATE[📊 Builder State]
+    subgraph "🧠 Builder Service Layer"
+        BUILDER_SVC[🧩 PromptBuilderService]
+        TEMPLATE_SVC[🎨 TemplateService]
+        COMBINER_SVC[🔗 CombinerService]
+        VALIDATOR_SVC[✅ ValidationService]
+    end
+
+    subgraph "📊 State Management"
+        BUILDER_STATE[📊 Builder State Manager]
         SELECTION_STATE[🎯 Selection State]
         PREVIEW_STATE[👁️ Preview State]
+        HISTORY_STATE[📚 History State]
     end
 
-    subgraph "🧩 Builder Service"
-        TEMPLATE_ENGINE[🎨 Template Engine]
-        COMBINER[🔗 Prompt Combiner]
-        VALIDATOR[✅ Content Validator]
-        METADATA_GEN[📋 Metadata Generator]
-    end
-
-    subgraph "📚 Template Library"
-        SEQUENTIAL[📋 Sequential Template]
-        SECTIONS[📑 Sections Template]
-        LAYERED[🏗️ Layered Template]
-        CUSTOM[🎨 Custom Template]
-    end
-
-    subgraph "💾 Data Layer"
-        PROMPT_DATA[📄 Prompt Data Manager]
+    subgraph "💾 Data Integration"
+        PROMPT_REPO[📄 PromptRepository]
+        TEMPLATE_REPO[🎨 TemplateRepository]
         USER_PREFS[👤 User Preferences]
+        ANALYTICS[📊 Usage Analytics]
     end
 
-    AVAILABLE --> BUILDER_STATE
-    SELECTED --> SELECTION_STATE
-    TEMPLATE --> BUILDER_STATE
-    PREVIEW --> PREVIEW_STATE
-    OPTIONS --> BUILDER_STATE
+    DRAG_DROP --> BUILDER_SVC
+    LIVE_PREVIEW --> BUILDER_SVC
+    TEMPLATE_GALLERY --> TEMPLATE_SVC
+    OPTIONS_PANEL --> BUILDER_SVC
     
-    BUILDER_STATE --> TEMPLATE_ENGINE
-    SELECTION_STATE --> COMBINER
-    PREVIEW_STATE --> VALIDATOR
+    BUILDER_SVC --> TEMPLATE_SVC
+    BUILDER_SVC --> COMBINER_SVC
+    BUILDER_SVC --> VALIDATOR_SVC
     
-    TEMPLATE_ENGINE --> SEQUENTIAL
-    TEMPLATE_ENGINE --> SECTIONS
-    TEMPLATE_ENGINE --> LAYERED
-    TEMPLATE_ENGINE --> CUSTOM
+    TEMPLATE_SVC --> BUILDER_STATE
+    COMBINER_SVC --> SELECTION_STATE
+    VALIDATOR_SVC --> PREVIEW_STATE
+    BUILDER_SVC --> HISTORY_STATE
     
-    COMBINER --> METADATA_GEN
-    VALIDATOR --> PROMPT_DATA
-    METADATA_GEN --> USER_PREFS
+    BUILDER_STATE --> PROMPT_REPO
+    SELECTION_STATE --> TEMPLATE_REPO
+    PREVIEW_STATE --> USER_PREFS
+    HISTORY_STATE --> ANALYTICS
 
     classDef ui fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef state fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef service fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef template fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef data fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef service fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef state fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef data fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
 
-    class AVAILABLE,SELECTED,TEMPLATE,PREVIEW,OPTIONS ui
-    class BUILDER_STATE,SELECTION_STATE,PREVIEW_STATE state
-    class TEMPLATE_ENGINE,COMBINER,VALIDATOR,METADATA_GEN service
-    class SEQUENTIAL,SECTIONS,LAYERED,CUSTOM template
-    class PROMPT_DATA,USER_PREFS data
-```
-
-### 🔄 Builder Process Flow
-
-```mermaid
-flowchart TD
-    START([🚀 User Opens Builder]) --> LOAD[📚 Load Available Prompts]
-    LOAD --> DISPLAY[🎨 Display Prompt Cards]
-    DISPLAY --> SELECT{🎯 User Selects Prompts?}
-    
-    SELECT -->|Yes| DRAG[🖱️ Drag & Drop to Selected]
-    SELECT -->|No| WAIT[⏳ Wait for User Action]
-    
-    DRAG --> UPDATE_SELECTION[📊 Update Selection State]
-    UPDATE_SELECTION --> CHOOSE_TEMPLATE{🎨 Choose Template?}
-    
-    CHOOSE_TEMPLATE -->|Yes| APPLY_TEMPLATE[🔧 Apply Template Logic]
-    CHOOSE_TEMPLATE -->|No| DEFAULT_TEMPLATE[📋 Use Sequential Template]
-    
-    APPLY_TEMPLATE --> GENERATE_PREVIEW[👁️ Generate Live Preview]
-    DEFAULT_TEMPLATE --> GENERATE_PREVIEW
-    
-    GENERATE_PREVIEW --> SHOW_PREVIEW[🖥️ Display Preview]
-    SHOW_PREVIEW --> SATISFIED{✅ User Satisfied?}
-    
-    SATISFIED -->|No| MODIFY[🔧 Modify Selection/Template]
-    SATISFIED -->|Yes| COMBINE[🔗 Combine Prompts]
-    
-    MODIFY --> UPDATE_SELECTION
-    
-    COMBINE --> VALIDATE[✅ Validate Combined Prompt]
-    VALIDATE --> METADATA[📋 Generate Metadata]
-    METADATA --> SAVE_OPTION{💾 Save or Edit?}
-    
-    SAVE_OPTION -->|Save| SAVE[💾 Save Combined Prompt]
-    SAVE_OPTION -->|Edit| EDITOR[📝 Open in Editor]
-    
-    SAVE --> SUCCESS[✅ Success Message]
-    EDITOR --> SUCCESS
-    SUCCESS --> END([🎉 Complete])
-    
-    WAIT --> SELECT
-
-    classDef startEnd fill:#c8e6c9,stroke:#388e3c,stroke-width:3px
-    classDef process fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef decision fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef action fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-
-    class START,END startEnd
-    class LOAD,DISPLAY,DRAG,UPDATE_SELECTION,APPLY_TEMPLATE,DEFAULT_TEMPLATE,GENERATE_PREVIEW,SHOW_PREVIEW,MODIFY,COMBINE,VALIDATE,METADATA,SAVE,EDITOR,SUCCESS,WAIT process
-    class SELECT,CHOOSE_TEMPLATE,SATISFIED,SAVE_OPTION decision
+    class DRAG_DROP,LIVE_PREVIEW,TEMPLATE_GALLERY,OPTIONS_PANEL ui
+    class BUILDER_SVC,TEMPLATE_SVC,COMBINER_SVC,VALIDATOR_SVC service
+    class BUILDER_STATE,SELECTION_STATE,PREVIEW_STATE,HISTORY_STATE state
+    class PROMPT_REPO,TEMPLATE_REPO,USER_PREFS,ANALYTICS data
 ```
 
 ---
 
 ## ⚡ Performance Considerations
 
-### 🚀 Performance Optimization Strategy
+### 🚀 Modern Performance Architecture
 
 ```mermaid
 graph TB
-    subgraph "🌐 Frontend Performance"
-        LAZY[🔄 Lazy Loading]
-        CACHE_FE[💾 Browser Caching]
-        COMPRESS[🗜️ Asset Compression]
-        CDN[🌍 CDN Distribution]
+    subgraph "🏗️ Architecture Performance"
+        TYPE_SAFETY[📊 Type Safety Benefits]
+        LAZY_LOADING[🔄 Lazy Component Loading]
+        SERVICE_CACHING[💾 Service Layer Caching]
+        REPOSITORY_OPT[🔍 Repository Optimization]
     end
 
-    subgraph "🚀 Application Performance"
-        ASYNC[⚡ Async Processing]
-        POOL[🏊 Connection Pooling]
-        QUEUE[📋 Task Queuing]
-        BATCH[📦 Batch Operations]
-    end
-
-    subgraph "💾 Database Performance"
-        INDEX[📊 Strategic Indexing]
+    subgraph "💾 Database Optimization"
+        CONNECTION_POOL[🏊 Connection Pooling]
         QUERY_OPT[🔍 Query Optimization]
-        PARTITION[🗂️ Table Partitioning]
-        READ_REPLICA[📖 Read Replicas]
+        TENANT_INDEX[🏢 Tenant-Aware Indexing]
+        PREPARED_STMT[📋 Prepared Statements]
     end
 
     subgraph "⚡ Caching Strategy"
-        REDIS_CACHE[⚡ Redis Cache]
-        MEMORY_CACHE[🧠 In-Memory Cache]
-        QUERY_CACHE[🔍 Query Cache]
-        SESSION_CACHE[👤 Session Cache]
+        REDIS_CACHE[⚡ Redis Distributed Cache]
+        MEMORY_CACHE[🧠 In-Memory Service Cache]
+        QUERY_CACHE[🔍 Query Result Cache]
+        CONFIG_CACHE[⚙️ Configuration Cache]
     end
 
-    subgraph "📊 Monitoring"
-        METRICS[📈 Performance Metrics]
-        APM[🔍 Application Performance Monitoring]
-        ALERTS[🚨 Performance Alerts]
-        PROFILING[🔬 Code Profiling]
+    subgraph "📊 Monitoring & Metrics"
+        PERFORMANCE_METRICS[📈 Performance Metrics]
+        SERVICE_METRICS[🧠 Service Layer Metrics]
+        REPOSITORY_METRICS[💾 Repository Metrics]
+        CACHE_METRICS[⚡ Cache Hit Rates]
     end
 
-    LAZY --> ASYNC
-    CACHE_FE --> POOL
-    COMPRESS --> QUEUE
-    CDN --> BATCH
+    TYPE_SAFETY --> CONNECTION_POOL
+    LAZY_LOADING --> QUERY_OPT
+    SERVICE_CACHING --> TENANT_INDEX
+    REPOSITORY_OPT --> PREPARED_STMT
     
-    ASYNC --> INDEX
-    POOL --> QUERY_OPT
-    QUEUE --> PARTITION
-    BATCH --> READ_REPLICA
-    
-    INDEX --> REDIS_CACHE
+    CONNECTION_POOL --> REDIS_CACHE
     QUERY_OPT --> MEMORY_CACHE
-    PARTITION --> QUERY_CACHE
-    READ_REPLICA --> SESSION_CACHE
+    TENANT_INDEX --> QUERY_CACHE
+    PREPARED_STMT --> CONFIG_CACHE
     
-    REDIS_CACHE --> METRICS
-    MEMORY_CACHE --> APM
-    QUERY_CACHE --> ALERTS
-    SESSION_CACHE --> PROFILING
+    REDIS_CACHE --> PERFORMANCE_METRICS
+    MEMORY_CACHE --> SERVICE_METRICS
+    QUERY_CACHE --> REPOSITORY_METRICS
+    CONFIG_CACHE --> CACHE_METRICS
 
-    classDef frontend fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef app fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef database fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef caching fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef monitoring fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef architecture fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef database fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef caching fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef monitoring fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
 
-    class LAZY,CACHE_FE,COMPRESS,CDN frontend
-    class ASYNC,POOL,QUEUE,BATCH app
-    class INDEX,QUERY_OPT,PARTITION,READ_REPLICA database
-    class REDIS_CACHE,MEMORY_CACHE,QUERY_CACHE,SESSION_CACHE caching
-    class METRICS,APM,ALERTS,PROFILING monitoring
+    class TYPE_SAFETY,LAZY_LOADING,SERVICE_CACHING,REPOSITORY_OPT architecture
+    class CONNECTION_POOL,QUERY_OPT,TENANT_INDEX,PREPARED_STMT database
+    class REDIS_CACHE,MEMORY_CACHE,QUERY_CACHE,CONFIG_CACHE caching
+    class PERFORMANCE_METRICS,SERVICE_METRICS,REPOSITORY_METRICS,CACHE_METRICS monitoring
 ```
 
-### 📊 Performance Metrics & KPIs
+### 📊 Performance Benefits of New Architecture
 
-| **Category** | **Metric** | **Target** | **Monitoring** |
-|-------------|------------|------------|----------------|
-| **🌐 Frontend** | Page Load Time | < 2 seconds | Lighthouse, GTmetrix |
-| | First Contentful Paint | < 1.5 seconds | Core Web Vitals |
-| | Cumulative Layout Shift | < 0.1 | Web Vitals API |
-| **🚀 API** | Response Time | < 200ms (95th percentile) | Prometheus |
-| | Throughput | > 1000 req/sec | Load testing |
-| | Error Rate | < 0.1% | APM monitoring |
-| **💾 Database** | Query Response | < 50ms average | Database monitoring |
-| | Connection Pool | < 80% utilization | Connection metrics |
-| | Index Efficiency | > 95% index usage | Query analysis |
-| **⚡ Cache** | Hit Rate | > 80% | Redis metrics |
-| | Memory Usage | < 70% | Memory monitoring |
-| | Eviction Rate | < 5% | Cache analytics |
+| **Component** | **Legacy Performance** | **New Architecture Benefits** |
+|---------------|------------------------|-------------------------------|
+| **Type Safety** | Runtime errors, debugging overhead | Compile-time validation, reduced errors |
+| **Database Operations** | Manual SQL, N+1 queries | Optimized repository patterns, batch operations |
+| **Code Reuse** | 75% duplication | Shared base classes, DRY principles |
+| **Testing** | Manual testing, brittle tests | Dependency injection, comprehensive test coverage |
+| **Error Handling** | Generic exceptions | Structured exceptions with context |
+| **Logging** | Print statements | Structured logging with performance metrics |
 
 ---
 
 ## 🔮 Future Architecture
 
-### 🌟 Planned Enhancements
+### 🌟 Migration Roadmap
+
+```mermaid
+gantt
+    title AI Prompt Manager Architecture Migration
+    dateFormat  YYYY-MM-DD
+    section Phase 1 - Core Infrastructure
+    Base Classes Implementation    :done, phase1a, 2025-06-01, 2025-06-11
+    Prompt Management Migration    :done, phase1b, 2025-06-08, 2025-06-11
+    Testing Framework             :done, phase1c, 2025-06-09, 2025-06-11
+    
+    section Phase 2 - Service Layer
+    Auth Service Migration        :active, phase2a, 2025-06-11, 2025-06-15
+    API Layer Modernization       :phase2b, 2025-06-12, 2025-06-18
+    UI Component Migration        :phase2c, 2025-06-15, 2025-06-20
+    
+    section Phase 3 - Advanced Features
+    External Service Integration  :phase3a, 2025-06-18, 2025-06-25
+    Performance Optimization      :phase3b, 2025-06-20, 2025-06-30
+    Advanced Security Features    :phase3c, 2025-06-22, 2025-07-05
+    
+    section Phase 4 - Enhancement
+    ML Integration               :phase4a, 2025-06-25, 2025-07-10
+    Advanced Analytics           :phase4b, 2025-06-30, 2025-07-15
+    Global Deployment           :phase4c, 2025-07-05, 2025-07-20
+```
+
+### 🚀 Next Generation Features
 
 ```mermaid
 graph TB
-    subgraph "🤖 AI/ML Enhancements"
-        ML_MODELS[🧠 Custom ML Models]
-        VECTOR_DB[🔍 Vector Database]
-        SEMANTIC_SEARCH[🔎 Semantic Search]
-        AUTO_CATEGORIZATION[🏷️ Auto Categorization]
+    subgraph "🤖 AI/ML Integration"
+        ML_PROMPT_GEN[🧠 AI Prompt Generation]
+        SEMANTIC_SEARCH[🔍 Semantic Search]
+        AUTO_OPTIMIZATION[⚡ Auto-Optimization]
+        PERFORMANCE_ML[📊 Performance ML]
     end
 
-    subgraph "🌍 Global Scale"
+    subgraph "🌍 Global Architecture"
         MULTI_REGION[🌍 Multi-Region Deployment]
-        EDGE_COMPUTING[⚡ Edge Computing]
-        GLOBAL_CDN[🌐 Global CDN]
-        REGIONAL_DB[🗄️ Regional Databases]
+        EDGE_COMPUTE[⚡ Edge Computing]
+        CDN_INTEGRATION[🌐 Advanced CDN]
+        REGIONAL_COMPLIANCE[📋 Regional Compliance]
     end
 
-    subgraph "🔌 Integration Ecosystem"
-        PLUGIN_SYSTEM[🔌 Plugin Architecture]
-        WEBHOOK_ENGINE[🪝 Webhook Engine]
+    subgraph "🔌 Ecosystem Integration"
+        PLUGIN_ARCH[🔌 Plugin Architecture]
         MARKETPLACE[🏪 Prompt Marketplace]
-        THIRD_PARTY[🔗 Third-party Integrations]
+        API_ECOSYSTEM[🔗 API Ecosystem]
+        WEBHOOK_ENGINE[🪝 Advanced Webhooks]
     end
 
     subgraph "📊 Advanced Analytics"
-        USAGE_ANALYTICS[📈 Usage Analytics]
-        PROMPT_PERFORMANCE[🎯 Prompt Performance]
-        USER_INSIGHTS[👥 User Insights]
+        REAL_TIME_ANALYTICS[📈 Real-time Analytics]
+        PREDICTIVE_INSIGHTS[🔮 Predictive Insights]
         COST_OPTIMIZATION[💰 Cost Optimization]
+        USAGE_PATTERNS[📊 Usage Pattern Analysis]
     end
 
-    subgraph "🛡️ Enhanced Security"
-        ZERO_TRUST[🔒 Zero Trust Architecture]
-        COMPLIANCE[📋 Compliance Framework]
-        PRIVACY_CONTROLS[🛡️ Privacy Controls]
-        THREAT_DETECTION[🚨 Threat Detection]
-    end
-
-    ML_MODELS --> MULTI_REGION
-    VECTOR_DB --> EDGE_COMPUTING
-    SEMANTIC_SEARCH --> GLOBAL_CDN
-    AUTO_CATEGORIZATION --> REGIONAL_DB
+    ML_PROMPT_GEN --> MULTI_REGION
+    SEMANTIC_SEARCH --> EDGE_COMPUTE
+    AUTO_OPTIMIZATION --> CDN_INTEGRATION
+    PERFORMANCE_ML --> REGIONAL_COMPLIANCE
     
-    MULTI_REGION --> PLUGIN_SYSTEM
-    EDGE_COMPUTING --> WEBHOOK_ENGINE
-    GLOBAL_CDN --> MARKETPLACE
-    REGIONAL_DB --> THIRD_PARTY
+    MULTI_REGION --> PLUGIN_ARCH
+    EDGE_COMPUTE --> MARKETPLACE
+    CDN_INTEGRATION --> API_ECOSYSTEM
+    REGIONAL_COMPLIANCE --> WEBHOOK_ENGINE
     
-    PLUGIN_SYSTEM --> USAGE_ANALYTICS
-    WEBHOOK_ENGINE --> PROMPT_PERFORMANCE
-    MARKETPLACE --> USER_INSIGHTS
-    THIRD_PARTY --> COST_OPTIMIZATION
-    
-    USAGE_ANALYTICS --> ZERO_TRUST
-    PROMPT_PERFORMANCE --> COMPLIANCE
-    USER_INSIGHTS --> PRIVACY_CONTROLS
-    COST_OPTIMIZATION --> THREAT_DETECTION
+    PLUGIN_ARCH --> REAL_TIME_ANALYTICS
+    MARKETPLACE --> PREDICTIVE_INSIGHTS
+    API_ECOSYSTEM --> COST_OPTIMIZATION
+    WEBHOOK_ENGINE --> USAGE_PATTERNS
 
     classDef ai fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
     classDef global fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef integration fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef ecosystem fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     classDef analytics fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef security fill:#ffebee,stroke:#d32f2f,stroke-width:2px
 
-    class ML_MODELS,VECTOR_DB,SEMANTIC_SEARCH,AUTO_CATEGORIZATION ai
-    class MULTI_REGION,EDGE_COMPUTING,GLOBAL_CDN,REGIONAL_DB global
-    class PLUGIN_SYSTEM,WEBHOOK_ENGINE,MARKETPLACE,THIRD_PARTY integration
-    class USAGE_ANALYTICS,PROMPT_PERFORMANCE,USER_INSIGHTS,COST_OPTIMIZATION analytics
-    class ZERO_TRUST,COMPLIANCE,PRIVACY_CONTROLS,THREAT_DETECTION security
+    class ML_PROMPT_GEN,SEMANTIC_SEARCH,AUTO_OPTIMIZATION,PERFORMANCE_ML ai
+    class MULTI_REGION,EDGE_COMPUTE,CDN_INTEGRATION,REGIONAL_COMPLIANCE global
+    class PLUGIN_ARCH,MARKETPLACE,API_ECOSYSTEM,WEBHOOK_ENGINE ecosystem
+    class REAL_TIME_ANALYTICS,PREDICTIVE_INSIGHTS,COST_OPTIMIZATION,USAGE_PATTERNS analytics
 ```
-
-### 🛣️ Architecture Evolution Roadmap
-
-| **Phase** | **Timeline** | **Focus Areas** | **Key Deliverables** |
-|-----------|--------------|-----------------|---------------------|
-| **Phase 1** | Q1 2025 | Performance & Scale | Redis caching, Database optimization, Load balancing |
-| **Phase 2** | Q2 2025 | AI/ML Integration | Vector database, Semantic search, ML-powered categorization |
-| **Phase 3** | Q3 2025 | Global Deployment | Multi-region support, Edge computing, Global CDN |
-| **Phase 4** | Q4 2025 | Ecosystem & Analytics | Plugin system, Marketplace, Advanced analytics |
-| **Phase 5** | Q1 2026 | Security & Compliance | Zero trust, Compliance framework, Privacy controls |
 
 ---
 
 ## 📚 Architecture Documentation
 
-### 📖 Related Documentation
+### 📖 Implementation Status
 
-- **[🚀 Deployment Guide](README.md#🔒-production-deployment)** - Production deployment instructions
-- **[🔧 Configuration Guide](README.md#⚙️-configuration)** - Environment and system configuration
-- **[🔐 Security Guide](README.md#🏢-multi-tenant-features)** - Security implementation details
-- **[📊 API Documentation](README.md#🔑-api-access)** - RESTful API reference
-- **[🌐 Multi-Language Guide](README.md#🌐-multi-language-support)** - Internationalization implementation
-- **[🧩 Prompt Builder Guide](README.md#🧩-prompt-builder-guide)** - Builder architecture and usage
+| **Component** | **Status** | **Location** | **Test Coverage** |
+|---------------|------------|--------------|-------------------|
+| **Core Base Classes** | ✅ Complete | `src/core/base/` | 95% |
+| **Configuration System** | ✅ Complete | `src/core/config/` | 90% |
+| **Authentication Models** | ✅ Complete | `src/auth/models/` | 85% |
+| **Prompt Management** | ✅ Complete | `src/prompts/` | 90% |
+| **Security Services** | ✅ Complete | `src/auth/security/` | 88% |
+| **Database Abstraction** | ✅ Complete | `src/core/base/database_manager.py` | 92% |
+| **Exception Hierarchy** | ✅ Complete | `src/core/exceptions/` | 85% |
+| **Testing Framework** | ✅ Complete | `tests/` | 100% |
 
 ### 🏗️ Architecture Principles
 
-1. **🔗 Separation of Concerns**: Clear boundaries between layers and components
-2. **🔄 Loose Coupling**: Independent, testable, and maintainable modules
-3. **📈 Scalability**: Horizontal and vertical scaling capabilities
-4. **🛡️ Security by Design**: Multi-layer security architecture
-5. **🌐 Multi-tenancy**: Complete isolation and resource sharing
-6. **⚡ Performance**: Optimized for speed and efficiency
-7. **🔧 Maintainability**: Clean code, documentation, and testing
-8. **🚀 Extensibility**: Plugin architecture and API-first design
+1. **🔗 Service Layer Pattern**: Clean separation between business logic and data access
+2. **💾 Repository Pattern**: Abstracted data access with tenant isolation
+3. **🏗️ Dependency Injection**: Testable, mockable components
+4. **📊 Type Safety**: Comprehensive type hints throughout the codebase
+5. **🔐 Security by Design**: Multi-layer security with modern practices
+6. **🏢 Multi-tenancy**: Complete data isolation and resource sharing
+7. **⚡ Performance**: Optimized queries and caching strategies
+8. **🧪 Test-Driven**: Comprehensive unit and integration testing
 
 ---
 
-**🏗️ Architecture designed for scale • 🔐 Security by design • 🌐 Global accessibility • 🚀 Future-ready**
-
----
-
-## 🖼️ Application Function Diagrams
-
-### 📝 Prompt Management
-```mermaid
-graph TD
-    U[User] --> UI[Gradio: Prompt Management Tab]
-    UI --> PM[Prompt Manager]
-    PM --> DM[Prompt Data Manager]
-    DM --> DB[(DB: SQLite/Postgres)]
-    PM --> API[AI Service Integration]
-    API --> EXT[AI Providers]
-```
-
-### 📚 Prompt Library
-```mermaid
-graph TD
-    U[User] --> UI[Gradio: Prompt Library Tab]
-    UI --> PM[Prompt Manager]
-    PM --> DM[Prompt Data Manager]
-    DM --> DB[(DB: SQLite/Postgres)]
-```
-
-### 🚀 Prompt Execution
-```mermaid
-graph TD
-    U[User] --> UI[Gradio: Prompt Execution Tab]
-    UI --> PM[Prompt Manager]
-    PM --> API[AI Service Integration]
-    API --> EXT[AI Providers]
-```
-
-### ⚡ Prompt Enhancement
-```mermaid
-graph TD
-    U[User] --> UI[Gradio: Prompt Enhancement Tab]
-    UI --> PM[Prompt Manager]
-    PM --> API[AI Service Integration]
-    API --> EXT[AI Providers]
-    PM --> DM[Prompt Data Manager]
-    DM --> DB[(DB: SQLite/Postgres)]
-```
-
-### ⚙️ Configuration
-```mermaid
-graph TD
-    U[User] --> UI[Gradio: Configuration Tab]
-    UI --> PM[Prompt Manager]
-    PM --> DM[Prompt Data Manager]
-    DM --> DB[(DB: SQLite/Postgres)]
-```
-
----
-
-*Diagrams generated on 2025-06-10. Each Gradio tab is mapped to its backend interactions for clarity and onboarding.*
+**🏗️ Modern architecture designed for scale • 🔐 Enhanced security • 🌐 Global accessibility • 🚀 Future-ready with full type safety**

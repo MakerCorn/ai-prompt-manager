@@ -98,6 +98,22 @@ graph TB
     style Data fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
+### 🆕 New Modular Architecture
+
+**The codebase has been refactored with a new modular architecture** that improves maintainability, reduces technical debt, and provides better separation of concerns:
+
+- **📦 Modular Design**: Clear separation between authentication, prompts, API, and UI layers
+- **🏗️ Base Classes**: Shared functionality through inheritance and composition
+- **🔧 Dependency Injection**: Testable, loosely-coupled components
+- **🛡️ Type Safety**: Comprehensive type hints throughout the codebase
+- **📋 Structured Logging**: Centralized logging with audit trails
+- **⚡ Modern Security**: Argon2/bcrypt password hashing, JWT management
+
+**📖 Architecture Documentation:**
+- **[NEW_ARCHITECTURE_GUIDE.md](NEW_ARCHITECTURE_GUIDE.md)** - Complete guide to the new modular architecture
+- **[REFACTORING_PLAN.md](REFACTORING_PLAN.md)** - Detailed refactoring plan and migration strategy
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture documentation
+
 ### 🔑 Key Architectural Principles
 - **🏗️ Unified Codebase**: Single application, multiple deployment modes
 - **🔐 Tenant Isolation**: Complete data separation between organizations  

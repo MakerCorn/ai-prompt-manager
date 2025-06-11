@@ -69,6 +69,15 @@ jobs:
           cp pyproject.toml ai-prompt-manager-dist/
           cp poetry.lock ai-prompt-manager-dist/
           
+          # Copy new architecture source code
+          if [ -d src ]; then
+            cp -r src ai-prompt-manager-dist/
+            echo "✅ Copied new architecture source code"
+          fi
+          
+          # Copy test files for architecture validation
+          cp test_*.py ai-prompt-manager-dist/ 2>/dev/null || echo "No test files to copy"
+          
           # Create installation script
           cat > ai-prompt-manager-dist/install.sh << 'EOF'
           #!/bin/bash
@@ -101,6 +110,10 @@ jobs:
           echo "  poetry run python run.py --single-user      # Single-user mode"
           echo "  poetry run python run.py --with-api         # Multi-tenant + API"
           echo "  poetry run python run.py --help             # Show all options"
+          echo ""
+          echo "🧪 Testing:"
+          echo "  poetry run python test_new_prompt_architecture.py  # Test new architecture"
+          echo "  poetry run python test_langwatch_integration.py    # Test optimization"
           echo ""
           echo "🐳 Docker:"
           echo "  docker-compose up -d                        # Development"

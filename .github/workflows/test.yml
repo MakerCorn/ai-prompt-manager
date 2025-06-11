@@ -76,6 +76,29 @@ jobs:
       - name: Run LangWatch integration tests
         run: poetry run python test_langwatch_integration.py
 
+      - name: Test new architecture components
+        run: |
+          echo "🧪 Testing new architecture components..."
+          
+          # Test the new prompt architecture
+          poetry run python test_new_prompt_architecture.py
+          
+          # Test configuration system
+          poetry run python -c "
+          import sys
+          import os
+          sys.path.insert(0, 'src')
+          
+          from src.core.config.settings import AppConfig
+          
+          # Test environment configuration loading
+          os.environ['SECRET_KEY'] = 'test-secret-key'
+          config = AppConfig.from_env()
+          print(f'✅ Configuration loaded: {config.auth.secret_key[:10]}...')
+          "
+          
+          echo "✅ New architecture tests completed"
+
       - name: Test standalone API endpoints
         run: |
           # Test the standalone API (as used in the workflow tests)
@@ -194,8 +217,13 @@ jobs:
 
       - name: Check Python syntax
         run: |
+          # Check legacy Python files
           poetry run python -m py_compile *.py
-          echo "✅ Python syntax check passed"
+          echo "✅ Legacy Python syntax check passed"
+          
+          # Check new architecture Python files
+          find src -name "*.py" -exec poetry run python -m py_compile {} \;
+          echo "✅ New architecture Python syntax check passed"
 
       - name: Check imports
         run: |
@@ -206,5 +234,22 @@ jobs:
           import api_token_manager
           import api_endpoints
           import langwatch_optimizer
-          print('✅ All imports successful')
+          print('✅ All legacy imports successful')
+          "
+          
+          # Test new architecture imports
+          poetry run python -c "
+          import sys
+          import os
+          sys.path.insert(0, 'src')
+          
+          # Test new architecture components
+          from src.core.config.settings import AppConfig
+          from src.core.base.database_manager import DatabaseManager
+          from src.prompts.models.prompt import Prompt
+          from src.prompts.repositories.prompt_repository import PromptRepository
+          from src.prompts.services.prompt_service import PromptService
+          from src.auth.models.user import User
+          from src.auth.models.tenant import Tenant
+          print('✅ All new architecture imports successful')
           "

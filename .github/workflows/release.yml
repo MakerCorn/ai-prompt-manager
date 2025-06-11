@@ -142,6 +142,10 @@ jobs:
           echo "📝 Testing Python syntax..."
           poetry run python -m py_compile *.py
           
+          # Test new architecture syntax
+          echo "🏗️ Testing new architecture syntax..."
+          find src -name "*.py" -exec poetry run python -m py_compile {} \;
+          
           # Test imports
           echo "📦 Testing imports..."
           poetry run python -c "
@@ -151,7 +155,24 @@ jobs:
           import api_token_manager
           import api_endpoints
           import langwatch_optimizer
-          print('✅ All imports successful')
+          print('✅ All legacy imports successful')
+          "
+          
+          # Test new architecture imports
+          echo "🏗️ Testing new architecture imports..."
+          poetry run python -c "
+          import sys
+          import os
+          sys.path.insert(0, 'src')
+          
+          from src.core.config.settings import AppConfig
+          from src.core.base.database_manager import DatabaseManager
+          from src.prompts.models.prompt import Prompt
+          from src.prompts.repositories.prompt_repository import PromptRepository
+          from src.prompts.services.prompt_service import PromptService
+          from src.auth.models.user import User
+          from src.auth.models.tenant import Tenant
+          print('✅ All new architecture imports successful')
           "
           
           # Test launcher functionality
@@ -165,6 +186,10 @@ jobs:
           # Test multi-tenant setup
           echo "🏢 Testing multi-tenant setup..."
           poetry run python test_mt_install.py
+          
+          # Test new architecture
+          echo "🏗️ Testing new architecture..."
+          poetry run python test_new_prompt_architecture.py
           
           echo "✅ All release tests passed!"
 
@@ -269,6 +294,26 @@ jobs:
           # Copy source files
           cp *.py release-dist/
           
+          # Copy new architecture source code
+          if [ -d src ]; then
+            cp -r src release-dist/
+            echo "✅ Copied new architecture source code"
+          fi
+          
+          # Copy documentation and guides
+          if [ -f ARCHITECTURE.md ]; then
+            cp ARCHITECTURE.md release-dist/
+          fi
+          if [ -f REFACTORING_PLAN.md ]; then
+            cp REFACTORING_PLAN.md release-dist/
+          fi
+          if [ -f NEW_ARCHITECTURE_GUIDE.md ]; then
+            cp NEW_ARCHITECTURE_GUIDE.md release-dist/
+          fi
+          
+          # Copy test files for validation
+          cp test_*.py release-dist/ 2>/dev/null || echo "No test files to copy"
+          
           # Create installation script
           cat > release-dist/install.sh << 'EOF'
           #!/bin/bash
@@ -339,6 +384,7 @@ jobs:
           echo "  docker-compose -f docker-compose.prod.yml up -d  # Production"
           echo ""
           echo "🔧 Testing:"
+          echo "  python test_new_prompt_architecture.py  # Test new architecture"
           echo "  python test_langwatch_integration.py    # Test prompt optimization"
           echo "  python test_mt_install.py               # Test multi-tenant setup"
           echo ""
@@ -416,9 +462,10 @@ jobs:
           ## 🧪 Tests
           
           All tests passed:
-          - ✅ Python syntax validation
-          - ✅ Import tests
+          - ✅ Python syntax validation (legacy and new architecture)
+          - ✅ Import tests (legacy and new architecture)
           - ✅ Launcher functionality
+          - ✅ New architecture component tests
           - ✅ Prompt optimization system
           - ✅ Multi-tenant setup
           
@@ -730,13 +777,16 @@ jobs:
           
           ## 🛠️ Key Features
           
+          - **Modern Architecture**: Completely refactored with Service Layer, Repository Pattern, and clean separation of concerns
           - **Multi-Service Prompt Optimizer**: LangWatch, PromptPerfect, LangSmith, Helicone support
           - **Multi-Language Interface**: 10 languages with real-time switching
           - **Unified Architecture**: Single codebase for single-user and multi-tenant modes
-          - **Advanced Security**: JWT, RBAC, SSO/ADFS integration
+          - **Advanced Security**: JWT, RBAC, SSO/ADFS integration with modern password handling
           - **REST API**: Comprehensive API with interactive documentation
           - **Token Calculator**: Real-time cost estimation for AI models
           - **Prompt Builder**: Drag-and-drop interface for combining prompts
+          - **Type Safety**: Full type hints and validation throughout the codebase
+          - **Comprehensive Testing**: Unit and integration tests for all components
           
           ## 🐳 Docker Images
           
@@ -765,6 +815,8 @@ jobs:
           
           - [Complete User Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md)
           - [System Architecture](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/ARCHITECTURE.md)
+          - [New Architecture Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/NEW_ARCHITECTURE_GUIDE.md)
+          - [Refactoring Plan](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/REFACTORING_PLAN.md)
           - [Installation Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md#-quick-start)
           - [API Documentation](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md#-api-access)
           
