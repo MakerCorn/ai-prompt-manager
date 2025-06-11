@@ -28,6 +28,7 @@ A comprehensive AI prompt management system with unified architecture supporting
 - [🚀 Prompt Optimizer Guide](#-prompt-optimizer-guide)
 - [🧩 Prompt Builder Guide](#-prompt-builder-guide)
 - [🔑 API Access](#-api-access)
+- [🔵 Azure AI & Entra ID Integration](#-azure-ai--entra-id-integration)
 - [🏢 Multi-Tenant Features](#-multi-tenant-features)
 - [🚀 Development](#-development)
 - [🔒 Production Deployment](#-production-deployment)
@@ -45,15 +46,16 @@ A comprehensive AI prompt management system with unified architecture supporting
 ### 🔐 **Security & Authentication**
 - **Multi-Tenant Isolation**: Complete data separation between organizations
 - **SSO/ADFS Integration**: Enterprise authentication with Microsoft Azure AD
+- **Entra ID Support**: Modern Azure Active Directory authentication with Microsoft Graph API integration
 - **Role-Based Access**: Admin, User, and Read-only permission levels
 - **JWT Session Management**: Secure, stateless authentication tokens
 - **API Token System**: Secure programmatic access with expiring tokens
 
 ### 🧮 **Advanced AI Features**
-- **Token Calculator**: Real-time cost estimation for all major AI models
+- **Token Calculator**: Real-time cost estimation for all major AI models including Azure OpenAI and Azure AI Studio
 - **Multi-Service Prompt Optimizer**: AI-powered optimization with LangWatch, PromptPerfect, LangSmith, Helicone support
 - **Prompt Builder**: Drag-and-drop interface to combine multiple prompts into new ones
-- **Multi-Provider Support**: OpenAI, Claude, Gemini, LM Studio, Ollama, Llama.cpp
+- **Multi-Provider Support**: OpenAI, Claude, Gemini, Azure OpenAI, Azure AI Studio, LM Studio, Ollama, Llama.cpp
 - **Enhancement Engine**: Improve prompts using different AI models
 
 ### 🌐 **Modern User Experience**
@@ -1271,6 +1273,22 @@ SSO_CLIENT_SECRET=your-client-secret
 SSO_AUTHORITY=https://login.microsoftonline.com/your-tenant-id
 SSO_REDIRECT_URI=http://localhost:7860/auth/callback
 
+# Entra ID (Azure AD) Authentication (optional)
+ENTRA_ID_ENABLED=false
+ENTRA_CLIENT_ID=your-entra-client-id
+ENTRA_CLIENT_SECRET=your-entra-client-secret
+ENTRA_TENANT_ID=your-azure-tenant-id
+ENTRA_REDIRECT_URI=http://localhost:7860/auth/entra-callback
+ENTRA_SCOPES=openid email profile User.Read
+
+# Azure AI Services (optional)
+AZURE_AI_ENABLED=false
+AZURE_AI_ENDPOINT=https://your-azure-ai-endpoint.cognitiveservices.azure.com
+AZURE_AI_KEY=your-azure-ai-key
+AZURE_OPENAI_ENDPOINT=https://your-openai-resource.openai.azure.com
+AZURE_OPENAI_KEY=your-azure-openai-key
+AZURE_OPENAI_VERSION=2024-02-15-preview
+
 # Prompt Optimization Services (optional)
 PROMPT_OPTIMIZER=langwatch              # Service: langwatch, promptperfect, langsmith, helicone, builtin
 LANGWATCH_API_KEY=your-langwatch-api-key
@@ -1307,6 +1325,17 @@ DEBUG=false                   # Enable debug mode (default: false)
 | `PROMPTPERFECT_API_KEY` | PromptPerfect API key | - | - |
 | `LANGSMITH_API_KEY` | LangSmith API key | - | - |
 | `HELICONE_API_KEY` | Helicone API key | - | - |
+| `ENTRA_ID_ENABLED` | Enable Entra ID authentication | `false` | - |
+| `ENTRA_CLIENT_ID` | Entra ID application ID | - | - |
+| `ENTRA_CLIENT_SECRET` | Entra ID client secret | - | - |
+| `ENTRA_TENANT_ID` | Azure tenant ID | - | - |
+| `ENTRA_REDIRECT_URI` | Entra ID callback URL | `/auth/entra-callback` | - |
+| `AZURE_AI_ENABLED` | Enable Azure AI services | `false` | - |
+| `AZURE_AI_ENDPOINT` | Azure AI Studio endpoint | - | - |
+| `AZURE_AI_KEY` | Azure AI Studio key | - | - |
+| `AZURE_OPENAI_ENDPOINT` | Azure OpenAI endpoint | - | - |
+| `AZURE_OPENAI_KEY` | Azure OpenAI key | - | - |
+| `AZURE_OPENAI_VERSION` | Azure OpenAI API version | `2024-02-15-preview` | - |
 | `DEBUG` | Enable debug logging | `false` | `--debug` |
 | `GRADIO_SHARE` | Enable public sharing | `false` | `--share` |
 
@@ -1326,11 +1355,216 @@ DEBUG=false                   # Enable debug mode (default: false)
 
 Supported AI providers:
 - **OpenAI** (GPT-4, GPT-3.5-turbo)
+- **Azure OpenAI** (Enterprise OpenAI models)
+- **Azure AI Studio** (Phi-3, Mistral, and other Azure models)
 - **LM Studio** (Local models)
 - **Ollama** (Self-hosted)
 - **Llama.cpp** (Local inference)
 
 Configure in the application's AI Service Settings.
+
+---
+
+## 🔵 Azure AI & Entra ID Integration
+
+### Overview
+
+AI Prompt Manager provides comprehensive support for Microsoft Azure services, including:
+- **Azure OpenAI**: Enterprise-grade OpenAI models with enhanced security and compliance
+- **Azure AI Studio**: Access to Phi-3, Mistral, and other Azure-hosted AI models
+- **Entra ID**: Modern Azure Active Directory authentication with Microsoft Graph integration
+
+### 🔐 Entra ID Authentication Setup
+
+Entra ID (formerly Azure Active Directory) provides enterprise-grade authentication with seamless Microsoft Graph API integration.
+
+#### **1. Azure App Registration**
+
+1. **Navigate to Azure Portal** → Azure Active Directory → App registrations
+2. **Create new registration**:
+   - Name: `AI Prompt Manager`
+   - Supported account types: `Accounts in this organizational directory only`
+   - Redirect URI: `http://localhost:7860/auth/entra-callback` (for local dev)
+
+3. **Configure Authentication**:
+   - Add redirect URIs for production environments
+   - Enable `ID tokens` under Authentication → Implicit grant and hybrid flows
+
+4. **API Permissions**:
+   - Add `Microsoft Graph` permissions:
+     - `openid` (Sign users in)
+     - `email` (Read user email)
+     - `profile` (Read user profile)
+     - `User.Read` (Read user information)
+
+5. **Certificates & secrets**:
+   - Create new client secret
+   - Copy the secret value (save immediately - you won't see it again)
+
+#### **2. Environment Configuration**
+
+```bash
+# Enable Entra ID authentication
+ENTRA_ID_ENABLED=true
+ENTRA_CLIENT_ID=12345678-1234-1234-1234-123456789012
+ENTRA_CLIENT_SECRET=your-client-secret-value
+ENTRA_TENANT_ID=your-azure-tenant-id
+ENTRA_REDIRECT_URI=http://localhost:7860/auth/entra-callback
+
+# Optional: Customize scopes (default shown)
+ENTRA_SCOPES=openid email profile User.Read
+```
+
+#### **3. Multi-Tenant Configuration**
+
+For organizations with multiple tenants:
+
+```bash
+# Production example
+ENTRA_ID_ENABLED=true
+ENTRA_CLIENT_ID=your-production-client-id
+ENTRA_TENANT_ID=your-production-tenant-id
+ENTRA_REDIRECT_URI=https://prompts.yourcompany.com/auth/entra-callback
+
+# Development
+ENTRA_REDIRECT_URI=http://localhost:7860/auth/entra-callback
+```
+
+### 🤖 Azure AI Services Setup
+
+#### **Azure OpenAI Configuration**
+
+1. **Create Azure OpenAI resource** in Azure Portal
+2. **Deploy models** (e.g., GPT-4, GPT-3.5-turbo)
+3. **Get endpoint and keys** from resource overview
+
+```bash
+# Azure OpenAI configuration
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+AZURE_OPENAI_KEY=your-azure-openai-key
+AZURE_OPENAI_VERSION=2024-02-15-preview
+```
+
+#### **Azure AI Studio Configuration**
+
+1. **Create Azure AI Studio workspace**
+2. **Deploy models** (Phi-3, Mistral, etc.)
+3. **Configure endpoints and authentication**
+
+```bash
+# Azure AI Studio configuration
+AZURE_AI_ENABLED=true
+AZURE_AI_ENDPOINT=https://your-ai-endpoint.cognitiveservices.azure.com
+AZURE_AI_KEY=your-azure-ai-key
+```
+
+### 📊 Supported Azure Models
+
+#### **Azure OpenAI Models**
+- `azure-gpt-4` - GPT-4 with Azure enterprise features
+- `azure-gpt-35-turbo` - GPT-3.5 Turbo with Azure security
+
+#### **Azure AI Studio Models**
+- `azure-ai-phi-3` - Microsoft Phi-3 small language model
+- `azure-ai-mistral` - Mistral models hosted on Azure
+
+### 🔧 Testing Configuration
+
+```bash
+# Test Azure connectivity
+python -c "
+from auth_manager import AuthManager
+auth = AuthManager()
+
+# Test Entra ID configuration
+print('Entra ID enabled:', auth.is_entra_id_enabled())
+print('Authentication methods:', auth.get_authentication_methods())
+
+# Test Azure AI configuration
+print('Azure AI enabled:', auth.is_azure_ai_enabled())
+azure_config = auth.get_azure_ai_config()
+print('Azure config:', azure_config)
+
+# Validate credentials (requires network access)
+valid, message = auth.validate_azure_credentials()
+print(f'Azure validation: {valid} - {message}')
+"
+```
+
+### 🌐 Production Deployment
+
+#### **Security Considerations**
+- Use Azure Key Vault for secret management
+- Configure proper RBAC permissions
+- Enable Azure Monitor for logging
+- Use managed identities where possible
+
+#### **Example Production Configuration**
+```bash
+# Production environment variables
+ENTRA_ID_ENABLED=true
+ENTRA_CLIENT_ID=${AZURE_CLIENT_ID}
+ENTRA_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+ENTRA_TENANT_ID=${AZURE_TENANT_ID}
+ENTRA_REDIRECT_URI=https://prompts.yourcompany.com/auth/entra-callback
+
+AZURE_AI_ENABLED=true
+AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}
+
+# Use PostgreSQL for production
+DB_TYPE=postgres
+POSTGRES_DSN=${DATABASE_URL}
+```
+
+### 🔍 Troubleshooting
+
+#### **Common Entra ID Issues**
+
+**Authentication fails with "invalid_client":**
+- Verify `ENTRA_CLIENT_ID` and `ENTRA_CLIENT_SECRET`
+- Check redirect URI matches exactly
+- Ensure app registration is not expired
+
+**No email returned from Entra ID:**
+- Verify `email` scope is requested
+- Check API permissions include `User.Read`
+- User might not have email attribute set
+
+#### **Common Azure AI Issues**
+
+**Azure OpenAI "Invalid API key":**
+- Check `AZURE_OPENAI_KEY` is correct
+- Verify endpoint URL format
+- Ensure API version is supported
+
+**Model not found errors:**
+- Verify model deployment names
+- Check Azure AI Studio model availability
+- Confirm endpoint supports requested model
+
+#### **Token Calculator Issues**
+
+**Azure models not showing costs:**
+- Azure pricing included for common models
+- Custom model pricing can be configured
+- Check model name matches supported patterns
+
+### 🔄 Migration from Generic SSO
+
+If migrating from generic SSO to Entra ID:
+
+```bash
+# Disable generic SSO
+SSO_ENABLED=false
+
+# Enable Entra ID
+ENTRA_ID_ENABLED=true
+# ... other Entra ID settings
+
+# Existing users will be matched by email
+# SSO ID will be updated to Entra ID object ID
+```
 
 ---
 

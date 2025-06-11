@@ -31,6 +31,8 @@ class TokenizerType(Enum):
     CLAUDE = "claude"
     GEMINI = "gemini"
     LLAMA = "llama"
+    AZURE_OPENAI = "azure-openai"
+    AZURE_AI = "azure-ai"
     SIMPLE_WORD = "word-based"
     SIMPLE_CHAR = "char-based"
 
@@ -58,6 +60,12 @@ class TokenCalculator:
         "claude-3-haiku": {"input": 0.00025, "output": 0.00125},
         "gemini-pro": {"input": 0.0005, "output": 0.0015},
         "gemini-1.5-pro": {"input": 0.003, "output": 0.015},
+        # Azure OpenAI pricing (same as OpenAI)
+        "azure-gpt-4": {"input": 0.03, "output": 0.06},
+        "azure-gpt-35-turbo": {"input": 0.0015, "output": 0.002},
+        # Azure AI Studio models (approximate pricing)
+        "azure-ai-phi-3": {"input": 0.001, "output": 0.002},
+        "azure-ai-mistral": {"input": 0.002, "output": 0.004},
     }
     
     def __init__(self):
@@ -126,7 +134,13 @@ class TokenCalculator:
         """Determine appropriate tokenizer for model"""
         model_lower = model.lower()
         
-        if "gpt-4" in model_lower:
+        if "azure-gpt-4" in model_lower or "azure-openai-gpt-4" in model_lower:
+            return TokenizerType.AZURE_OPENAI
+        elif "azure-gpt-3.5" in model_lower or "azure-openai-gpt-35" in model_lower:
+            return TokenizerType.AZURE_OPENAI
+        elif "azure-ai" in model_lower or "azure-studio" in model_lower:
+            return TokenizerType.AZURE_AI
+        elif "gpt-4" in model_lower:
             return TokenizerType.GPT4
         elif "gpt-3.5" in model_lower or "gpt-35" in model_lower:
             return TokenizerType.GPT35_TURBO
@@ -142,12 +156,17 @@ class TokenCalculator:
     def _count_tokens(self, text: str, tokenizer_type: TokenizerType, model: str) -> int:
         """Count tokens using appropriate tokenizer"""
         
-        # Try tiktoken for OpenAI models
+        # Try tiktoken for OpenAI models (including Azure OpenAI)
         if (self.tiktoken_available and 
-            tokenizer_type in [TokenizerType.GPT4, TokenizerType.GPT35_TURBO]):
+            tokenizer_type in [TokenizerType.GPT4, TokenizerType.GPT35_TURBO, TokenizerType.AZURE_OPENAI]):
             
             try:
-                encoder_key = "gpt-4" if tokenizer_type == TokenizerType.GPT4 else "gpt-3.5-turbo"
+                if tokenizer_type == TokenizerType.AZURE_OPENAI:
+                    # Azure OpenAI uses same tokenization as OpenAI
+                    encoder_key = "gpt-4" if "gpt-4" in model.lower() else "gpt-3.5-turbo"
+                else:
+                    encoder_key = "gpt-4" if tokenizer_type == TokenizerType.GPT4 else "gpt-3.5-turbo"
+                
                 if encoder_key in self._encoders:
                     return len(self._encoders[encoder_key].encode(text))
             except Exception as e:
@@ -160,6 +179,8 @@ class TokenCalculator:
             return self._estimate_gemini_tokens(text)
         elif tokenizer_type == TokenizerType.LLAMA:
             return self._estimate_llama_tokens(text)
+        elif tokenizer_type == TokenizerType.AZURE_AI:
+            return self._estimate_azure_ai_tokens(text)
         elif tokenizer_type == TokenizerType.SIMPLE_CHAR:
             return len(text) // 4  # Rough estimate: 4 chars per token
         else:
@@ -215,6 +236,13 @@ class TokenCalculator:
         
         return token_count + punctuation_count
     
+    def _estimate_azure_ai_tokens(self, text: str) -> int:
+        """Estimate tokens for Azure AI models"""
+        # Azure AI models may use different tokenization approaches
+        # depending on the specific model (Phi, small language models, etc.)
+        # Conservative estimation similar to GPT models
+        return max(1, int(len(text) / 3.8))
+    
     def _calculate_cost(self, prompt_tokens: int, completion_tokens: int, model: str) -> Optional[float]:
         """Calculate estimated cost in USD"""
         
@@ -247,6 +275,12 @@ class TokenCalculator:
             "gemini-1.5-pro",
             "llama-2-70b",
             "llama-2-13b",
+            # Azure OpenAI models
+            "azure-gpt-4",
+            "azure-gpt-35-turbo",
+            # Azure AI Studio models
+            "azure-ai-phi-3",
+            "azure-ai-mistral",
             "custom"
         ]
     

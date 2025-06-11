@@ -76,6 +76,22 @@ class AuthManager:
         self.sso_authority = os.getenv("SSO_AUTHORITY")
         self.sso_redirect_uri = os.getenv("SSO_REDIRECT_URI", "http://localhost:7860/auth/callback")
         
+        # Entra ID (Azure AD) Configuration
+        self.entra_id_enabled = os.getenv("ENTRA_ID_ENABLED", "false").lower() == "true"
+        self.entra_client_id = os.getenv("ENTRA_CLIENT_ID") or self.sso_client_id
+        self.entra_client_secret = os.getenv("ENTRA_CLIENT_SECRET") or self.sso_client_secret
+        self.entra_tenant_id = os.getenv("ENTRA_TENANT_ID")
+        self.entra_redirect_uri = os.getenv("ENTRA_REDIRECT_URI", "http://localhost:7860/auth/entra-callback")
+        self.entra_scopes = os.getenv("ENTRA_SCOPES", "openid email profile User.Read").split()
+        
+        # Azure AI Configuration
+        self.azure_ai_enabled = os.getenv("AZURE_AI_ENABLED", "false").lower() == "true"
+        self.azure_ai_endpoint = os.getenv("AZURE_AI_ENDPOINT")
+        self.azure_ai_key = os.getenv("AZURE_AI_KEY")
+        self.azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        self.azure_openai_key = os.getenv("AZURE_OPENAI_KEY")
+        self.azure_openai_version = os.getenv("AZURE_OPENAI_VERSION", "2024-02-15-preview")
+        
         self.init_auth_database()
         self._ensure_default_tenant()
 
@@ -569,6 +585,24 @@ class AuthManager:
         }
         
         return f"{self.sso_authority}/oauth2/v2.0/authorize?{urlencode(params)}"
+    
+    def get_entra_id_login_url(self, subdomain: str = None) -> str:
+        """Generate Entra ID (Azure AD) login URL"""
+        if not self.entra_id_enabled or not self.entra_client_id or not self.entra_tenant_id:
+            return ""
+        
+        state = secrets.token_urlsafe(32)
+        params = {
+            'client_id': self.entra_client_id,
+            'response_type': 'code',
+            'redirect_uri': self.entra_redirect_uri,
+            'scope': ' '.join(self.entra_scopes),
+            'state': f"{state}:{subdomain}" if subdomain else state,
+            'response_mode': 'query'
+        }
+        
+        base_url = f"https://login.microsoftonline.com/{self.entra_tenant_id}/oauth2/v2.0/authorize"
+        return f"{base_url}?{urlencode(params)}"
 
     def handle_sso_callback(self, code: str, state: str) -> Tuple[bool, Optional[User], str]:
         """Handle SSO callback and create/authenticate user"""
@@ -811,3 +845,263 @@ class AuthManager:
         
         conn.close()
         return users
+    
+    def handle_entra_id_callback(self, code: str, state: str) -> Tuple[bool, Optional[User], str]:
+        """Handle Entra ID callback and create/authenticate user"""
+        if not self.entra_id_enabled:
+            return False, None, "Entra ID not enabled"
+        
+        try:
+            # Extract subdomain from state if present
+            subdomain = None
+            if ':' in state:
+                _, subdomain = state.split(':', 1)
+            
+            # Exchange code for token
+            token_data = {
+                'client_id': self.entra_client_id,
+                'client_secret': self.entra_client_secret,
+                'code': code,
+                'grant_type': 'authorization_code',
+                'redirect_uri': self.entra_redirect_uri,
+                'scope': ' '.join(self.entra_scopes)
+            }
+            
+            token_url = f"https://login.microsoftonline.com/{self.entra_tenant_id}/oauth2/v2.0/token"
+            token_response = requests.post(token_url, data=token_data, timeout=30)
+            token_response.raise_for_status()
+            tokens = token_response.json()
+            
+            # Get user info from Microsoft Graph API
+            graph_headers = {'Authorization': f"Bearer {tokens['access_token']}"}
+            user_info_response = requests.get(
+                "https://graph.microsoft.com/v1.0/me",
+                headers=graph_headers,
+                timeout=30
+            )
+            user_info_response.raise_for_status()
+            user_info = user_info_response.json()
+            
+            # Extract user details
+            email = user_info.get('mail') or user_info.get('userPrincipalName')
+            if not email:
+                return False, None, "Email not provided by Entra ID"
+            
+            first_name = user_info.get('givenName', '')
+            last_name = user_info.get('surname', '')
+            object_id = user_info.get('id')  # Entra ID object ID
+            
+            # Find tenant
+            tenant_id = None
+            if subdomain:
+                conn = self.get_conn()
+                cursor = conn.cursor()
+                if self.db_type == "postgres":
+                    cursor.execute('SELECT id FROM tenants WHERE subdomain = %s AND is_active = TRUE', (subdomain,))
+                else:
+                    cursor.execute('SELECT id FROM tenants WHERE subdomain = ? AND is_active = 1', (subdomain,))
+                result = cursor.fetchone()
+                if result:
+                    tenant_id = result[0] if not self.db_type == "postgres" else result['id']
+                conn.close()
+            
+            if not tenant_id:
+                return False, None, "Invalid tenant"
+            
+            # Try to find existing user
+            conn = self.get_conn()
+            cursor = conn.cursor()
+            
+            if self.db_type == "postgres":
+                cursor.execute('''
+                    SELECT * FROM users 
+                    WHERE (email = %s OR sso_id = %s) AND tenant_id = %s AND is_active = TRUE
+                ''', (email, object_id, tenant_id))
+            else:
+                cursor.execute('''
+                    SELECT * FROM users 
+                    WHERE (email = ? OR sso_id = ?) AND tenant_id = ? AND is_active = 1
+                ''', (email, object_id, tenant_id))
+            
+            existing_user = cursor.fetchone()
+            
+            if existing_user:
+                # Update existing user
+                user_id = existing_user[0] if not self.db_type == "postgres" else existing_user['id']
+                if self.db_type == "postgres":
+                    cursor.execute('''
+                        UPDATE users SET sso_id = %s, last_login = %s WHERE id = %s
+                    ''', (object_id, datetime.now(), user_id))
+                else:
+                    cursor.execute('''
+                        UPDATE users SET sso_id = ?, last_login = ? WHERE id = ?
+                    ''', (object_id, datetime.now().isoformat(), user_id))
+                
+                conn.commit()
+                conn.close()
+                
+                # Return user object
+                if self.db_type == "postgres":
+                    user_data = dict(existing_user)
+                else:
+                    user_data = {
+                        'id': existing_user[0], 'tenant_id': existing_user[1], 'email': existing_user[2],
+                        'first_name': existing_user[4], 'last_name': existing_user[5], 'role': existing_user[6],
+                        'is_active': existing_user[7], 'created_at': existing_user[9]
+                    }
+                
+                user = User(
+                    id=user_data['id'],
+                    tenant_id=user_data['tenant_id'],
+                    email=user_data['email'],
+                    first_name=user_data['first_name'],
+                    last_name=user_data['last_name'],
+                    role=user_data['role'],
+                    is_active=bool(user_data['is_active']),
+                    created_at=user_data['created_at'],
+                    last_login=datetime.now()
+                )
+                
+                return True, user, "Entra ID authentication successful"
+            else:
+                # Create new user
+                if not first_name and not last_name:
+                    # Use email username as fallback
+                    first_name = email.split('@')[0]
+                    last_name = ''
+                
+                success, message = self.create_user(
+                    tenant_id=tenant_id,
+                    email=email,
+                    password="",  # No password for Entra ID users
+                    first_name=first_name,
+                    last_name=last_name,
+                    role='user',
+                    sso_id=object_id
+                )
+                
+                if success:
+                    # Get the created user
+                    if self.db_type == "postgres":
+                        cursor.execute('SELECT * FROM users WHERE email = %s AND tenant_id = %s', (email, tenant_id))
+                    else:
+                        cursor.execute('SELECT * FROM users WHERE email = ? AND tenant_id = ?', (email, tenant_id))
+                    
+                    new_user_row = cursor.fetchone()
+                    conn.close()
+                    
+                    if self.db_type == "postgres":
+                        user_data = dict(new_user_row)
+                    else:
+                        user_data = {
+                            'id': new_user_row[0], 'tenant_id': new_user_row[1], 'email': new_user_row[2],
+                            'first_name': new_user_row[4], 'last_name': new_user_row[5], 'role': new_user_row[6],
+                            'is_active': new_user_row[7], 'created_at': new_user_row[9]
+                        }
+                    
+                    user = User(
+                        id=user_data['id'],
+                        tenant_id=user_data['tenant_id'],
+                        email=user_data['email'],
+                        first_name=user_data['first_name'],
+                        last_name=user_data['last_name'],
+                        role=user_data['role'],
+                        is_active=bool(user_data['is_active']),
+                        created_at=user_data['created_at'],
+                        last_login=datetime.now()
+                    )
+                    
+                    return True, user, "Entra ID user created and authenticated"
+                else:
+                    conn.close()
+                    return False, None, f"Failed to create Entra ID user: {message}"
+                    
+        except Exception as e:
+            return False, None, f"Entra ID authentication failed: {str(e)}"
+    
+    def get_azure_ai_config(self) -> Dict[str, str]:
+        """Get Azure AI configuration for models"""
+        config = {}
+        
+        if self.azure_ai_enabled and self.azure_ai_endpoint and self.azure_ai_key:
+            config['azure_ai'] = {
+                'endpoint': self.azure_ai_endpoint,
+                'api_key': self.azure_ai_key,
+                'enabled': True
+            }
+        
+        if self.azure_openai_endpoint and self.azure_openai_key:
+            config['azure_openai'] = {
+                'endpoint': self.azure_openai_endpoint,
+                'api_key': self.azure_openai_key,
+                'api_version': self.azure_openai_version,
+                'enabled': True
+            }
+        
+        return config
+    
+    def validate_azure_credentials(self) -> Tuple[bool, str]:
+        """Validate Azure credentials by testing API access"""
+        try:
+            azure_config = self.get_azure_ai_config()
+            
+            if not azure_config:
+                return False, "No Azure credentials configured"
+            
+            # Test Azure OpenAI if configured
+            if 'azure_openai' in azure_config:
+                config = azure_config['azure_openai']
+                test_url = f"{config['endpoint']}/openai/models?api-version={config['api_version']}"
+                headers = {
+                    'api-key': config['api_key'],
+                    'Content-Type': 'application/json'
+                }
+                
+                response = requests.get(test_url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    return True, "Azure OpenAI credentials validated successfully"
+                else:
+                    return False, f"Azure OpenAI validation failed: {response.status_code}"
+            
+            # Test Azure AI if configured
+            if 'azure_ai' in azure_config:
+                config = azure_config['azure_ai']
+                # Basic endpoint validation
+                test_url = f"{config['endpoint']}/models"
+                headers = {
+                    'Authorization': f"Bearer {config['api_key']}",
+                    'Content-Type': 'application/json'
+                }
+                
+                response = requests.get(test_url, headers=headers, timeout=10)
+                if response.status_code in [200, 401, 403]:  # 401/403 means endpoint is reachable
+                    return True, "Azure AI credentials validated successfully"
+                else:
+                    return False, f"Azure AI validation failed: {response.status_code}"
+            
+            return False, "No testable Azure services configured"
+            
+        except Exception as e:
+            return False, f"Azure credential validation error: {str(e)}"
+    
+    def is_entra_id_enabled(self) -> bool:
+        """Check if Entra ID authentication is enabled and configured"""
+        return (self.entra_id_enabled and 
+                self.entra_client_id and 
+                self.entra_client_secret and 
+                self.entra_tenant_id)
+    
+    def is_azure_ai_enabled(self) -> bool:
+        """Check if Azure AI services are enabled and configured"""
+        return (self.azure_ai_enabled and 
+                ((self.azure_ai_endpoint and self.azure_ai_key) or
+                 (self.azure_openai_endpoint and self.azure_openai_key)))
+    
+    def get_authentication_methods(self) -> Dict[str, bool]:
+        """Get available authentication methods"""
+        return {
+            'local': True,  # Always available
+            'sso': self.sso_enabled and bool(self.sso_client_id),
+            'entra_id': self.is_entra_id_enabled(),
+            'adfs': self.adfs_enabled
+        }
