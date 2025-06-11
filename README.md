@@ -4,32 +4,46 @@
 
 A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments. Features advanced authentication, real-time cost estimation, AI-powered optimization, and secure API access.
 
-```
-┌────────────────────────────────────────────────────────────────────────────┐
-   🤖 AI Prompts  →  📝 Management  →  🚀 Optimization  →  💰 Cost Control  
-└────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    A[🤖 AI Prompts] --> B[📝 Management] --> C[🚀 Optimization] --> D[💰 Cost Control]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style C fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style D fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
 ## 🎯 What is AI Prompt Management?
 
 **Prompts** are instructions you give to AI systems like ChatGPT or Claude - the quality of your prompts directly impacts the quality of AI responses and your costs.
 
-### The Challenge
-```
-❌ Scattered prompts across files
-❌ No cost visibility  
-❌ Manual optimization
-❌ No team collaboration
-❌ Repetitive prompt creation
-```
+### The Challenge vs Solution
 
-### The Solution
-```
-✅ Centralized prompt library
-✅ Real-time cost calculation
-✅ AI-powered optimization  
-✅ Multi-tenant collaboration
-✅ Prompt building & reuse
+```mermaid
+graph LR
+    subgraph P ["❌ Problems"]
+        P1[Scattered prompts]
+        P2[No cost visibility]
+        P3[Manual optimization]
+    end
+    
+    subgraph S ["✅ Solutions"]
+        S1[Centralized library]
+        S2[Real-time costs]
+        S3[AI optimization]
+    end
+    
+    P --> S
+    
+    style P fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
+    style S fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style P1 fill:#fff,stroke:#d32f2f,color:#000
+    style P2 fill:#fff,stroke:#d32f2f,color:#000
+    style P3 fill:#fff,stroke:#d32f2f,color:#000
+    style S1 fill:#fff,stroke:#388e3c,color:#000
+    style S2 fill:#fff,stroke:#388e3c,color:#000
+    style S3 fill:#fff,stroke:#388e3c,color:#000
 ```
 
 ### Why Instruere?
@@ -72,26 +86,16 @@ A comprehensive AI prompt management system with unified architecture supporting
 
 Instruere is built on a **unified, modular architecture** that scales from single-user development to enterprise multi-tenant deployments.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    🌐 Client Layer                          │
-│  📱 Web UI    🔌 API Clients    📱 Mobile    ⌨️ CLI Tools   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                  🚀 Application Layer                       │
-│  🎨 Gradio UI  │  ⚡ FastAPI  │  🔐 Auth  │  🧩 Builder    │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                  🧠 Business Logic                          │
-│  📝 Prompts  │  🧮 Calculator  │  🚀 Optimizer  │  👥 Users │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                    💾 Data Layer                            │
-│          📁 SQLite (Dev)  │  🐘 PostgreSQL (Prod)          │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    Client[🌐 Client Layer<br/>Web UI • API • Mobile] --> App[🚀 Application Layer<br/>Gradio • FastAPI • Auth]
+    App --> Logic[🧠 Business Logic<br/>Prompts • Calculator • Optimizer]
+    Logic --> Data[💾 Data Layer<br/>SQLite • PostgreSQL]
+    
+    style Client fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style App fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style Logic fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style Data fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
 ### 🔑 Key Architectural Principles
@@ -545,8 +549,15 @@ Create, organize, and manage your AI prompts with powerful tools for optimizatio
 
 ### 🚀 Quick Start Workflow
 
-```
-📝 Create → 🧮 Calculate Cost → 🚀 Optimize → 💾 Save → 🔄 Reuse
+```mermaid
+graph LR
+    A[📝 Create] --> B[🧮 Calculate] --> C[🚀 Optimize] --> D[💾 Save] --> E[🔄 Reuse]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style C fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style D fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style E fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
 ```
 
 ### ✍️ Creating Prompts
@@ -570,17 +581,16 @@ Create, organize, and manage your AI prompts with powerful tools for optimizatio
 
 **Understanding AI Costs in Real-Time**
 
-```
-┌─────────────────────────────────────────┐
-│  💰 Cost Control Dashboard              │
-│                                         │
-│  📝 Input Tokens:    245 tokens        │
-│  💬 Output Tokens:   1,000 tokens      │
-│  📊 Total Cost:      $0.0615 USD       │
-│                                         │
-│  ⚠️  Large prompt detected             │
-│  💡 Tip: Split into smaller prompts    │
-└─────────────────────────────────────────┘
+```mermaid
+graph LR
+    A[📝 Input: 245 tokens] --> C[📊 Cost: $0.0615]
+    B[💬 Output: 1,000 tokens] --> C
+    C --> D[⚠️ Large prompt - Split recommended]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style C fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style D fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
 ```
 
 **Key Features:**
@@ -603,20 +613,16 @@ Create, organize, and manage your AI prompts with powerful tools for optimizatio
 
 **Smart Organization System:**
 
-```
-📁 Prompt Library
-├── 📝 Writing
-│   ├── Blog Posts (12)
-│   ├── Emails (8)
-│   └── Social Media (15)
-├── 💻 Code  
-│   ├── Python (23)
-│   ├── Documentation (7)
-│   └── Debugging (11)
-└── 📊 Analysis
-    ├── Data Analysis (9)
-    ├── Research (14)
-    └── Reports (6)
+```mermaid
+graph LR
+    A[📁 Library] --> B[📝 Writing<br/>35 prompts]
+    A --> C[💻 Code<br/>41 prompts]
+    A --> D[📊 Analysis<br/>29 prompts]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style C fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style D fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
 **Features:**
@@ -634,8 +640,14 @@ Transform good prompts into great prompts with AI-powered analysis and improveme
 
 ### ⚡ The Optimization Process
 
-```
-📝 Original Prompt → 🔍 AI Analysis → 💡 Improvements → ✨ Optimized Prompt
+```mermaid
+graph LR
+    A[📝 Original] --> B[🔍 Analysis] --> C[💡 Improvements] --> D[✨ Optimized]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style C fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style D fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
 ```
 
 **What gets optimized:**
@@ -649,35 +661,29 @@ Transform good prompts into great prompts with AI-powered analysis and improveme
 
 Choose from multiple AI optimization providers:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  🚀 LangWatch      ⭐⭐⭐⭐⭐  Enterprise-grade      │
-│  🔍 PromptPerfect  ⭐⭐⭐⭐   Creative optimization  │  
-│  🧠 LangSmith      ⭐⭐⭐⭐   LangChain integration │
-│  ⚡ Helicone       ⭐⭐⭐     Performance focused   │
-│  🧪 Built-in       ⭐⭐⭐     No setup required     │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    A[🚀 LangWatch<br/>⭐⭐⭐⭐⭐] --> B[🔍 PromptPerfect<br/>⭐⭐⭐⭐] --> C[🧪 Built-in<br/>⭐⭐⭐]
+    
+    style A fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style B fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style C fill:#f1f8e9,stroke:#689f38,stroke-width:2px,color:#000
 ```
 
 ### 📊 Optimization Dashboard
 
 **Real-time optimization results:**
 
-```
-┌─────────────────────────────────────────┐
-│  🚀 Optimization Results                │
-│                                         │
-│  📊 Score: 78.5/100 (+23.5 improvement)│
-│  🎯 Goals: Clarity, Structure, Context  │
-│                                         │
-│  💡 Key Improvements:                   │
-│  • Added role definition                │
-│  • Structured approach                  │
-│  • Enhanced specificity                 │
-│  • Better output formatting             │
-│                                         │
-│  ✅ Accept  🔄 Retry  ❌ Reject        │
-└─────────────────────────────────────────┘
+```mermaid
+graph LR
+    A[📊 Score: 78.5/100<br/>+23.5 improvement] --> B[✅ Accept]
+    A --> C[🔄 Retry]
+    A --> D[❌ Reject]
+    
+    style A fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style B fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style C fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style D fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
 ```
 
 ### 🎯 Optimization Workflow
@@ -1002,8 +1008,15 @@ Create sophisticated, multi-layered prompts by combining existing ones with an i
 ### 🎯 What is Prompt Building?
 
 **The power of combination:**
-```
-📝 Prompt A + 📝 Prompt B + 📝 Prompt C = 🚀 Super Prompt
+
+```mermaid
+graph LR
+    A[📝 Prompt A] --> B[📝 Prompt B] --> C[📝 Prompt C] --> D[🚀 Super Prompt]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style C fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style D fill:#e8f5e8,stroke:#388e3c,stroke-width:3px,color:#000
 ```
 
 Transform individual prompts into comprehensive workflows:
@@ -1015,18 +1028,14 @@ Transform individual prompts into comprehensive workflows:
 
 ### 🏗️ Builder Interface
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ 📚 Available Prompts    │  🎯 Selected Prompts         │
-│                         │                               │
-│ [📝 Email Template]     │  1. [📝 Email Template]      │
-│ [📊 Data Analysis]      │  2. [🎨 Brand Voice]         │  
-│ [🎨 Brand Voice]        │  3. [📋 Call-to-Action]      │
-│ [📋 Call-to-Action]     │                               │
-│ [💻 Code Review]        │  Template: 📑 Sections       │
-│                         │                               │
-│ 🔍 Search prompts...    │  👁️ Preview │ 🔗 Combine    │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    A[📚 Available<br/>Prompts] --> B[🎯 Selected<br/>Prompts] --> C[👁️ Preview] --> D[🔗 Combine]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style C fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style D fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
 ### 🎨 Template Gallery
