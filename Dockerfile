@@ -46,7 +46,7 @@ RUN mkdir -p /app/data
 # Test that both legacy and new architecture components can be imported
 RUN python -c "\
 import sys; \
-sys.path.insert(0, '/app/src'); \
+sys.path.insert(0, './src'); \
 import prompt_manager, auth_manager, api_endpoints; \
 from src.core.config.settings import AppConfig, DatabaseConfig, DatabaseType; \
 from src.prompts.models.prompt import Prompt; \
@@ -57,7 +57,7 @@ print('✅ Docker build: All imports successful')"
 # Test basic new architecture functionality during build
 RUN python -c "\
 import sys, tempfile, os; \
-sys.path.insert(0, '/app/src'); \
+sys.path.insert(0, './src'); \
 from src.core.config.settings import DatabaseConfig, DatabaseType; \
 from src.core.base.database_manager import DatabaseManager; \
 from src.prompts.services.prompt_service import PromptService; \
