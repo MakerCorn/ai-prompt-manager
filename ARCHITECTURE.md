@@ -271,7 +271,7 @@ sequenceDiagram
     participant UI as 🎨 Login UI
     participant AS as 🔐 AuthService
     participant UR as 👤 UserRepository
-    parameter PH as 🔒 PasswordHandler
+    participant PH as 🔒 PasswordHandler
     participant TM as 🎫 TokenManager
     participant DB as 💾 Database
 
@@ -309,7 +309,7 @@ sequenceDiagram
 sequenceDiagram
     participant C as 📞 Client
     participant S as 🧠 Service
-    parameter V as ✅ Validator
+    participant V as ✅ Validator
     participant R as 💾 Repository
     participant M as 📊 Model
     participant DB as 🗄️ Database
