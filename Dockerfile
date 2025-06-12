@@ -27,16 +27,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Poetry
 RUN pip install --upgrade pip && pip install poetry
 
-# Copy application files
-COPY pyproject.toml poetry.lock LICENSE ./
+# Copy project metadata files first (needed by Poetry)
+COPY pyproject.toml poetry.lock LICENSE README.md ./
+
+# Configure poetry and install dependencies
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi --only=main --no-root
+
+# Copy application files after dependencies are installed
 COPY *.py ./
 COPY src/ ./src/
 COPY tests/ ./tests/
 COPY scripts/ ./scripts/
-
-# Configure poetry and install dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --only=main
 
 # Create data directory for database
 RUN mkdir -p /app/data
