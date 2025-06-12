@@ -43,37 +43,8 @@ COPY scripts/ ./scripts/
 # Create data directory for database
 RUN mkdir -p /app/data
 
-# Test that both legacy and new architecture components can be imported
-RUN python -c "\
-import sys; \
-sys.path.insert(0, './src'); \
-import prompt_manager, auth_manager, api_endpoints; \
-from src.core.config.settings import AppConfig, DatabaseConfig, DatabaseType; \
-from src.prompts.models.prompt import Prompt; \
-from src.core.base.database_manager import DatabaseManager; \
-from src.prompts.services.prompt_service import PromptService; \
-print('✅ Docker build: All imports successful')"
-
-# Test basic new architecture functionality during build
-RUN python -c "\
-import sys, tempfile, os; \
-sys.path.insert(0, './src'); \
-from src.core.config.settings import DatabaseConfig, DatabaseType; \
-from src.core.base.database_manager import DatabaseManager; \
-from src.prompts.services.prompt_service import PromptService; \
-temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db'); \
-temp_db.close(); \
-try: \
-    db_config = DatabaseConfig(db_type=DatabaseType.SQLITE, db_path=temp_db.name); \
-    db_manager = DatabaseManager(db_config); \
-    prompt_service = PromptService(db_manager); \
-    print('✅ Docker build: New architecture services initialized successfully'); \
-except Exception as e: \
-    print(f'❌ Docker build: New architecture test failed: {e}'); \
-    raise; \
-finally: \
-    try: os.unlink(temp_db.name); \
-    except: pass"
+# Test that both legacy and new architecture components can be imported and initialized
+RUN python scripts/docker-test.py
 
 # Expose port for Gradio and API
 EXPOSE 7860
