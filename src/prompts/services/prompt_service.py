@@ -14,6 +14,7 @@ from ...core.base.database_manager import BaseDatabaseManager
 from ...core.exceptions.base import ValidationException, ServiceException
 from ..models.prompt import Prompt
 from ..repositories.prompt_repository import PromptRepository
+from .template_service import TemplateService
 
 
 class PromptService(BaseService):
@@ -29,6 +30,7 @@ class PromptService(BaseService):
         super().__init__()
         self.db_manager = db_manager
         self.repository = PromptRepository(db_manager)
+        self.template_service = TemplateService()
     
     def create_prompt(
         self,
@@ -637,3 +639,177 @@ class PromptService(BaseService):
             )
         
         return ServiceResult(success=True, data=True)
+    
+    def apply_template_to_prompt(
+        self,
+        template_name: str,
+        content: str,
+        category: str = "Uncategorized",
+        tags: str = "",
+        user_context: str = ""
+    ) -> ServiceResult[str]:
+        """
+        Apply a template to prompt content.
+        
+        Args:
+            template_name: Name of the template to use
+            content: Prompt content
+            category: Prompt category
+            tags: Prompt tags
+            user_context: Additional user context
+            
+        Returns:
+            ServiceResult containing the templated prompt
+        """
+        try:
+            # Prepare template variables
+            variables = {
+                "content": content,
+                "category": category,
+                "tags": tags,
+                "user_context": user_context
+            }
+            
+            # Apply template
+            template_result = self.template_service.apply_template(
+                template_name, 
+                variables,
+                fallback_template="default"
+            )
+            
+            if template_result.success:
+                return ServiceResult(success=True, data=template_result.data)
+            else:
+                return ServiceResult(
+                    success=False,
+                    error=f"Template application failed: {template_result.error}",
+                    error_code="TEMPLATE_ERROR"
+                )
+                
+        except Exception as e:
+            self.logger.error(f"Error applying template to prompt: {e}")
+            return ServiceResult(
+                success=False,
+                error="An unexpected error occurred while applying template",
+                error_code="INTERNAL_ERROR"
+            )
+    
+    def enhance_prompt_with_template(
+        self,
+        original_prompt: str,
+        enhancement_instructions: str = "",
+        target_model: str = "",
+        category: str = "Enhancement"
+    ) -> ServiceResult[str]:
+        """
+        Enhance a prompt using enhancement template.
+        
+        Args:
+            original_prompt: Original prompt to enhance
+            enhancement_instructions: Specific enhancement directions
+            target_model: Target AI model for optimization
+            category: Enhancement category
+            
+        Returns:
+            ServiceResult containing the enhanced prompt
+        """
+        try:
+            # Prepare enhancement template variables
+            variables = {
+                "original_prompt": original_prompt,
+                "enhancement_instructions": enhancement_instructions,
+                "target_model": target_model,
+                "category": category,
+                "user_context": ""
+            }
+            
+            # Apply enhancement template
+            template_result = self.template_service.apply_template(
+                "enhancement",
+                variables,
+                fallback_template="default"
+            )
+            
+            if template_result.success:
+                return ServiceResult(success=True, data=template_result.data)
+            else:
+                return ServiceResult(
+                    success=False,
+                    error=f"Enhancement template failed: {template_result.error}",
+                    error_code="ENHANCEMENT_ERROR"
+                )
+                
+        except Exception as e:
+            self.logger.error(f"Error enhancing prompt with template: {e}")
+            return ServiceResult(
+                success=False,
+                error="An unexpected error occurred while enhancing prompt",
+                error_code="INTERNAL_ERROR"
+            )
+    
+    def get_available_templates(self) -> ServiceResult[List[str]]:
+        """
+        Get list of available prompt templates.
+        
+        Returns:
+            ServiceResult containing list of template names
+        """
+        try:
+            return self.template_service.get_available_templates()
+            
+        except Exception as e:
+            self.logger.error(f"Error getting available templates: {e}")
+            return ServiceResult(
+                success=False,
+                error="An unexpected error occurred while retrieving templates",
+                error_code="INTERNAL_ERROR"
+            )
+    
+    def validate_template(self, template_content: str) -> ServiceResult[Dict[str, Any]]:
+        """
+        Validate template content.
+        
+        Args:
+            template_content: Template content to validate
+            
+        Returns:
+            ServiceResult containing validation results
+        """
+        try:
+            return self.template_service.validate_template(template_content)
+            
+        except Exception as e:
+            self.logger.error(f"Error validating template: {e}")
+            return ServiceResult(
+                success=False,
+                error="An unexpected error occurred while validating template",
+                error_code="INTERNAL_ERROR"
+            )
+    
+    def create_custom_template(
+        self,
+        name: str,
+        content: str,
+        category: str = "custom"
+    ) -> ServiceResult[str]:
+        """
+        Create a custom template.
+        
+        Args:
+            name: Template name
+            content: Template content
+            category: Template category
+            
+        Returns:
+            ServiceResult containing template path
+        """
+        try:
+            return self.template_service.create_custom_template(name, content, category)
+            
+        except Exception as e:
+            self.logger.error(f"Error creating custom template: {e}")
+            return ServiceResult(
+                success=False,
+                error="An unexpected error occurred while creating template",
+                error_code="INTERNAL_ERROR"
+            )

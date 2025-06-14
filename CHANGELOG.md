@@ -1,5 +1,47 @@
 # Changelog
 
+## [Unreleased] - Custom Prompt Templates
+
+### 🎨 Custom Prompt Templates System
+
+#### **Template Infrastructure**
+- **Template Directory**: Added `templates/` directory with domain-specific template files
+- **Template Service**: Implemented comprehensive template service for loading and managing templates (`src/prompts/services/template_service.py`)
+- **Variable Substitution**: Full support for template variables using `{variable_name}` syntax
+- **Template Validation**: Built-in validation for template content and variable requirements
+
+#### **Built-in Templates**
+- **Default Template** (`default_prompt_template.txt`): General-purpose prompt creation
+- **Enhancement Template** (`enhancement_template.txt`): Prompt optimization and improvement
+- **Business Template** (`business_template.txt`): Commercial use cases with ROI focus
+- **Technical Template** (`technical_template.txt`): Software development and engineering
+- **Creative Template** (`creative_template.txt`): Content generation and creative writing
+- **Analytical Template** (`analytical_template.txt`): Data analysis and research tasks
+
+#### **Configuration & Environment Support**
+- **Environment Variables**: Added `PROMPT_TEMPLATE` and `ENHANCEMENT_TEMPLATE` configuration options
+- **Custom Template Variables**: Support for user-defined template variables via `custom_template_variables`
+- **Template Auto-Discovery**: Automatic scanning of templates directory for `.txt` files
+- **Fallback System**: Graceful fallback to default templates if custom templates fail
+
+#### **Service Integration**
+- **Prompt Service Integration**: Enhanced prompt service with template application methods
+- **Template Application**: `apply_template_to_prompt()` for standard template usage
+- **Enhancement Integration**: `enhance_prompt_with_template()` for prompt optimization
+- **Template Management**: `get_available_templates()`, `validate_template()`, `create_custom_template()`
+
+#### **Documentation & Examples**
+- **README Updates**: Comprehensive template documentation with usage examples and best practices
+- **Template README**: Detailed guide in `templates/README.md` with customization instructions
+- **Configuration Guide**: Environment variable setup and template selection guidance
+- **Use Case Examples**: Domain-specific template examples for business, technical, and creative use cases
+
+#### **Advanced Features**
+- **Multi-Language Support**: Templates work seamlessly with the translation system
+- **Caching System**: Efficient template loading with in-memory caching
+- **Error Handling**: Robust error handling with meaningful error messages
+- **Template Variables**: Support for content, category, tags, user_context, and enhancement-specific variables
+
 ## [v0.3.3] - 2025-06-11 - Test Organization & Docker Syntax Fixes
 
 ### 🧪 Test Suite Organization

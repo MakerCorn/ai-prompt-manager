@@ -657,6 +657,102 @@ graph LR
 - **📊 Usage analytics** - See which prompts perform best
 - **🔄 Version history** - Track prompt evolution over time
 
+### 🎨 Custom Prompt Templates
+
+**Standardize and Optimize Your Prompt Creation**
+
+AI Prompt Manager supports custom templates that help you create consistent, high-quality prompts across different domains and use cases.
+
+```mermaid
+graph LR
+    A[📝 Template] --> B[🔧 Variables] --> C[🎯 Applied] --> D[✨ Generated]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style C fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style D fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+```
+
+#### **📚 Available Templates**
+
+| Template | Purpose | Variables | Use Case |
+|----------|---------|-----------|----------|
+| **🔧 Default** | General prompt creation | `{content}`, `{category}`, `{tags}`, `{user_context}` | Standard prompts |
+| **🚀 Enhancement** | Prompt optimization | `{original_prompt}`, `{enhancement_instructions}`, `{target_model}` | Improving existing prompts |
+| **💼 Business** | Commercial use cases | Business metrics, ROI focus, stakeholder alignment | Marketing, sales, strategy |
+| **⚙️ Technical** | Development & engineering | Code quality, best practices, security | Software development |
+| **🎨 Creative** | Content generation | Style, tone, audience considerations | Writing, marketing copy |
+| **📊 Analytical** | Data & research | Methodology, evidence-based reasoning | Analysis, research |
+
+#### **🔧 Template Configuration**
+
+Set template preferences via environment variables:
+
+```bash
+# Use custom prompt template
+export PROMPT_TEMPLATE="/path/to/templates/my_template.txt"
+
+# Use custom enhancement template  
+export ENHANCEMENT_TEMPLATE="/path/to/templates/my_enhancement.txt"
+
+# Templates directory is automatically scanned for .txt files
+# Default location: templates/
+```
+
+#### **✍️ Creating Custom Templates**
+
+Templates support variable substitution using `{variable_name}` syntax:
+
+```bash
+# Example business template
+"""
+Create a business-focused prompt for {category} use case:
+
+Business Context: {user_context}
+Key Areas: {tags}
+
+Prompt Content: {content}
+
+Business Guidelines:
+- Focus on measurable outcomes and ROI
+- Consider target audience and market impact
+- Include implementation timeline
+- Address stakeholder requirements
+"""
+```
+
+#### **🎯 Using Templates in Prompts**
+
+1. **📝 Create or edit** a prompt in the main interface
+2. **🎨 Select template** from the available options
+3. **📋 Fill variables** - Content, category, tags, context
+4. **👁️ Preview** the templated result
+5. **💾 Save** your structured prompt
+
+#### **⚡ Template Features**
+
+- **🔍 Variable Validation** - Ensures all required variables are provided
+- **📚 Template Library** - Pre-built templates for common use cases
+- **🎨 Custom Templates** - Create organization-specific templates
+- **🌐 Multi-Language** - Templates work with translation features
+- **🔄 Version Control** - Track template evolution over time
+
+#### **💡 Best Practices**
+
+- **Be Specific**: Include domain-specific terminology and concepts
+- **Provide Context**: Explain the intended use case for the prompts
+- **Test Templates**: Experiment with different templates for your use cases
+- **Use Variables**: Leverage template variables for flexible content insertion
+- **Organize Templates**: Group templates by domain or use case
+
+#### **🔗 Integration**
+
+Templates integrate seamlessly with other features:
+- **🧮 Token Calculator** - Estimate costs for templated prompts
+- **🚀 AI Optimization** - Optimize templated prompts with LangWatch
+- **🧩 Prompt Builder** - Combine templated prompts for complex workflows
+- **🔌 API Access** - Access templates programmatically via REST API
+
 ---
 
 ## 🚀 AI-Powered Optimization

@@ -193,6 +193,11 @@ class ExternalServicesConfig:
     azure_openai_key: Optional[str] = None
     azure_openai_version: str = "2024-02-15-preview"
     
+    # Template Configuration
+    prompt_template: Optional[str] = None
+    enhancement_template: Optional[str] = None
+    custom_template_variables: Dict[str, Any] = field(default_factory=dict)
+    
     @classmethod
     def from_env(cls) -> 'ExternalServicesConfig':
         """Create external services config from environment variables."""
@@ -231,7 +236,12 @@ class ExternalServicesConfig:
             azure_ai_key=os.getenv("AZURE_AI_KEY"),
             azure_openai_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             azure_openai_key=os.getenv("AZURE_OPENAI_KEY"),
-            azure_openai_version=os.getenv("AZURE_OPENAI_VERSION", "2024-02-15-preview")
+            azure_openai_version=os.getenv("AZURE_OPENAI_VERSION", "2024-02-15-preview"),
+            
+            # Templates
+            prompt_template=os.getenv("PROMPT_TEMPLATE"),
+            enhancement_template=os.getenv("ENHANCEMENT_TEMPLATE"),
+            custom_template_variables={}
         )
 
 
