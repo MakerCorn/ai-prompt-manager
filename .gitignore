@@ -177,3 +177,7 @@ cython_debug/
 .pypirc
 
 prompts.db
+
+# Claude Code files
+.claude/
+CLAUDE.md
