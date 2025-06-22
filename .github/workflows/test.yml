@@ -5,12 +5,14 @@ on:
     workflows: ["Build and Publish Package"]
     types:
       - completed
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
 jobs:
   test-python:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'pull_request' }}
     
     steps:
       - name: Checkout code
@@ -28,7 +30,7 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Update lock file
-        run: poetry lock --no-update
+        run: poetry lock
 
       - name: Load cached venv
         id: cached-poetry-dependencies
@@ -246,6 +248,7 @@ jobs:
 
   lint-and-format:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'pull_request' }}
     
     steps:
       - name: Checkout code
