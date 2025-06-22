@@ -603,11 +603,17 @@ jobs:
           name: python-packages-${{ needs.validate-release.outputs.version }}
           path: ./release-artifacts
 
-      - name: Copy built packages to dist
+      - name: Rebuild packages for PyPI
         run: |
-          echo "📦 Copying built packages for PyPI upload..."
-          mkdir -p dist
-          cp release-artifacts/dist/* dist/
+          echo "📦 Rebuilding packages for PyPI upload..."
+          
+          # Update version to match release
+          RELEASE_VERSION="${{ needs.validate-release.outputs.version }}"
+          CLEAN_VERSION=${RELEASE_VERSION#v}  # Remove 'v' prefix
+          poetry version $CLEAN_VERSION
+          
+          # Build fresh packages
+          poetry build
           
           echo "📋 Packages ready for upload:"
           ls -la dist/
