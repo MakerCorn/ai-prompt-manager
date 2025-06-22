@@ -1,6 +1,90 @@
 # Changelog
 
-## [Unreleased] - Package Name Change & PyPI Publishing
+## [Unreleased] - Advanced Release Pipeline & Draft Mode
+
+### 🚀 Release Workflow Enhancements
+
+#### **Draft Mode Implementation**
+- **Draft Mode Parameter**: Added `draft` input to workflow_dispatch for testing releases without publishing
+- **Selective Building**: Draft mode performs Python builds only when not in pre-release mode
+- **Testing Releases**: Allows full release testing without actual deployment
+
+#### **Intelligent Release Logic**
+- **Conditional Docker Building**: Docker images built based on pre-release and draft mode combinations
+- **Smart PyPI Publishing**: Only publishes to PyPI for stable releases (not pre-release, not draft)
+- **Flexible Docker Push**: Builds Docker images for pre-release testing but only pushes for actual releases
+
+#### **Release Behavior Matrix**
+| Mode | Pre-release | Draft | Python Build | Docker Build | Docker Push | PyPI Push | GitHub Release |
+|------|-------------|-------|--------------|--------------|-------------|-----------|----------------|
+| Draft only | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Pre-release + Draft | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Pre-release only | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Normal release | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+#### **Workflow Reliability Improvements**
+- **Conditional Job Execution**: Jobs run only when appropriate based on release type
+- **Error Handling**: Proper handling of skipped jobs and missing artifacts
+- **Dependency Management**: Smart job dependencies that handle optional components
+
+### 🔧 Technical Improvements
+
+#### **Release Validation**
+- **Pre-flight Checks**: Comprehensive testing before any publishing occurs
+- **Artifact Validation**: Ensures all components work correctly before release
+- **Rollback Safety**: Draft mode allows testing without permanent changes
+
+#### **Publishing Control**
+- **PyPI Protection**: Prevents accidental publishing of pre-releases or drafts
+- **Docker Registry Management**: Controlled pushing based on release stability
+- **GitHub Release Creation**: Only creates releases for stable versions
+
+### 📋 Files Updated
+- `.github/workflows/release.yml` - Complete release workflow overhaul with draft mode and conditional logic
+- All job conditions updated to handle draft and pre-release combinations
+- Docker build and push logic separated for better control
+- PyPI publishing restricted to stable releases only
+
+## [Previous] - CI/CD Workflow Fixes & Code Quality
+
+### 🔧 GitHub Actions Workflow Improvements
+
+#### **Poetry Lock File Synchronization**
+- **Fixed Poetry Lock Issues**: Removed invalid `--no-update` flag from `poetry lock` commands in all workflows
+- **Workflow Reliability**: Updated release.yml, build-package.yml, and test.yml to use correct Poetry commands
+- **Build Consistency**: Ensured poetry.lock stays synchronized with pyproject.toml changes
+
+#### **Test Workflow Dependencies**
+- **Conditional Test Execution**: Fixed test.yml to only run after successful build-package workflow completion
+- **Build Failure Prevention**: Tests no longer run when builds fail, preventing false positive results
+- **PR Testing Maintained**: Pull requests still trigger tests independently for development workflow
+- **Workflow Logic**: Added proper conditions to both test-python and lint-and-format jobs
+
+#### **Code Quality & Formatting**
+- **Black Formatting**: Ran black formatter on all Python files (59 files processed, all already compliant)
+- **Import Organization**: Applied isort with black profile for consistent import formatting
+- **Code Standards**: Maintained consistent code formatting across the entire codebase
+- **Linting Compliance**: All files pass formatting and import organization standards
+
+### 🛠️ Technical Improvements
+
+#### **Workflow Optimization**
+- **Dependency Management**: Proper workflow dependencies prevent resource waste on failed builds
+- **Error Prevention**: Eliminated poetry command errors that were causing CI failures
+- **Build Efficiency**: Workflows now fail fast when dependencies can't be resolved
+
+#### **Code Quality Assurance**
+- **Consistent Formatting**: All Python code follows black and isort standards
+- **Import Standards**: Standardized import organization across all modules
+- **Maintainability**: Improved code readability and consistency
+
+### 📋 Files Updated
+- `.github/workflows/release.yml` - Fixed poetry lock commands and workflow dependencies
+- `.github/workflows/build-package.yml` - Updated poetry lock syntax
+- `.github/workflows/test.yml` - Added conditional execution based on build success
+- All Python files - Formatted with black and isort (no changes needed, already compliant)
+
+## [Previous] - Package Name Change & PyPI Publishing
 
 ### 📦 Package Distribution Updates
 
