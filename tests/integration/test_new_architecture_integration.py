@@ -345,8 +345,7 @@ class TestNewArchitectureIntegration:
 
     def test_error_handling_integration(self):
         """Test error handling across architecture components."""
-        from src.core.exceptions.base import (DatabaseException,
-                                              ValidationException)
+        from src.core.exceptions.base import DatabaseException, ValidationException
 
         # Test database error handling
         with pytest.raises(DatabaseException):

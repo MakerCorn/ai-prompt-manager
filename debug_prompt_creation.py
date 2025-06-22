@@ -12,8 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from src.core.base.database_manager import DatabaseManager  # noqa: E402
 from src.core.config.settings import DatabaseConfig, DatabaseType  # noqa: E402
 from src.prompts.models.prompt import Prompt  # noqa: E402
-from src.prompts.repositories.prompt_repository import \
-    PromptRepository  # noqa: E402
+from src.prompts.repositories.prompt_repository import PromptRepository  # noqa: E402
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG)

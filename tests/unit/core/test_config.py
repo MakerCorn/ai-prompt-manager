@@ -10,11 +10,18 @@ from unittest.mock import patch
 
 import pytest
 
-from src.core.config.settings import (AppConfig, AuthConfig, DatabaseConfig,
-                                      DatabaseType, ExternalServicesConfig,
-                                      LogLevel, OptimizationService,
-                                      TranslationService, get_config,
-                                      reset_config)
+from src.core.config.settings import (
+    AppConfig,
+    AuthConfig,
+    DatabaseConfig,
+    DatabaseType,
+    ExternalServicesConfig,
+    LogLevel,
+    OptimizationService,
+    TranslationService,
+    get_config,
+    reset_config,
+)
 from src.core.exceptions.base import ConfigurationException
 
 
