@@ -345,7 +345,6 @@ jobs:
           cp README.md release-dist/
           cp LICENSE release-dist/
           cp CHANGELOG.md release-dist/
-          cp ARCHITECTURE.md release-dist/
           cp pyproject.toml release-dist/
           cp poetry.lock release-dist/
           
@@ -366,15 +365,9 @@ jobs:
             echo "✅ Copied new architecture source code"
           fi
           
-          # Copy documentation and guides
-          if [ -f ARCHITECTURE.md ]; then
-            cp ARCHITECTURE.md release-dist/
-          fi
-          if [ -f REFACTORING_PLAN.md ]; then
-            cp REFACTORING_PLAN.md release-dist/
-          fi
-          if [ -f NEW_ARCHITECTURE_GUIDE.md ]; then
-            cp NEW_ARCHITECTURE_GUIDE.md release-dist/
+          # Copy all documentation from docs folder
+          if [ -d docs ]; then
+            cp -r docs/ release-dist/
           fi
           
           # Copy test files for validation
