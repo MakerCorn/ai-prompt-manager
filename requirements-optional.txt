@@ -1,0 +1,9 @@
+# AI Prompt Manager - Optional Dependencies
+# Install with: pip install -r requirements-optional.txt
+
+# Enhanced Password Hashing (optional but recommended for production)
+bcrypt>=4.0.0,<5.0.0
+argon2-cffi>=21.0.0,<24.0.0
+
+# ASGI Server for API hosting (optional, for standalone API server)
+uvicorn[standard]>=0.34.0,<1.0.0

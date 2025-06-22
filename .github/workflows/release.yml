@@ -561,6 +561,92 @@ jobs:
             release-dist/
           retention-days: 90
 
+  # Publish to PyPI
+  publish-to-pypi:
+    runs-on: ubuntu-latest
+    needs: [validate-release, build-python-package, test-before-release]
+    # Only publish if this is a published release (not draft) and not a pre-release
+    if: github.event_name == 'release' && github.event.release.draft == false && github.event.release.prerelease == false
+    environment: production
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-packages-${{ needs.validate-release.outputs.version }}
+          path: ./release-artifacts
+
+      - name: Copy built packages to dist
+        run: |
+          echo "📦 Copying built packages for PyPI upload..."
+          mkdir -p dist
+          cp release-artifacts/dist/* dist/
+          
+          echo "📋 Packages ready for upload:"
+          ls -la dist/
+          
+          echo "🔐 Package checksums:"
+          sha256sum dist/*
+
+      - name: Configure Poetry for PyPI
+        run: |
+          echo "🔧 Configuring Poetry for PyPI publishing..."
+          poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Publish to PyPI
+        run: |
+          echo "🚀 Publishing to PyPI..."
+          
+          # Verify we have the packages
+          if [ ! -d "dist" ] || [ -z "$(ls -A dist/)" ]; then
+            echo "❌ No packages found in dist/ directory"
+            exit 1
+          fi
+          
+          echo "📦 Publishing packages:"
+          ls -la dist/
+          
+          # Publish to PyPI
+          poetry publish --no-interaction
+          
+          echo "✅ Successfully published to PyPI!"
+
+      - name: Verify PyPI publication
+        run: |
+          PACKAGE_NAME="${{ needs.build-python-package.outputs.package-name }}"
+          PACKAGE_VERSION="${{ needs.build-python-package.outputs.package-version }}"
+          
+          echo "🔍 Verifying publication on PyPI..."
+          echo "Package: $PACKAGE_NAME"
+          echo "Version: $PACKAGE_VERSION"
+          
+          # Wait a moment for PyPI to process
+          echo "⏳ Waiting for PyPI to process the upload..."
+          sleep 30
+          
+          # Try to fetch the package info from PyPI API
+          if curl -f "https://pypi.org/pypi/promptman/$PACKAGE_VERSION/json" > /dev/null 2>&1; then
+            echo "✅ Package successfully published and available on PyPI!"
+            echo "📦 PyPI URL: https://pypi.org/project/promptman/$PACKAGE_VERSION/"
+          else
+            echo "⚠️ Package may still be processing on PyPI. Check manually:"
+            echo "📦 PyPI URL: https://pypi.org/project/promptman/"
+          fi
+
   # Build and push Docker image
   build-docker-image:
     runs-on: ubuntu-latest
@@ -722,7 +808,9 @@ jobs:
   # Create GitHub release
   create-github-release:
     runs-on: ubuntu-latest
-    needs: [validate-release, build-python-package, build-docker-image]
+    needs: [validate-release, build-python-package, build-docker-image, publish-to-pypi]
+    # Always run this job, even if PyPI publishing is skipped
+    if: always() && (needs.validate-release.result == 'success' && needs.build-python-package.result == 'success' && needs.build-docker-image.result == 'success')
     permissions:
       contents: write
     
@@ -804,7 +892,10 @@ jobs:
           
           ### 📚 Python Package
           \`\`\`bash
-          # Download and install from release
+          # Install from PyPI (Recommended)
+          pip install promptman==${{ needs.build-python-package.outputs.package-version }}
+          
+          # Or download and install from release
           wget https://github.com/${{ github.repository }}/releases/download/${{ needs.validate-release.outputs.version }}/${{ needs.build-python-package.outputs.package-name }}-${{ needs.validate-release.outputs.version }}.tar.gz
           tar -xzf ${{ needs.build-python-package.outputs.package-name }}-${{ needs.validate-release.outputs.version }}.tar.gz
           cd release-dist
@@ -846,6 +937,7 @@ jobs:
           
           ## 📋 Release Assets
           
+          - **PyPI Package**: Available on [PyPI](https://pypi.org/project/promptman/${{ needs.build-python-package.outputs.package-version }}/) for easy installation
           - **Source Archives**: Complete source code with installation scripts
           - **Python Packages**: Wheel and source distributions
           - **Docker Images**: Multi-platform container images (amd64, arm64)
@@ -899,7 +991,9 @@ jobs:
   # Post-release validation
   validate-release-artifacts:
     runs-on: ubuntu-latest
-    needs: [validate-release, create-github-release, build-docker-image]
+    needs: [validate-release, create-github-release, build-docker-image, publish-to-pypi]
+    # Always run this job, even if PyPI publishing is skipped
+    if: always() && needs.create-github-release.result == 'success'
     
     steps:
       - name: Test Docker image
@@ -942,5 +1036,21 @@ jobs:
           echo "🏷️ Version: ${{ needs.validate-release.outputs.version }}"
           echo "🐳 Docker: ${{ env.REGISTRY }}/${{ needs.build-docker-image.outputs.image-name }}:${{ needs.validate-release.outputs.version }}"
           echo "📋 Pre-release: ${{ needs.validate-release.outputs.is_prerelease }}"
+          echo ""
+          
+          # Check if PyPI publishing was attempted
+          if [[ "${{ needs.validate-release.outputs.is_prerelease }}" == "false" && "${{ github.event_name }}" == "release" ]]; then
+            if [[ "${{ needs.publish-to-pypi.result }}" == "success" ]]; then
+              echo "📦 PyPI: https://pypi.org/project/promptman/${{ needs.build-python-package.outputs.package-version }}/"
+              echo "✅ Package successfully published to PyPI!"
+            elif [[ "${{ needs.publish-to-pypi.result }}" == "failure" ]]; then
+              echo "❌ PyPI publishing failed - check the publish-to-pypi job logs"
+            elif [[ "${{ needs.publish-to-pypi.result }}" == "skipped" ]]; then
+              echo "⏭️ PyPI publishing was skipped (draft or pre-release)"
+            fi
+          else
+            echo "⏭️ PyPI publishing skipped (pre-release or not a GitHub release event)"
+          fi
+          
           echo ""
           echo "✅ All release artifacts validated and published!"

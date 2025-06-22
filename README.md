@@ -155,6 +155,18 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ### 🐍 Option 2: Python Installation
 
+#### 📦 From PyPI (Recommended)
+```bash
+# 1️⃣ Install from PyPI
+pip install promptman
+
+# 2️⃣ Run the application
+python -m promptman
+
+# 3️⃣ Open browser to http://localhost:7860
+```
+
+#### 🔧 From Source (Development)
 ```bash
 # 1️⃣ Clone and install
 git clone <repository-url>
@@ -1996,6 +2008,7 @@ docker run -p 7860:7860 \
 | **👤 Single User** | `python run.py --single-user` | Personal use mode |
 | **🔌 With API** | `python run.py --with-api` | Enable REST endpoints |
 | **🐳 Docker** | `docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager` | Container deployment |
+| **📦 PyPI** | `pip install promptman && python -m promptman` | Package installation |
 | **🔧 Help** | `python run.py --help` | Show all options |
 
 ### 🌐 Multi-Language Quick Access

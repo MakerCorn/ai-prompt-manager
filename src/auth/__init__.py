@@ -2,8 +2,8 @@
 Authentication and authorization module for the AI Prompt Manager application.
 """
 
-from .models.user import User, UserRole
 from .models.tenant import Tenant
+from .models.user import User, UserRole
 from .security.password_handler import PasswordHandler
 
 # Services and other components will be imported as they are implemented
@@ -13,12 +13,12 @@ from .security.password_handler import PasswordHandler
 # from .security.token_manager import TokenManager
 
 __all__ = [
-    'User',
-    'UserRole',
-    'Tenant',
-    'PasswordHandler'
+    "User",
+    "UserRole",
+    "Tenant",
+    "PasswordHandler",
     # 'AuthService',
-    # 'UserService', 
+    # 'UserService',
     # 'TenantService',
     # 'TokenManager'
 ]

@@ -2,32 +2,9 @@
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[project]
-name = "ai-prompt-manager"
-version = "0.3.2"
-description = "AI Prompt Management System"
-authors = [
-    {name = "MakerCorn",email = "corn.mendoza@outlook.com"}
-]
-license = {file = "LICENSE"}
-requires-python = ">=3.12"
-dependencies = [
-    "gradio (>=5.32.1,<6.0.0)",
-    "requests (>=2.32.3,<3.0.0)",
-    "pandas (>=2.2.3,<3.0.0)",
-    "psycopg2-binary (>=2.9.10,<3.0.0)",
-    "python-dotenv (>=1.1.0,<2.0.0)",
-    "pyjwt (>=2.10.1,<3.0.0)",
-    "cryptography (>=43.0.3,<44.0.0)",
-    "fastapi (>=0.115.6,<1.0.0)",
-    "uvicorn[standard] (>=0.34.0,<1.0.0)",
-    "pydantic (>=2.10.3,<3.0.0)",
-    "tiktoken (>=0.8.0,<1.0.0)"
-]
-
 [tool.poetry]
-name = "ai-prompt-manager"
-version = "0.2.0"
+name = "promptman"
+version = "0.3.2"
 description = "AI Prompt Management System"
 authors = ["MakerCorn <corn.mendoza@outlook.com>"]
 license = "Non-Commercial"
@@ -40,18 +17,52 @@ packages = [
     { include = "api_endpoints.py" },
     { include = "langwatch_optimizer.py" },
     { include = "run.py" },
-    { include = "token_calculator.py" }
+    { include = "token_calculator.py" },
+    { include = "__main__.py" },
+    { include = "src" }
 ]
 
 [tool.poetry.dependencies]
+python = "^3.12"
+
+# Core UI Framework
 gradio = ">=5.32.1,<6.0.0"
+
+# HTTP Requests and API
 requests = ">=2.32.3,<3.0.0"
-pandas = ">=2.2.3,<3.0.0"
+fastapi = ">=0.115.6,<1.0.0"
+pydantic = ">=2.10.3,<3.0.0"
+
+# Database
 psycopg2-binary = ">=2.9.10,<3.0.0"
+
+# Configuration and Environment
 python-dotenv = ">=1.1.0,<2.0.0"
+
+# Authentication and Security
 pyjwt = ">=2.10.1,<3.0.0"
 cryptography = ">=43.0.3,<44.0.0"
-fastapi = ">=0.115.6,<1.0.0"
-uvicorn = {extras = ["standard"], version = ">=0.34.0,<1.0.0"}
-pydantic = ">=2.10.3,<3.0.0"
+
+# AI and Tokenization (optional)
 tiktoken = ">=0.8.0,<1.0.0"
+
+# Optional password hashing libraries
+bcrypt = {version = ">=4.0.0,<5.0.0", optional = true}
+argon2-cffi = {version = ">=21.0.0,<24.0.0", optional = true}
+
+[tool.poetry.extras]
+password-hashing = ["bcrypt", "argon2-cffi"]
+
+[tool.poetry.group.dev.dependencies]
+uvicorn = {extras = ["standard"], version = ">=0.34.0,<1.0.0"}
+pytest = "^7.0.0"
+pytest-asyncio = "^0.21.0"
+
+# Code quality tools (optional)
+flake8 = {version = "^6.0.0", optional = true}
+mypy = {version = "^1.0.0", optional = true}
+black = {version = "^23.0.0", optional = true}
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.0.0"
+pytest-asyncio = "^0.21.0"

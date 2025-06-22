@@ -5,21 +5,21 @@ Tests the combined Gradio + FastAPI application
 """
 
 import os
-import time
-import requests
 import threading
-import subprocess
-from typing import Optional
+import time
+
+import requests
 
 # Set environment for testing
 os.environ.setdefault("LOCAL_DEV_MODE", "true")
+
 
 def start_server_background():
     """Start the server in background"""
     try:
         # Import here to avoid issues with environment setup
         from run_mt_with_api import create_combined_app
-        
+
         app = create_combined_app()
         # Use Gradio's launch method instead of uvicorn directly
         app.launch(
@@ -27,18 +27,19 @@ def start_server_background():
             server_port=7860,
             share=False,
             show_error=False,
-            quiet=True  # Reduce log noise
+            quiet=True,  # Reduce log noise
         )
     except Exception as e:
         print(f"❌ Server error: {e}")
 
+
 def test_api_endpoints():
     """Test API endpoints"""
     base_url = "http://127.0.0.1:7860"
-    
+
     print("🧪 Testing API Integration...")
     print("=" * 50)
-    
+
     # Wait for server to be ready
     print("⏳ Waiting for server to start...")
     for i in range(30):  # Wait up to 30 seconds
@@ -52,7 +53,7 @@ def test_api_endpoints():
     else:
         print("❌ Server failed to start within 30 seconds")
         return False
-    
+
     # Test 1: Health check
     print("\n1. Testing health endpoint...")
     try:
@@ -66,7 +67,7 @@ def test_api_endpoints():
     except Exception as e:
         print(f"❌ Health check error: {e}")
         return False
-    
+
     # Test 2: Try to access API without authentication (should fail)
     print("\n2. Testing authentication requirement...")
     try:
@@ -79,7 +80,7 @@ def test_api_endpoints():
     except Exception as e:
         print(f"❌ Authentication test error: {e}")
         return False
-    
+
     # Test 3: Check API documentation is available
     print("\n3. Testing API documentation...")
     try:
@@ -92,12 +93,15 @@ def test_api_endpoints():
     except Exception as e:
         print(f"❌ API docs test error: {e}")
         return False
-    
+
     # Test 4: Check Gradio web interface is available
     print("\n4. Testing Gradio web interface...")
     try:
         response = requests.get(base_url, timeout=5)
-        if response.status_code == 200 and "Multi-Tenant AI Prompt Manager" in response.text:
+        if (
+            response.status_code == 200
+            and "Multi-Tenant AI Prompt Manager" in response.text
+        ):
             print("✅ Gradio web interface is accessible")
         else:
             print(f"❌ Gradio interface test failed: {response.status_code}")
@@ -105,7 +109,7 @@ def test_api_endpoints():
     except Exception as e:
         print(f"❌ Gradio interface test error: {e}")
         return False
-    
+
     print("\n" + "=" * 50)
     print("🎉 All tests passed! API integration is working correctly.")
     print()
@@ -115,35 +119,37 @@ def test_api_endpoints():
     print("3. Login with: admin@localhost / admin123")
     print("4. Create API tokens in Account Settings")
     print("5. Use API: http://localhost:7860/api/docs")
-    
+
     return True
+
 
 def main():
     """Main test function"""
     print("🚀 AI Prompt Manager API Integration Test")
     print("=" * 50)
-    
+
     # Start server in background thread
     server_thread = threading.Thread(target=start_server_background, daemon=True)
     server_thread.start()
-    
+
     try:
         # Run tests
         success = test_api_endpoints()
-        
+
         if success:
             print("\n✅ Integration test completed successfully!")
             return 0
         else:
             print("\n❌ Integration test failed!")
             return 1
-            
+
     except KeyboardInterrupt:
         print("\n🛑 Test interrupted by user")
         return 1
     except Exception as e:
         print(f"\n❌ Test error: {e}")
         return 1
+
 
 if __name__ == "__main__":
     exit(main())

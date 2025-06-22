@@ -151,7 +151,11 @@ curl http://localhost:7860/api/health
 
 **Test Python Package:**
 ```bash
-# Download and test installation
+# Test PyPI installation
+pip install promptman
+python -m promptman --help
+
+# Or download and test source installation
 wget https://github.com/YOUR_REPO/releases/download/v1.0.0/ai-prompt-manager-v1.0.0.tar.gz
 tar -xzf ai-prompt-manager-v1.0.0.tar.gz
 cd release-dist
@@ -163,8 +167,8 @@ cd release-dist
 ## 📦 Release Artifacts
 
 ### Python Packages
-- **Wheel**: `ai-prompt-manager-1.0.0-py3-none-any.whl`
-- **Source**: `ai-prompt-manager-1.0.0.tar.gz`
+- **Wheel**: `promptman-1.0.0-py3-none-any.whl`
+- **Source**: `promptman-1.0.0.tar.gz`
 
 ### Docker Images
 - **Registry**: `ghcr.io/makercorn/ai-prompt-manager`

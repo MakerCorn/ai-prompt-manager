@@ -8,28 +8,30 @@ Authentication and user management system with SSO/ADFS support
 This software is licensed for non-commercial use only. See LICENSE file for details.
 """
 
-import os
-import uuid
 import hashlib
+import os
 import secrets
+import sqlite3
+import uuid
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple
+from urllib.parse import urlencode
+
 import jwt
 import requests
-import sqlite3
-import json
-from datetime import datetime, timedelta
-from typing import Dict, Optional, List, Tuple
-from dataclasses import dataclass
-from urllib.parse import urlencode, parse_qs, urlparse
 from dotenv import load_dotenv
 
 try:
     import psycopg2
     from psycopg2.extras import RealDictCursor
+
     POSTGRES_AVAILABLE = True
 except ImportError:
     POSTGRES_AVAILABLE = False
 
 load_dotenv()
+
 
 @dataclass
 class User:
@@ -43,6 +45,7 @@ class User:
     created_at: datetime
     last_login: Optional[datetime] = None
 
+
 @dataclass
 class Tenant:
     id: str
@@ -52,46 +55,59 @@ class Tenant:
     created_at: datetime
     max_users: int = 100
 
+
 class AuthManager:
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_path: Optional[str] = None):
         self.db_type = os.getenv("DB_TYPE", "sqlite").lower()
         if self.db_type == "postgres":
             if not POSTGRES_AVAILABLE:
                 raise ImportError("psycopg2 is required for Postgres support.")
             self.dsn = os.getenv("POSTGRES_DSN")
             if not self.dsn:
-                raise ValueError("POSTGRES_DSN environment variable must be set for Postgres.")
+                raise ValueError(
+                    "POSTGRES_DSN environment variable must be set for Postgres."
+                )
         else:
             self.db_path = db_path or os.getenv("DB_PATH", "prompts.db")
-        
+
         # Authentication configuration
         self.secret_key = os.getenv("SECRET_KEY", secrets.token_hex(32))
         self.local_dev_mode = os.getenv("LOCAL_DEV_MODE", "false").lower() == "true"
-        
+
         # SSO Configuration
         self.sso_enabled = os.getenv("SSO_ENABLED", "false").lower() == "true"
         self.adfs_enabled = os.getenv("ADFS_ENABLED", "false").lower() == "true"
         self.sso_client_id = os.getenv("SSO_CLIENT_ID")
         self.sso_client_secret = os.getenv("SSO_CLIENT_SECRET")
         self.sso_authority = os.getenv("SSO_AUTHORITY")
-        self.sso_redirect_uri = os.getenv("SSO_REDIRECT_URI", "http://localhost:7860/auth/callback")
-        
+        self.sso_redirect_uri = os.getenv(
+            "SSO_REDIRECT_URI", "http://localhost:7860/auth/callback"
+        )
+
         # Entra ID (Azure AD) Configuration
         self.entra_id_enabled = os.getenv("ENTRA_ID_ENABLED", "false").lower() == "true"
         self.entra_client_id = os.getenv("ENTRA_CLIENT_ID") or self.sso_client_id
-        self.entra_client_secret = os.getenv("ENTRA_CLIENT_SECRET") or self.sso_client_secret
+        self.entra_client_secret = (
+            os.getenv("ENTRA_CLIENT_SECRET") or self.sso_client_secret
+        )
         self.entra_tenant_id = os.getenv("ENTRA_TENANT_ID")
-        self.entra_redirect_uri = os.getenv("ENTRA_REDIRECT_URI", "http://localhost:7860/auth/entra-callback")
-        self.entra_scopes = os.getenv("ENTRA_SCOPES", "openid email profile User.Read").split()
-        
+        self.entra_redirect_uri = os.getenv(
+            "ENTRA_REDIRECT_URI", "http://localhost:7860/auth/entra-callback"
+        )
+        self.entra_scopes = os.getenv(
+            "ENTRA_SCOPES", "openid email profile User.Read"
+        ).split()
+
         # Azure AI Configuration
         self.azure_ai_enabled = os.getenv("AZURE_AI_ENABLED", "false").lower() == "true"
         self.azure_ai_endpoint = os.getenv("AZURE_AI_ENDPOINT")
         self.azure_ai_key = os.getenv("AZURE_AI_KEY")
         self.azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         self.azure_openai_key = os.getenv("AZURE_OPENAI_KEY")
-        self.azure_openai_version = os.getenv("AZURE_OPENAI_VERSION", "2024-02-15-preview")
-        
+        self.azure_openai_version = os.getenv(
+            "AZURE_OPENAI_VERSION", "2024-02-15-preview"
+        )
+
         self.init_auth_database()
         self._ensure_default_tenant()
 
@@ -99,15 +115,16 @@ class AuthManager:
         if self.db_type == "postgres":
             return psycopg2.connect(self.dsn, cursor_factory=RealDictCursor)
         else:
-            return sqlite3.connect(self.db_path)
+            return sqlite3.connect(str(self.db_path))
 
     def init_auth_database(self):
         conn = self.get_conn()
         cursor = conn.cursor()
-        
+
         if self.db_type == "postgres":
             # Create tenants table
-            cursor.execute('''
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS tenants (
                     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                     name TEXT NOT NULL,
@@ -116,10 +133,12 @@ class AuthManager:
                     max_users INTEGER DEFAULT 100,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            ''')
-            
+            """
+            )
+
             # Create users table
-            cursor.execute('''
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS users (
                     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
@@ -134,10 +153,12 @@ class AuthManager:
                     last_login TIMESTAMP,
                     UNIQUE(tenant_id, email)
                 )
-            ''')
-            
+            """
+            )
+
             # Create sessions table
-            cursor.execute('''
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS user_sessions (
                     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -147,10 +168,12 @@ class AuthManager:
                     ip_address INET,
                     user_agent TEXT
                 )
-            ''')
+            """
+            )
         else:
             # SQLite version
-            cursor.execute('''
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS tenants (
                     id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -159,9 +182,11 @@ class AuthManager:
                     max_users INTEGER DEFAULT 100,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            ''')
-            
-            cursor.execute('''
+            """
+            )
+
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS users (
                     id TEXT PRIMARY KEY,
                     tenant_id TEXT REFERENCES tenants(id) ON DELETE CASCADE,
@@ -176,9 +201,11 @@ class AuthManager:
                     last_login TIMESTAMP,
                     UNIQUE(tenant_id, email)
                 )
-            ''')
-            
-            cursor.execute('''
+            """
+            )
+
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS user_sessions (
                     id TEXT PRIMARY KEY,
                     user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -188,8 +215,9 @@ class AuthManager:
                     ip_address TEXT,
                     user_agent TEXT
                 )
-            ''')
-        
+            """
+            )
+
         conn.commit()
         conn.close()
 
@@ -198,333 +226,475 @@ class AuthManager:
         if self.local_dev_mode:
             conn = self.get_conn()
             cursor = conn.cursor()
-            
+
             if self.db_type == "postgres":
-                cursor.execute('SELECT id FROM tenants WHERE subdomain = %s', ('localhost',))
+                cursor.execute(
+                    "SELECT id FROM tenants WHERE subdomain = %s", ("localhost",)
+                )
             else:
-                cursor.execute('SELECT id FROM tenants WHERE subdomain = ?', ('localhost',))
-            
+                cursor.execute(
+                    "SELECT id FROM tenants WHERE subdomain = ?", ("localhost",)
+                )
+
             if not cursor.fetchone():
                 tenant_id = str(uuid.uuid4())
                 if self.db_type == "postgres":
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         INSERT INTO tenants (id, name, subdomain, is_active, max_users)
                         VALUES (%s, %s, %s, %s, %s)
-                    ''', (tenant_id, 'Local Development', 'localhost', True, 1000))
+                    """,
+                        (tenant_id, "Local Development", "localhost", True, 1000),
+                    )
                 else:
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         INSERT INTO tenants (id, name, subdomain, is_active, max_users)
                         VALUES (?, ?, ?, ?, ?)
-                    ''', (tenant_id, 'Local Development', 'localhost', True, 1000))
-                
+                    """,
+                        (tenant_id, "Local Development", "localhost", True, 1000),
+                    )
+
                 # Create default admin user for local development
                 admin_id = str(uuid.uuid4())
                 admin_password = self._hash_password("admin123")
-                
+
                 if self.db_type == "postgres":
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         INSERT INTO users (id, tenant_id, email, password_hash, first_name, last_name, role, is_active)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    ''', (admin_id, tenant_id, 'admin@localhost', admin_password, 'Admin', 'User', 'admin', True))
+                    """,
+                        (
+                            admin_id,
+                            tenant_id,
+                            "admin@localhost",
+                            admin_password,
+                            "Admin",
+                            "User",
+                            "admin",
+                            True,
+                        ),
+                    )
                 else:
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         INSERT INTO users (id, tenant_id, email, password_hash, first_name, last_name, role, is_active)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (admin_id, tenant_id, 'admin@localhost', admin_password, 'Admin', 'User', 'admin', True))
-                
+                    """,
+                        (
+                            admin_id,
+                            tenant_id,
+                            "admin@localhost",
+                            admin_password,
+                            "Admin",
+                            "User",
+                            "admin",
+                            True,
+                        ),
+                    )
+
                 conn.commit()
-            
+
             conn.close()
 
     def _hash_password(self, password: str) -> str:
         """Hash password using PBKDF2"""
         salt = secrets.token_hex(32)
-        pwdhash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+        pwdhash = hashlib.pbkdf2_hmac(
+            "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000
+        )
         return f"{salt}:{pwdhash.hex()}"
 
     def _verify_password(self, password: str, hash_str: str) -> bool:
         """Verify password against hash"""
         try:
-            salt, stored_hash = hash_str.split(':')
-            pwdhash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+            salt, stored_hash = hash_str.split(":")
+            pwdhash = hashlib.pbkdf2_hmac(
+                "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000
+            )
             return pwdhash.hex() == stored_hash
         except ValueError:
             return False
 
-    def create_tenant(self, name: str, subdomain: str, max_users: int = 100) -> Tuple[bool, str]:
+    def create_tenant(
+        self, name: str, subdomain: str, max_users: int = 100
+    ) -> Tuple[bool, str]:
         """Create a new tenant"""
         conn = self.get_conn()
         cursor = conn.cursor()
-        
+
         try:
             # Check if subdomain already exists
             if self.db_type == "postgres":
-                cursor.execute('SELECT id FROM tenants WHERE subdomain = %s', (subdomain,))
+                cursor.execute(
+                    "SELECT id FROM tenants WHERE subdomain = %s", (subdomain,)
+                )
             else:
-                cursor.execute('SELECT id FROM tenants WHERE subdomain = ?', (subdomain,))
-            
+                cursor.execute(
+                    "SELECT id FROM tenants WHERE subdomain = ?", (subdomain,)
+                )
+
             if cursor.fetchone():
                 conn.close()
                 return False, f"Subdomain '{subdomain}' already exists"
-            
+
             tenant_id = str(uuid.uuid4())
             if self.db_type == "postgres":
-                cursor.execute('''
+                cursor.execute(
+                    """
                     INSERT INTO tenants (id, name, subdomain, is_active, max_users)
                     VALUES (%s, %s, %s, %s, %s)
-                ''', (tenant_id, name, subdomain, True, max_users))
+                """,
+                    (tenant_id, name, subdomain, True, max_users),
+                )
             else:
-                cursor.execute('''
+                cursor.execute(
+                    """
                     INSERT INTO tenants (id, name, subdomain, is_active, max_users)
                     VALUES (?, ?, ?, ?, ?)
-                ''', (tenant_id, name, subdomain, True, max_users))
-            
+                """,
+                    (tenant_id, name, subdomain, True, max_users),
+                )
+
             conn.commit()
             conn.close()
             return True, f"Tenant '{name}' created successfully"
-            
+
         except Exception as e:
             conn.close()
             return False, f"Error creating tenant: {str(e)}"
 
-    def create_user(self, tenant_id: str, email: str, password: str, first_name: str, 
-                   last_name: str, role: str = 'user', sso_id: str = None) -> Tuple[bool, str]:
+    def create_user(
+        self,
+        tenant_id: str,
+        email: str,
+        password: str,
+        first_name: str,
+        last_name: str,
+        role: str = "user",
+        sso_id: Optional[str] = None,
+    ) -> Tuple[bool, str]:
         """Create a new user"""
         conn = self.get_conn()
         cursor = conn.cursor()
-        
+
         try:
             # Check if user already exists
             if self.db_type == "postgres":
-                cursor.execute('SELECT id FROM users WHERE email = %s', (email,))
+                cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
             else:
-                cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
-            
+                cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+
             if cursor.fetchone():
                 conn.close()
                 return False, f"User with email '{email}' already exists"
-            
+
             # Check tenant user limit
             if self.db_type == "postgres":
-                cursor.execute('''
-                    SELECT COUNT(*) as user_count, max_users 
-                    FROM users u JOIN tenants t ON u.tenant_id = t.id 
+                cursor.execute(
+                    """
+                    SELECT COUNT(*) as user_count, max_users
+                    FROM users u JOIN tenants t ON u.tenant_id = t.id
                     WHERE u.tenant_id = %s AND u.is_active = TRUE
                     GROUP BY t.max_users
-                ''', (tenant_id,))
+                """,
+                    (tenant_id,),
+                )
             else:
-                cursor.execute('''
-                    SELECT COUNT(*) as user_count, max_users 
-                    FROM users u JOIN tenants t ON u.tenant_id = t.id 
+                cursor.execute(
+                    """
+                    SELECT COUNT(*) as user_count, max_users
+                    FROM users u JOIN tenants t ON u.tenant_id = t.id
                     WHERE u.tenant_id = ? AND u.is_active = 1
                     GROUP BY t.max_users
-                ''', (tenant_id,))
-            
+                """,
+                    (tenant_id,),
+                )
+
             result = cursor.fetchone()
             if result:
                 if self.db_type == "postgres":
-                    user_count, max_users = result['user_count'], result['max_users']
+                    user_count, max_users = result["user_count"], result["max_users"]
                 else:
                     user_count, max_users = result[0], result[1]
-                
+
                 if user_count >= max_users:
                     conn.close()
-                    return False, f"Tenant has reached maximum user limit of {max_users}"
-            
+                    return (
+                        False,
+                        f"Tenant has reached maximum user limit of {max_users}",
+                    )
+
             user_id = str(uuid.uuid4())
             password_hash = self._hash_password(password) if password else None
-            
+
             if self.db_type == "postgres":
-                cursor.execute('''
+                cursor.execute(
+                    """
                     INSERT INTO users (id, tenant_id, email, password_hash, first_name, last_name, role, is_active, sso_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ''', (user_id, tenant_id, email, password_hash, first_name, last_name, role, True, sso_id))
+                """,
+                    (
+                        user_id,
+                        tenant_id,
+                        email,
+                        password_hash,
+                        first_name,
+                        last_name,
+                        role,
+                        True,
+                        sso_id,
+                    ),
+                )
             else:
-                cursor.execute('''
+                cursor.execute(
+                    """
                     INSERT INTO users (id, tenant_id, email, password_hash, first_name, last_name, role, is_active, sso_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (user_id, tenant_id, email, password_hash, first_name, last_name, role, True, sso_id))
-            
+                """,
+                    (
+                        user_id,
+                        tenant_id,
+                        email,
+                        password_hash,
+                        first_name,
+                        last_name,
+                        role,
+                        True,
+                        sso_id,
+                    ),
+                )
+
             conn.commit()
             conn.close()
             return True, f"User '{email}' created successfully"
-            
+
         except Exception as e:
             conn.close()
             return False, f"Error creating user: {str(e)}"
 
-    def authenticate_user(self, email: str, password: str, subdomain: str = None) -> Tuple[bool, Optional[User], str]:
+    def authenticate_user(
+        self, email: str, password: str, subdomain: Optional[str] = None
+    ) -> Tuple[bool, Optional[User], str]:
         """Authenticate user with email/password"""
         conn = self.get_conn()
         cursor = conn.cursor()
-        
+
         try:
             # Find user with optional tenant filtering
-            if subdomain and subdomain != 'localhost':
+            if subdomain and subdomain != "localhost":
                 if self.db_type == "postgres":
-                    cursor.execute('''
-                        SELECT u.*, t.name as tenant_name, t.subdomain 
-                        FROM users u 
-                        JOIN tenants t ON u.tenant_id = t.id 
+                    cursor.execute(
+                        """
+                        SELECT u.*, t.name as tenant_name, t.subdomain
+                        FROM users u
+                        JOIN tenants t ON u.tenant_id = t.id
                         WHERE u.email = %s AND t.subdomain = %s AND u.is_active = TRUE AND t.is_active = TRUE
-                    ''', (email, subdomain))
+                    """,
+                        (email, subdomain),
+                    )
                 else:
-                    cursor.execute('''
-                        SELECT u.*, t.name as tenant_name, t.subdomain 
-                        FROM users u 
-                        JOIN tenants t ON u.tenant_id = t.id 
+                    cursor.execute(
+                        """
+                        SELECT u.*, t.name as tenant_name, t.subdomain
+                        FROM users u
+                        JOIN tenants t ON u.tenant_id = t.id
                         WHERE u.email = ? AND t.subdomain = ? AND u.is_active = 1 AND t.is_active = 1
-                    ''', (email, subdomain))
+                    """,
+                        (email, subdomain),
+                    )
             else:
                 if self.db_type == "postgres":
-                    cursor.execute('''
-                        SELECT u.*, t.name as tenant_name, t.subdomain 
-                        FROM users u 
-                        JOIN tenants t ON u.tenant_id = t.id 
+                    cursor.execute(
+                        """
+                        SELECT u.*, t.name as tenant_name, t.subdomain
+                        FROM users u
+                        JOIN tenants t ON u.tenant_id = t.id
                         WHERE u.email = %s AND u.is_active = TRUE AND t.is_active = TRUE
-                    ''', (email,))
+                    """,
+                        (email,),
+                    )
                 else:
-                    cursor.execute('''
-                        SELECT u.*, t.name as tenant_name, t.subdomain 
-                        FROM users u 
-                        JOIN tenants t ON u.tenant_id = t.id 
+                    cursor.execute(
+                        """
+                        SELECT u.*, t.name as tenant_name, t.subdomain
+                        FROM users u
+                        JOIN tenants t ON u.tenant_id = t.id
                         WHERE u.email = ? AND u.is_active = 1 AND t.is_active = 1
-                    ''', (email,))
-            
+                    """,
+                        (email,),
+                    )
+
             row = cursor.fetchone()
             if not row:
                 conn.close()
                 return False, None, "Invalid email or password"
-            
+
             # Extract user data
             if self.db_type == "postgres":
                 user_data = dict(row)
-                password_hash = user_data['password_hash']
+                password_hash = user_data["password_hash"]
             else:
                 user_data = {
-                    'id': row[0], 'tenant_id': row[1], 'email': row[2], 'password_hash': row[3],
-                    'first_name': row[4], 'last_name': row[5], 'role': row[6], 'is_active': row[7],
-                    'sso_id': row[8], 'created_at': row[9], 'last_login': row[10]
+                    "id": row[0],
+                    "tenant_id": row[1],
+                    "email": row[2],
+                    "password_hash": row[3],
+                    "first_name": row[4],
+                    "last_name": row[5],
+                    "role": row[6],
+                    "is_active": row[7],
+                    "sso_id": row[8],
+                    "created_at": row[9],
+                    "last_login": row[10],
                 }
-                password_hash = user_data['password_hash']
-            
+                password_hash = user_data["password_hash"]
+
             # Verify password
             if not password_hash or not self._verify_password(password, password_hash):
                 conn.close()
                 return False, None, "Invalid email or password"
-            
+
             # Update last login
             if self.db_type == "postgres":
-                cursor.execute('UPDATE users SET last_login = %s WHERE id = %s', 
-                             (datetime.now(), user_data['id']))
+                cursor.execute(
+                    "UPDATE users SET last_login = %s WHERE id = %s",
+                    (datetime.now(), user_data["id"]),
+                )
             else:
-                cursor.execute('UPDATE users SET last_login = ? WHERE id = ?', 
-                             (datetime.now().isoformat(), user_data['id']))
+                cursor.execute(
+                    "UPDATE users SET last_login = ? WHERE id = ?",
+                    (datetime.now().isoformat(), user_data["id"]),
+                )
             conn.commit()
-            
+
             user = User(
-                id=user_data['id'],
-                tenant_id=user_data['tenant_id'],
-                email=user_data['email'],
-                first_name=user_data['first_name'],
-                last_name=user_data['last_name'],
-                role=user_data['role'],
-                is_active=bool(user_data['is_active']),
-                created_at=user_data['created_at'],
-                last_login=datetime.now()
+                id=user_data["id"],
+                tenant_id=user_data["tenant_id"],
+                email=user_data["email"],
+                first_name=user_data["first_name"],
+                last_name=user_data["last_name"],
+                role=user_data["role"],
+                is_active=bool(user_data["is_active"]),
+                created_at=user_data["created_at"],
+                last_login=datetime.now(),
             )
-            
+
             conn.close()
             return True, user, "Authentication successful"
-            
+
         except Exception as e:
             conn.close()
             return False, None, f"Authentication error: {str(e)}"
 
-    def create_session(self, user_id: str, ip_address: str = None, user_agent: str = None) -> str:
+    def create_session(
+        self,
+        user_id: str,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+    ) -> str:
         """Create a new user session and return JWT token"""
         conn = self.get_conn()
         cursor = conn.cursor()
-        
+
         session_id = str(uuid.uuid4())
         expires_at = datetime.now() + timedelta(hours=24)
-        
+
         # Create JWT token
         payload = {
-            'session_id': session_id,
-            'user_id': user_id,
-            'exp': expires_at.timestamp(),
-            'iat': datetime.now().timestamp()
+            "session_id": session_id,
+            "user_id": user_id,
+            "exp": expires_at.timestamp(),
+            "iat": datetime.now().timestamp(),
         }
-        token = jwt.encode(payload, self.secret_key, algorithm='HS256')
+        token = jwt.encode(payload, self.secret_key, algorithm="HS256")
         token_hash = hashlib.sha256(token.encode()).hexdigest()
-        
+
         # Store session in database
         if self.db_type == "postgres":
-            cursor.execute('''
+            cursor.execute(
+                """
                 INSERT INTO user_sessions (id, user_id, token_hash, expires_at, ip_address, user_agent)
                 VALUES (%s, %s, %s, %s, %s, %s)
-            ''', (session_id, user_id, token_hash, expires_at, ip_address, user_agent))
+            """,
+                (session_id, user_id, token_hash, expires_at, ip_address, user_agent),
+            )
         else:
-            cursor.execute('''
+            cursor.execute(
+                """
                 INSERT INTO user_sessions (id, user_id, token_hash, expires_at, ip_address, user_agent)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (session_id, user_id, token_hash, expires_at.isoformat(), ip_address, user_agent))
-        
+            """,
+                (
+                    session_id,
+                    user_id,
+                    token_hash,
+                    expires_at.isoformat(),
+                    ip_address,
+                    user_agent,
+                ),
+            )
+
         conn.commit()
         conn.close()
-        
+
         return token
 
     def validate_session(self, token: str) -> Tuple[bool, Optional[User]]:
         """Validate session token and return user if valid"""
         try:
             # Decode JWT token
-            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-            session_id = payload['session_id']
-            user_id = payload['user_id']
-            
+            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+            session_id = payload["session_id"]
+
             conn = self.get_conn()
             cursor = conn.cursor()
-            
+
             # Verify session exists and is not expired
             token_hash = hashlib.sha256(token.encode()).hexdigest()
             if self.db_type == "postgres":
-                cursor.execute('''
+                cursor.execute(
+                    """
                     SELECT s.*, u.*, t.name as tenant_name, t.subdomain
                     FROM user_sessions s
                     JOIN users u ON s.user_id = u.id
                     JOIN tenants t ON u.tenant_id = t.id
-                    WHERE s.id = %s AND s.token_hash = %s AND s.expires_at > %s 
+                    WHERE s.id = %s AND s.token_hash = %s AND s.expires_at > %s
                     AND u.is_active = TRUE AND t.is_active = TRUE
-                ''', (session_id, token_hash, datetime.now()))
+                """,
+                    (session_id, token_hash, datetime.now()),
+                )
             else:
-                cursor.execute('''
+                cursor.execute(
+                    """
                     SELECT s.*, u.*, t.name as tenant_name, t.subdomain
                     FROM user_sessions s
                     JOIN users u ON s.user_id = u.id
                     JOIN tenants t ON u.tenant_id = t.id
-                    WHERE s.id = ? AND s.token_hash = ? AND s.expires_at > ? 
+                    WHERE s.id = ? AND s.token_hash = ? AND s.expires_at > ?
                     AND u.is_active = 1 AND t.is_active = 1
-                ''', (session_id, token_hash, datetime.now().isoformat()))
-            
+                """,
+                    (session_id, token_hash, datetime.now().isoformat()),
+                )
+
             row = cursor.fetchone()
             if not row:
                 conn.close()
                 return False, None
-            
+
             # Create user object
             if self.db_type == "postgres":
                 user = User(
-                    id=row['id'],
-                    tenant_id=row['tenant_id'],
-                    email=row['email'],
-                    first_name=row['first_name'],
-                    last_name=row['last_name'],
-                    role=row['role'],
-                    is_active=bool(row['is_active']),
-                    created_at=row['created_at'],
-                    last_login=row['last_login']
+                    id=row["id"],
+                    tenant_id=row["tenant_id"],
+                    email=row["email"],
+                    first_name=row["first_name"],
+                    last_name=row["last_name"],
+                    role=row["role"],
+                    is_active=bool(row["is_active"]),
+                    created_at=row["created_at"],
+                    last_login=row["last_login"],
                 )
             else:
                 user = User(
@@ -536,12 +706,12 @@ class AuthManager:
                     role=row[11],
                     is_active=bool(row[12]),
                     created_at=row[14],
-                    last_login=row[15]
+                    last_login=row[15],
                 )
-            
+
             conn.close()
             return True, user
-            
+
         except jwt.ExpiredSignatureError:
             return False, None
         except jwt.InvalidTokenError:
@@ -552,224 +722,270 @@ class AuthManager:
     def logout_user(self, token: str) -> bool:
         """Logout user by invalidating session"""
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-            session_id = payload['session_id']
-            
+            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+            session_id = payload["session_id"]
+
             conn = self.get_conn()
             cursor = conn.cursor()
-            
+
             if self.db_type == "postgres":
-                cursor.execute('DELETE FROM user_sessions WHERE id = %s', (session_id,))
+                cursor.execute("DELETE FROM user_sessions WHERE id = %s", (session_id,))
             else:
-                cursor.execute('DELETE FROM user_sessions WHERE id = ?', (session_id,))
-            
+                cursor.execute("DELETE FROM user_sessions WHERE id = ?", (session_id,))
+
             conn.commit()
             conn.close()
             return True
-            
+
         except Exception:
             return False
 
-    def get_sso_login_url(self, subdomain: str = None) -> str:
+    def get_sso_login_url(self, subdomain: Optional[str] = None) -> str:
         """Generate SSO login URL"""
         if not self.sso_enabled or not self.sso_client_id:
             return ""
-        
+
         state = secrets.token_urlsafe(32)
         params = {
-            'client_id': self.sso_client_id,
-            'response_type': 'code',
-            'redirect_uri': self.sso_redirect_uri,
-            'scope': 'openid email profile',
-            'state': f"{state}:{subdomain}" if subdomain else state
+            "client_id": self.sso_client_id,
+            "response_type": "code",
+            "redirect_uri": self.sso_redirect_uri,
+            "scope": "openid email profile",
+            "state": f"{state}:{subdomain}" if subdomain else state,
         }
-        
+
         return f"{self.sso_authority}/oauth2/v2.0/authorize?{urlencode(params)}"
-    
-    def get_entra_id_login_url(self, subdomain: str = None) -> str:
+
+    def get_entra_id_login_url(self, subdomain: Optional[str] = None) -> str:
         """Generate Entra ID (Azure AD) login URL"""
-        if not self.entra_id_enabled or not self.entra_client_id or not self.entra_tenant_id:
+        if (
+            not self.entra_id_enabled
+            or not self.entra_client_id
+            or not self.entra_tenant_id
+        ):
             return ""
-        
+
         state = secrets.token_urlsafe(32)
         params = {
-            'client_id': self.entra_client_id,
-            'response_type': 'code',
-            'redirect_uri': self.entra_redirect_uri,
-            'scope': ' '.join(self.entra_scopes),
-            'state': f"{state}:{subdomain}" if subdomain else state,
-            'response_mode': 'query'
+            "client_id": self.entra_client_id,
+            "response_type": "code",
+            "redirect_uri": self.entra_redirect_uri,
+            "scope": " ".join(self.entra_scopes),
+            "state": f"{state}:{subdomain}" if subdomain else state,
+            "response_mode": "query",
         }
-        
+
         base_url = f"https://login.microsoftonline.com/{self.entra_tenant_id}/oauth2/v2.0/authorize"
         return f"{base_url}?{urlencode(params)}"
 
-    def handle_sso_callback(self, code: str, state: str) -> Tuple[bool, Optional[User], str]:
+    def handle_sso_callback(
+        self, code: str, state: str
+    ) -> Tuple[bool, Optional[User], str]:
         """Handle SSO callback and create/authenticate user"""
         if not self.sso_enabled:
             return False, None, "SSO not enabled"
-        
+
         try:
             # Extract subdomain from state if present
             subdomain = None
-            if ':' in state:
-                _, subdomain = state.split(':', 1)
-            
+            if ":" in state:
+                _, subdomain = state.split(":", 1)
+
             # Exchange code for token
             token_data = {
-                'client_id': self.sso_client_id,
-                'client_secret': self.sso_client_secret,
-                'code': code,
-                'grant_type': 'authorization_code',
-                'redirect_uri': self.sso_redirect_uri
+                "client_id": self.sso_client_id,
+                "client_secret": self.sso_client_secret,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": self.sso_redirect_uri,
             }
-            
+
             token_response = requests.post(
-                f"{self.sso_authority}/oauth2/v2.0/token",
-                data=token_data,
-                timeout=30
+                f"{self.sso_authority}/oauth2/v2.0/token", data=token_data, timeout=30
             )
             token_response.raise_for_status()
             tokens = token_response.json()
-            
+
             # Get user info from token
             user_info_response = requests.get(
                 f"{self.sso_authority}/oidc/userinfo",
-                headers={'Authorization': f"Bearer {tokens['access_token']}"},
-                timeout=30
+                headers={"Authorization": f"Bearer {tokens['access_token']}"},
+                timeout=30,
             )
             user_info_response.raise_for_status()
             user_info = user_info_response.json()
-            
+
             # Find or create user
-            email = user_info.get('email')
+            email = user_info.get("email")
             if not email:
                 return False, None, "Email not provided by SSO provider"
-            
+
             # Find tenant
             tenant_id = None
             if subdomain:
                 conn = self.get_conn()
                 cursor = conn.cursor()
                 if self.db_type == "postgres":
-                    cursor.execute('SELECT id FROM tenants WHERE subdomain = %s AND is_active = TRUE', (subdomain,))
+                    cursor.execute(
+                        "SELECT id FROM tenants WHERE subdomain = %s AND is_active = TRUE",
+                        (subdomain,),
+                    )
                 else:
-                    cursor.execute('SELECT id FROM tenants WHERE subdomain = ? AND is_active = 1', (subdomain,))
+                    cursor.execute(
+                        "SELECT id FROM tenants WHERE subdomain = ? AND is_active = 1",
+                        (subdomain,),
+                    )
                 result = cursor.fetchone()
                 if result:
-                    tenant_id = result[0] if not self.db_type == "postgres" else result['id']
+                    tenant_id = (
+                        str(result[0])
+                        if not self.db_type == "postgres"
+                        else str(result["id"])
+                    )
                 conn.close()
-            
+
             if not tenant_id:
                 return False, None, "Invalid tenant"
-            
+
             # Try to find existing user
             conn = self.get_conn()
             cursor = conn.cursor()
-            
-            sso_id = user_info.get('sub') or user_info.get('oid')
+
+            sso_id = user_info.get("sub") or user_info.get("oid")
             if self.db_type == "postgres":
-                cursor.execute('''
-                    SELECT * FROM users 
+                cursor.execute(
+                    """
+                    SELECT * FROM users
                     WHERE (email = %s OR sso_id = %s) AND tenant_id = %s AND is_active = TRUE
-                ''', (email, sso_id, tenant_id))
+                """,
+                    (email, sso_id, tenant_id),
+                )
             else:
-                cursor.execute('''
-                    SELECT * FROM users 
+                cursor.execute(
+                    """
+                    SELECT * FROM users
                     WHERE (email = ? OR sso_id = ?) AND tenant_id = ? AND is_active = 1
-                ''', (email, sso_id, tenant_id))
-            
+                """,
+                    (email, sso_id, tenant_id),
+                )
+
             existing_user = cursor.fetchone()
-            
+
             if existing_user:
                 # Update existing user
-                user_id = existing_user[0] if not self.db_type == "postgres" else existing_user['id']
+                user_id = (
+                    str(existing_user[0])
+                    if not self.db_type == "postgres"
+                    else str(existing_user["id"])
+                )
                 if self.db_type == "postgres":
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         UPDATE users SET sso_id = %s, last_login = %s WHERE id = %s
-                    ''', (sso_id, datetime.now(), user_id))
+                    """,
+                        (sso_id, datetime.now(), user_id),
+                    )
                 else:
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         UPDATE users SET sso_id = ?, last_login = ? WHERE id = ?
-                    ''', (sso_id, datetime.now().isoformat(), user_id))
-                
+                    """,
+                        (sso_id, datetime.now().isoformat(), user_id),
+                    )
+
                 conn.commit()
                 conn.close()
-                
+
                 # Return user object
                 if self.db_type == "postgres":
                     user_data = dict(existing_user)
                 else:
                     user_data = {
-                        'id': existing_user[0], 'tenant_id': existing_user[1], 'email': existing_user[2],
-                        'first_name': existing_user[4], 'last_name': existing_user[5], 'role': existing_user[6],
-                        'is_active': existing_user[7], 'created_at': existing_user[9]
+                        "id": existing_user[0],
+                        "tenant_id": existing_user[1],
+                        "email": existing_user[2],
+                        "first_name": existing_user[4],
+                        "last_name": existing_user[5],
+                        "role": existing_user[6],
+                        "is_active": existing_user[7],
+                        "created_at": existing_user[9],
                     }
-                
+
                 user = User(
-                    id=user_data['id'],
-                    tenant_id=user_data['tenant_id'],
-                    email=user_data['email'],
-                    first_name=user_data['first_name'],
-                    last_name=user_data['last_name'],
-                    role=user_data['role'],
-                    is_active=bool(user_data['is_active']),
-                    created_at=user_data['created_at'],
-                    last_login=datetime.now()
+                    id=user_data["id"],
+                    tenant_id=user_data["tenant_id"],
+                    email=user_data["email"],
+                    first_name=user_data["first_name"],
+                    last_name=user_data["last_name"],
+                    role=user_data["role"],
+                    is_active=bool(user_data["is_active"]),
+                    created_at=user_data["created_at"],
+                    last_login=datetime.now(),
                 )
-                
+
                 return True, user, "SSO authentication successful"
             else:
                 # Create new user
-                first_name = user_info.get('given_name', email.split('@')[0])
-                last_name = user_info.get('family_name', '')
-                
+                first_name = user_info.get("given_name", email.split("@")[0])
+                last_name = user_info.get("family_name", "")
+
                 success, message = self.create_user(
                     tenant_id=tenant_id,
                     email=email,
                     password="",  # No password for SSO users
                     first_name=first_name,
                     last_name=last_name,
-                    role='user',
-                    sso_id=sso_id
+                    role="user",
+                    sso_id=sso_id,
                 )
-                
+
                 if success:
                     # Get the created user
                     if self.db_type == "postgres":
-                        cursor.execute('SELECT * FROM users WHERE email = %s AND tenant_id = %s', (email, tenant_id))
+                        cursor.execute(
+                            "SELECT * FROM users WHERE email = %s AND tenant_id = %s",
+                            (email, tenant_id),
+                        )
                     else:
-                        cursor.execute('SELECT * FROM users WHERE email = ? AND tenant_id = ?', (email, tenant_id))
-                    
+                        cursor.execute(
+                            "SELECT * FROM users WHERE email = ? AND tenant_id = ?",
+                            (email, tenant_id),
+                        )
+
                     new_user_row = cursor.fetchone()
                     conn.close()
-                    
+
                     if self.db_type == "postgres":
                         user_data = dict(new_user_row)
                     else:
                         user_data = {
-                            'id': new_user_row[0], 'tenant_id': new_user_row[1], 'email': new_user_row[2],
-                            'first_name': new_user_row[4], 'last_name': new_user_row[5], 'role': new_user_row[6],
-                            'is_active': new_user_row[7], 'created_at': new_user_row[9]
+                            "id": new_user_row[0],
+                            "tenant_id": new_user_row[1],
+                            "email": new_user_row[2],
+                            "first_name": new_user_row[4],
+                            "last_name": new_user_row[5],
+                            "role": new_user_row[6],
+                            "is_active": new_user_row[7],
+                            "created_at": new_user_row[9],
                         }
-                    
+
                     user = User(
-                        id=user_data['id'],
-                        tenant_id=user_data['tenant_id'],
-                        email=user_data['email'],
-                        first_name=user_data['first_name'],
-                        last_name=user_data['last_name'],
-                        role=user_data['role'],
-                        is_active=bool(user_data['is_active']),
-                        created_at=user_data['created_at'],
-                        last_login=datetime.now()
+                        id=user_data["id"],
+                        tenant_id=user_data["tenant_id"],
+                        email=user_data["email"],
+                        first_name=user_data["first_name"],
+                        last_name=user_data["last_name"],
+                        role=user_data["role"],
+                        is_active=bool(user_data["is_active"]),
+                        created_at=user_data["created_at"],
+                        last_login=datetime.now(),
                     )
-                    
+
                     return True, user, "SSO user created and authenticated"
                 else:
                     conn.close()
                     return False, None, f"Failed to create SSO user: {message}"
-                    
+
         except Exception as e:
             return False, None, f"SSO authentication failed: {str(e)}"
 
@@ -777,19 +993,19 @@ class AuthManager:
         """Get all tenants (admin only)"""
         conn = self.get_conn()
         cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM tenants ORDER BY name')
+
+        cursor.execute("SELECT * FROM tenants ORDER BY name")
         tenants = []
-        
+
         for row in cursor.fetchall():
             if self.db_type == "postgres":
                 tenant = Tenant(
-                    id=row['id'],
-                    name=row['name'],
-                    subdomain=row['subdomain'],
-                    is_active=bool(row['is_active']),
-                    created_at=row['created_at'],
-                    max_users=row['max_users']
+                    id=row["id"],
+                    name=row["name"],
+                    subdomain=row["subdomain"],
+                    is_active=bool(row["is_active"]),
+                    created_at=row["created_at"],
+                    max_users=row["max_users"],
                 )
             else:
                 tenant = Tenant(
@@ -798,10 +1014,10 @@ class AuthManager:
                     subdomain=row[2],
                     is_active=bool(row[3]),
                     created_at=row[5],
-                    max_users=row[4]
+                    max_users=row[4],
                 )
             tenants.append(tenant)
-        
+
         conn.close()
         return tenants
 
@@ -809,25 +1025,29 @@ class AuthManager:
         """Get all users for a tenant"""
         conn = self.get_conn()
         cursor = conn.cursor()
-        
+
         if self.db_type == "postgres":
-            cursor.execute('SELECT * FROM users WHERE tenant_id = %s ORDER BY email', (tenant_id,))
+            cursor.execute(
+                "SELECT * FROM users WHERE tenant_id = %s ORDER BY email", (tenant_id,)
+            )
         else:
-            cursor.execute('SELECT * FROM users WHERE tenant_id = ? ORDER BY email', (tenant_id,))
-        
+            cursor.execute(
+                "SELECT * FROM users WHERE tenant_id = ? ORDER BY email", (tenant_id,)
+            )
+
         users = []
         for row in cursor.fetchall():
             if self.db_type == "postgres":
                 user = User(
-                    id=row['id'],
-                    tenant_id=row['tenant_id'],
-                    email=row['email'],
-                    first_name=row['first_name'],
-                    last_name=row['last_name'],
-                    role=row['role'],
-                    is_active=bool(row['is_active']),
-                    created_at=row['created_at'],
-                    last_login=row['last_login']
+                    id=row["id"],
+                    tenant_id=row["tenant_id"],
+                    email=row["email"],
+                    first_name=row["first_name"],
+                    last_name=row["last_name"],
+                    role=row["role"],
+                    is_active=bool(row["is_active"]),
+                    created_at=row["created_at"],
+                    last_login=row["last_login"],
                 )
             else:
                 user = User(
@@ -839,269 +1059,324 @@ class AuthManager:
                     role=row[6],
                     is_active=bool(row[7]),
                     created_at=row[9],
-                    last_login=row[10]
+                    last_login=row[10],
                 )
             users.append(user)
-        
+
         conn.close()
         return users
-    
-    def handle_entra_id_callback(self, code: str, state: str) -> Tuple[bool, Optional[User], str]:
+
+    def handle_entra_id_callback(
+        self, code: str, state: str
+    ) -> Tuple[bool, Optional[User], str]:
         """Handle Entra ID callback and create/authenticate user"""
         if not self.entra_id_enabled:
             return False, None, "Entra ID not enabled"
-        
+
         try:
             # Extract subdomain from state if present
             subdomain = None
-            if ':' in state:
-                _, subdomain = state.split(':', 1)
-            
+            if ":" in state:
+                _, subdomain = state.split(":", 1)
+
             # Exchange code for token
             token_data = {
-                'client_id': self.entra_client_id,
-                'client_secret': self.entra_client_secret,
-                'code': code,
-                'grant_type': 'authorization_code',
-                'redirect_uri': self.entra_redirect_uri,
-                'scope': ' '.join(self.entra_scopes)
+                "client_id": self.entra_client_id,
+                "client_secret": self.entra_client_secret,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": self.entra_redirect_uri,
+                "scope": " ".join(self.entra_scopes),
             }
-            
+
             token_url = f"https://login.microsoftonline.com/{self.entra_tenant_id}/oauth2/v2.0/token"
             token_response = requests.post(token_url, data=token_data, timeout=30)
             token_response.raise_for_status()
             tokens = token_response.json()
-            
+
             # Get user info from Microsoft Graph API
-            graph_headers = {'Authorization': f"Bearer {tokens['access_token']}"}
+            graph_headers = {"Authorization": f"Bearer {tokens['access_token']}"}
             user_info_response = requests.get(
-                "https://graph.microsoft.com/v1.0/me",
-                headers=graph_headers,
-                timeout=30
+                "https://graph.microsoft.com/v1.0/me", headers=graph_headers, timeout=30
             )
             user_info_response.raise_for_status()
             user_info = user_info_response.json()
-            
+
             # Extract user details
-            email = user_info.get('mail') or user_info.get('userPrincipalName')
+            email = user_info.get("mail") or user_info.get("userPrincipalName")
             if not email:
                 return False, None, "Email not provided by Entra ID"
-            
-            first_name = user_info.get('givenName', '')
-            last_name = user_info.get('surname', '')
-            object_id = user_info.get('id')  # Entra ID object ID
-            
+
+            first_name = user_info.get("givenName", "")
+            last_name = user_info.get("surname", "")
+            object_id = user_info.get("id")  # Entra ID object ID
+
             # Find tenant
             tenant_id = None
             if subdomain:
                 conn = self.get_conn()
                 cursor = conn.cursor()
                 if self.db_type == "postgres":
-                    cursor.execute('SELECT id FROM tenants WHERE subdomain = %s AND is_active = TRUE', (subdomain,))
+                    cursor.execute(
+                        "SELECT id FROM tenants WHERE subdomain = %s AND is_active = TRUE",
+                        (subdomain,),
+                    )
                 else:
-                    cursor.execute('SELECT id FROM tenants WHERE subdomain = ? AND is_active = 1', (subdomain,))
+                    cursor.execute(
+                        "SELECT id FROM tenants WHERE subdomain = ? AND is_active = 1",
+                        (subdomain,),
+                    )
                 result = cursor.fetchone()
                 if result:
-                    tenant_id = result[0] if not self.db_type == "postgres" else result['id']
+                    tenant_id = (
+                        str(result[0])
+                        if not self.db_type == "postgres"
+                        else str(result["id"])
+                    )
                 conn.close()
-            
+
             if not tenant_id:
                 return False, None, "Invalid tenant"
-            
+
             # Try to find existing user
             conn = self.get_conn()
             cursor = conn.cursor()
-            
+
             if self.db_type == "postgres":
-                cursor.execute('''
-                    SELECT * FROM users 
+                cursor.execute(
+                    """
+                    SELECT * FROM users
                     WHERE (email = %s OR sso_id = %s) AND tenant_id = %s AND is_active = TRUE
-                ''', (email, object_id, tenant_id))
+                """,
+                    (email, object_id, tenant_id),
+                )
             else:
-                cursor.execute('''
-                    SELECT * FROM users 
+                cursor.execute(
+                    """
+                    SELECT * FROM users
                     WHERE (email = ? OR sso_id = ?) AND tenant_id = ? AND is_active = 1
-                ''', (email, object_id, tenant_id))
-            
+                """,
+                    (email, object_id, tenant_id),
+                )
+
             existing_user = cursor.fetchone()
-            
+
             if existing_user:
                 # Update existing user
-                user_id = existing_user[0] if not self.db_type == "postgres" else existing_user['id']
+                user_id = (
+                    str(existing_user[0])
+                    if not self.db_type == "postgres"
+                    else str(existing_user["id"])
+                )
                 if self.db_type == "postgres":
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         UPDATE users SET sso_id = %s, last_login = %s WHERE id = %s
-                    ''', (object_id, datetime.now(), user_id))
+                    """,
+                        (object_id, datetime.now(), user_id),
+                    )
                 else:
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         UPDATE users SET sso_id = ?, last_login = ? WHERE id = ?
-                    ''', (object_id, datetime.now().isoformat(), user_id))
-                
+                    """,
+                        (object_id, datetime.now().isoformat(), user_id),
+                    )
+
                 conn.commit()
                 conn.close()
-                
+
                 # Return user object
                 if self.db_type == "postgres":
                     user_data = dict(existing_user)
                 else:
                     user_data = {
-                        'id': existing_user[0], 'tenant_id': existing_user[1], 'email': existing_user[2],
-                        'first_name': existing_user[4], 'last_name': existing_user[5], 'role': existing_user[6],
-                        'is_active': existing_user[7], 'created_at': existing_user[9]
+                        "id": existing_user[0],
+                        "tenant_id": existing_user[1],
+                        "email": existing_user[2],
+                        "first_name": existing_user[4],
+                        "last_name": existing_user[5],
+                        "role": existing_user[6],
+                        "is_active": existing_user[7],
+                        "created_at": existing_user[9],
                     }
-                
+
                 user = User(
-                    id=user_data['id'],
-                    tenant_id=user_data['tenant_id'],
-                    email=user_data['email'],
-                    first_name=user_data['first_name'],
-                    last_name=user_data['last_name'],
-                    role=user_data['role'],
-                    is_active=bool(user_data['is_active']),
-                    created_at=user_data['created_at'],
-                    last_login=datetime.now()
+                    id=user_data["id"],
+                    tenant_id=user_data["tenant_id"],
+                    email=user_data["email"],
+                    first_name=user_data["first_name"],
+                    last_name=user_data["last_name"],
+                    role=user_data["role"],
+                    is_active=bool(user_data["is_active"]),
+                    created_at=user_data["created_at"],
+                    last_login=datetime.now(),
                 )
-                
+
                 return True, user, "Entra ID authentication successful"
             else:
                 # Create new user
                 if not first_name and not last_name:
                     # Use email username as fallback
-                    first_name = email.split('@')[0]
-                    last_name = ''
-                
+                    first_name = email.split("@")[0]
+                    last_name = ""
+
                 success, message = self.create_user(
                     tenant_id=tenant_id,
                     email=email,
                     password="",  # No password for Entra ID users
                     first_name=first_name,
                     last_name=last_name,
-                    role='user',
-                    sso_id=object_id
+                    role="user",
+                    sso_id=object_id,
                 )
-                
+
                 if success:
                     # Get the created user
                     if self.db_type == "postgres":
-                        cursor.execute('SELECT * FROM users WHERE email = %s AND tenant_id = %s', (email, tenant_id))
+                        cursor.execute(
+                            "SELECT * FROM users WHERE email = %s AND tenant_id = %s",
+                            (email, tenant_id),
+                        )
                     else:
-                        cursor.execute('SELECT * FROM users WHERE email = ? AND tenant_id = ?', (email, tenant_id))
-                    
+                        cursor.execute(
+                            "SELECT * FROM users WHERE email = ? AND tenant_id = ?",
+                            (email, tenant_id),
+                        )
+
                     new_user_row = cursor.fetchone()
                     conn.close()
-                    
+
                     if self.db_type == "postgres":
                         user_data = dict(new_user_row)
                     else:
                         user_data = {
-                            'id': new_user_row[0], 'tenant_id': new_user_row[1], 'email': new_user_row[2],
-                            'first_name': new_user_row[4], 'last_name': new_user_row[5], 'role': new_user_row[6],
-                            'is_active': new_user_row[7], 'created_at': new_user_row[9]
+                            "id": new_user_row[0],
+                            "tenant_id": new_user_row[1],
+                            "email": new_user_row[2],
+                            "first_name": new_user_row[4],
+                            "last_name": new_user_row[5],
+                            "role": new_user_row[6],
+                            "is_active": new_user_row[7],
+                            "created_at": new_user_row[9],
                         }
-                    
+
                     user = User(
-                        id=user_data['id'],
-                        tenant_id=user_data['tenant_id'],
-                        email=user_data['email'],
-                        first_name=user_data['first_name'],
-                        last_name=user_data['last_name'],
-                        role=user_data['role'],
-                        is_active=bool(user_data['is_active']),
-                        created_at=user_data['created_at'],
-                        last_login=datetime.now()
+                        id=user_data["id"],
+                        tenant_id=user_data["tenant_id"],
+                        email=user_data["email"],
+                        first_name=user_data["first_name"],
+                        last_name=user_data["last_name"],
+                        role=user_data["role"],
+                        is_active=bool(user_data["is_active"]),
+                        created_at=user_data["created_at"],
+                        last_login=datetime.now(),
                     )
-                    
+
                     return True, user, "Entra ID user created and authenticated"
                 else:
                     conn.close()
                     return False, None, f"Failed to create Entra ID user: {message}"
-                    
+
         except Exception as e:
             return False, None, f"Entra ID authentication failed: {str(e)}"
-    
-    def get_azure_ai_config(self) -> Dict[str, str]:
+
+    def get_azure_ai_config(self) -> Dict[str, Dict[str, object]]:
         """Get Azure AI configuration for models"""
         config = {}
-        
+
         if self.azure_ai_enabled and self.azure_ai_endpoint and self.azure_ai_key:
-            config['azure_ai'] = {
-                'endpoint': self.azure_ai_endpoint,
-                'api_key': self.azure_ai_key,
-                'enabled': True
+            config["azure_ai"] = {
+                "endpoint": self.azure_ai_endpoint,
+                "api_key": self.azure_ai_key,
+                "enabled": True,
             }
-        
+
         if self.azure_openai_endpoint and self.azure_openai_key:
-            config['azure_openai'] = {
-                'endpoint': self.azure_openai_endpoint,
-                'api_key': self.azure_openai_key,
-                'api_version': self.azure_openai_version,
-                'enabled': True
+            config["azure_openai"] = {
+                "endpoint": self.azure_openai_endpoint,
+                "api_key": self.azure_openai_key,
+                "api_version": self.azure_openai_version,
+                "enabled": True,
             }
-        
+
         return config
-    
+
     def validate_azure_credentials(self) -> Tuple[bool, str]:
         """Validate Azure credentials by testing API access"""
         try:
             azure_config = self.get_azure_ai_config()
-            
+
             if not azure_config:
                 return False, "No Azure credentials configured"
-            
+
             # Test Azure OpenAI if configured
-            if 'azure_openai' in azure_config:
-                config = azure_config['azure_openai']
+            if "azure_openai" in azure_config:
+                config = azure_config["azure_openai"]
                 test_url = f"{config['endpoint']}/openai/models?api-version={config['api_version']}"
                 headers = {
-                    'api-key': config['api_key'],
-                    'Content-Type': 'application/json'
+                    "api-key": str(config["api_key"]),
+                    "Content-Type": "application/json",
                 }
-                
+
                 response = requests.get(test_url, headers=headers, timeout=10)
                 if response.status_code == 200:
                     return True, "Azure OpenAI credentials validated successfully"
                 else:
-                    return False, f"Azure OpenAI validation failed: {response.status_code}"
-            
+                    return (
+                        False,
+                        f"Azure OpenAI validation failed: {response.status_code}",
+                    )
+
             # Test Azure AI if configured
-            if 'azure_ai' in azure_config:
-                config = azure_config['azure_ai']
+            if "azure_ai" in azure_config:
+                config = azure_config["azure_ai"]
                 # Basic endpoint validation
                 test_url = f"{config['endpoint']}/models"
                 headers = {
-                    'Authorization': f"Bearer {config['api_key']}",
-                    'Content-Type': 'application/json'
+                    "Authorization": f"Bearer {str(config['api_key'])}",
+                    "Content-Type": "application/json",
                 }
-                
+
                 response = requests.get(test_url, headers=headers, timeout=10)
-                if response.status_code in [200, 401, 403]:  # 401/403 means endpoint is reachable
+                if response.status_code in [
+                    200,
+                    401,
+                    403,
+                ]:  # 401/403 means endpoint is reachable
                     return True, "Azure AI credentials validated successfully"
                 else:
                     return False, f"Azure AI validation failed: {response.status_code}"
-            
+
             return False, "No testable Azure services configured"
-            
+
         except Exception as e:
             return False, f"Azure credential validation error: {str(e)}"
-    
+
     def is_entra_id_enabled(self) -> bool:
         """Check if Entra ID authentication is enabled and configured"""
-        return (self.entra_id_enabled and 
-                self.entra_client_id and 
-                self.entra_client_secret and 
-                self.entra_tenant_id)
-    
+        return bool(
+            self.entra_id_enabled
+            and self.entra_client_id
+            and self.entra_client_secret
+            and self.entra_tenant_id
+        )
+
     def is_azure_ai_enabled(self) -> bool:
         """Check if Azure AI services are enabled and configured"""
-        return (self.azure_ai_enabled and 
-                ((self.azure_ai_endpoint and self.azure_ai_key) or
-                 (self.azure_openai_endpoint and self.azure_openai_key)))
-    
+        return bool(
+            self.azure_ai_enabled
+            and (
+                (self.azure_ai_endpoint and self.azure_ai_key)
+                or (self.azure_openai_endpoint and self.azure_openai_key)
+            )
+        )
+
     def get_authentication_methods(self) -> Dict[str, bool]:
         """Get available authentication methods"""
         return {
-            'local': True,  # Always available
-            'sso': self.sso_enabled and bool(self.sso_client_id),
-            'entra_id': self.is_entra_id_enabled(),
-            'adfs': self.adfs_enabled
+            "local": True,  # Always available
+            "sso": self.sso_enabled and bool(self.sso_client_id),
+            "entra_id": self.is_entra_id_enabled(),
+            "adfs": self.adfs_enabled,
         }

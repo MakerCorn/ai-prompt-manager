@@ -1,6 +1,34 @@
 # Changelog
 
-## [Unreleased] - Custom Prompt Templates
+## [Unreleased] - Package Name Change & PyPI Publishing
+
+### 📦 Package Distribution Updates
+
+#### **PyPI Package Name Change**
+- **Package Name**: Changed from `ai-prompt-manager` to `promptman` for PyPI distribution
+  - The name `ai-prompt-manager` was already taken on PyPI
+  - New package name: `promptman` - shorter, cleaner, and available
+- **Installation**: Updated all documentation to use `pip install promptman`
+- **Module Entry Point**: Added `__main__.py` to support `python -m promptman` execution
+- **Workflow Updates**: Updated GitHub Actions release workflow to publish to PyPI as `promptman`
+
+#### **Documentation Updates**
+- **README.md**: Updated installation instructions with PyPI option as recommended method
+- **Release Workflow**: Enhanced release notes to include PyPI package links and installation commands
+- **Quick Start**: Added PyPI installation as the primary installation method for end users
+
+#### **Technical Changes**
+- **pyproject.toml**: Updated package name from `ai-prompt-manager` to `promptman` in both `[project]` and `[tool.poetry]` sections
+- **Main Module**: Created `__main__.py` entry point for package execution
+- **Release Automation**: Enhanced GitHub Actions workflow with PyPI publishing step
+- **Package Verification**: Added PyPI publication verification and status reporting
+
+#### **Migration Guide**
+- **For Users**: Install using `pip install promptman` instead of source installation
+- **For Developers**: Docker and source installation methods remain unchanged
+- **For CI/CD**: Package is now available on PyPI for automated deployments
+
+## [Previous] - Custom Prompt Templates
 
 ### 🎨 Custom Prompt Templates System
 
