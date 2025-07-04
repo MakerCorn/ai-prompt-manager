@@ -7,7 +7,7 @@ replacing scattered print statements with proper structured logging.
 
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -99,7 +99,10 @@ def setup_logging(
         file_handler.setLevel(log_level_value)
 
         # Use detailed format for file logging
-        file_format = "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
+        file_format = (
+            "%(asctime)s - %(name)s - %(levelname)s - "
+            "%(filename)s:%(lineno)d - %(funcName)s - %(message)s"
+        )
         file_formatter = logging.Formatter(file_format)
         file_handler.setFormatter(file_formatter)
 
@@ -113,7 +116,8 @@ def setup_logging(
     # Log the configuration
     logger = logging.getLogger("logging_config")
     logger.info(
-        f"Logging configured - Level: {level.value}, Console: {enable_console}, File: {log_file_path}"
+        f"Logging configured - Level: {level.value}, "
+        f"Console: {enable_console}, File: {log_file_path}"
     )
 
 
@@ -223,7 +227,7 @@ class AuditLogger:
             "resource_type": resource_type,
             "resource_id": resource_id,
             "success": success,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "details": details or {},
         }
 
@@ -259,7 +263,7 @@ class AuditLogger:
             "user_id": user_id,
             "ip_address": ip_address,
             "user_agent": user_agent,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "details": details or {},
         }
 
@@ -290,7 +294,7 @@ class AuditLogger:
             "system_event_type": event_type,
             "component": component,
             "success": success,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "details": details or {},
         }
 

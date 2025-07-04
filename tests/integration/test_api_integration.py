@@ -98,15 +98,19 @@ def start_server_background():
         return None, None, None
 
 
-def test_api_endpoints():
+def test_api_endpoints(base_port=None, api_port=None):
     """Test API endpoints"""
-    # Start test server
-    result = start_server_background()
-    if result[0] is None:
-        print("❌ Failed to start server")
-        return
+    process = None
 
-    process, base_port, api_port = result
+    # Use provided ports or start our own server
+    if base_port is None or api_port is None:
+        # Start test server
+        result = start_server_background()
+        if result[0] is None:
+            print("❌ Failed to start server")
+            return False
+
+        process, base_port, api_port = result
 
     try:
         base_url = f"http://127.0.0.1:{base_port}"

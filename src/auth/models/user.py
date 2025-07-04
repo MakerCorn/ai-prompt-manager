@@ -6,7 +6,7 @@ user entities in the system with proper type hints and validation.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Optional
 
@@ -56,7 +56,7 @@ class User:
 
         # Set default timestamps
         if self.created_at is None:
-            self.created_at = datetime.utcnow()
+            self.created_at = datetime.now(timezone.utc)
 
         if self.updated_at is None:
             self.updated_at = self.created_at
@@ -122,8 +122,8 @@ class User:
 
     def update_last_login(self) -> None:
         """Update the last login timestamp."""
-        self.last_login = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.last_login = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def set_metadata(self, key: str, value: Any) -> None:
         """
@@ -134,7 +134,7 @@ class User:
             value: Metadata value
         """
         self.metadata[key] = value
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def get_metadata(self, key: str, default: Any = None) -> Any:
         """

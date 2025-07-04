@@ -6,7 +6,7 @@ tenant entities in the multi-tenant system.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 
@@ -38,7 +38,7 @@ class Tenant:
         """Post-initialization validation and setup."""
         # Set default timestamps
         if self.created_at is None:
-            self.created_at = datetime.utcnow()
+            self.created_at = datetime.now(timezone.utc)
 
         if self.updated_at is None:
             self.updated_at = self.created_at
@@ -102,7 +102,7 @@ class Tenant:
             value: Setting value
         """
         self.settings[key] = value
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def get_metadata(self, key: str, default: Any = None) -> Any:
         """
@@ -126,7 +126,7 @@ class Tenant:
             value: Metadata value
         """
         self.metadata[key] = value
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def can_add_user(self) -> bool:
         """

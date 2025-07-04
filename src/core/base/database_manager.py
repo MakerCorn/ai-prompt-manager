@@ -367,7 +367,9 @@ class BaseDatabaseManager(ABC):
                 "status": "healthy" if result else "unhealthy",
                 "response_time_ms": round((end_time - start_time) * 1000, 2),
                 "database_type": self.config.db_type.value,
-                "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+                "timestamp": __import__("datetime")
+                .datetime.now(__import__("datetime").timezone.utc)
+                .isoformat(),
             }
 
         except Exception as e:
@@ -375,7 +377,9 @@ class BaseDatabaseManager(ABC):
                 "status": "unhealthy",
                 "error": str(e),
                 "database_type": self.config.db_type.value,
-                "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+                "timestamp": __import__("datetime")
+                .datetime.now(__import__("datetime").timezone.utc)
+                .isoformat(),
             }
 
 

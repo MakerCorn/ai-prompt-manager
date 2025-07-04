@@ -67,13 +67,13 @@ class WebApp:
                 # Create a placeholder to make StaticFiles work
                 os.makedirs(f"{static_dir}/css", exist_ok=True)
                 os.makedirs(f"{static_dir}/js", exist_ok=True)
-                
+
                 # Create minimal placeholder files
                 with open(f"{static_dir}/css/.gitkeep", "w") as f:
                     f.write("# Placeholder for CSS files\n")
                 with open(f"{static_dir}/js/.gitkeep", "w") as f:
                     f.write("# Placeholder for JS files\n")
-                
+
                 self.app.mount(
                     "/static", StaticFiles(directory=static_dir), name="static"
                 )
