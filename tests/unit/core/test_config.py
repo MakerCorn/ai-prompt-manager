@@ -248,7 +248,6 @@ class TestAppConfig:
         assert config.enable_api is False
         assert config.default_language == "en"
         assert config.log_level == LogLevel.INFO
-        assert config.enable_gradio_share is False
         assert isinstance(config.database, DatabaseConfig)
         assert isinstance(config.auth, AuthConfig)
         assert isinstance(config.external_services, ExternalServicesConfig)
@@ -262,7 +261,6 @@ class TestAppConfig:
             "ENABLE_API": "true",
             "DEFAULT_LANGUAGE": "es",
             "LOG_LEVEL": "DEBUG",
-            "GRADIO_SHARE": "true",
         }
 
         with patch.dict(os.environ, env_vars, clear=False):
@@ -274,7 +272,6 @@ class TestAppConfig:
             assert config.enable_api is True
             assert config.default_language == "es"
             assert config.log_level == LogLevel.DEBUG
-            assert config.enable_gradio_share is True
 
     def test_app_config_invalid_log_level(self):
         """Test app config with invalid log level falls back to INFO."""

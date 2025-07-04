@@ -63,7 +63,7 @@ def temp_dir() -> Generator[str, None, None]:
 def app_server(
     test_config: Dict[str, Any], temp_dir: str
 ) -> Generator[Dict[str, subprocess.Popen], None, None]:
-    """Start both Gradio app server and standalone API server for E2E testing."""
+    """Start web app server with API for E2E testing."""
     print("\n🚀 Starting E2E test servers...")
 
     # Set environment variables for E2E testing
@@ -82,12 +82,12 @@ def app_server(
     )
 
     # Create log files
-    gradio_log_path = os.path.join(temp_dir, "gradio_server.log")
+    web_log_path = os.path.join(temp_dir, "web_server.log")
     api_log_path = os.path.join(temp_dir, "api_server.log")
 
-    # Start Gradio server with API integration
-    print(f"🎭 Starting Gradio server with API on {test_config['base_url']}")
-    gradio_cmd = [
+    # Start web server with API integration
+    print(f"🌐 Starting web server with API on {test_config['base_url']}")
+    web_cmd = [
         sys.executable,
         "run.py",
         "--with-api",
@@ -96,9 +96,9 @@ def app_server(
         "--host",
         "127.0.0.1",
     ]
-    with open(gradio_log_path, "w") as log_file:
-        gradio_process = subprocess.Popen(
-            gradio_cmd,
+    with open(web_log_path, "w") as log_file:
+        web_process = subprocess.Popen(
+            web_cmd,
             env=env,
             cwd=os.getcwd(),
             stdout=log_file,
@@ -107,27 +107,27 @@ def app_server(
         )
 
     # API endpoints run in separate thread within the same process
-    print("🔌 API server runs as separate thread in Gradio process")
+    print("🔌 API server runs as separate thread in web process")
 
     # Wait for both servers to be ready
     print("⏱️ Waiting for servers to start...")
 
-    # Wait for Gradio server
-    gradio_ready = False
+    # Wait for web server
+    web_ready = False
     start_time = time.time()
     while time.time() - start_time < test_config["timeout"]:
         try:
             response = requests.get(test_config["base_url"], timeout=5)
             if response.status_code == 200:
-                gradio_ready = True
-                print(f"✅ Gradio server ready at {test_config['base_url']}")
+                web_ready = True
+                print(f"✅ Web server ready at {test_config['base_url']}")
                 break
         except requests.exceptions.RequestException:
             pass
         time.sleep(1)
 
     # Wait for API server (dual-server architecture)
-    # Give the Gradio server a bit more time to start the API thread
+    # Give the web server a bit more time to start the API thread
     time.sleep(3)
 
     api_ready = False
@@ -144,15 +144,15 @@ def app_server(
             print(f"⏳ API server not ready yet: {e}")
         time.sleep(2)  # Wait a bit longer between attempts
 
-    if not gradio_ready or not api_ready:
-        print(f"❌ Server startup failed - Gradio: {gradio_ready}, API: {api_ready}")
+    if not web_ready or not api_ready:
+        print(f"❌ Server startup failed - Web: {web_ready}, API: {api_ready}")
 
         # Show logs
         try:
-            with open(gradio_log_path, "r") as f:
-                print("Gradio server output:", f.read())
+            with open(web_log_path, "r") as f:
+                print("Web server output:", f.read())
         except Exception as e:
-            print(f"Could not read Gradio log: {e}")
+            print(f"Could not read web log: {e}")
 
         try:
             with open(api_log_path, "r") as f:
@@ -161,7 +161,7 @@ def app_server(
             print(f"Could not read API log: {e}")
 
         # Cleanup
-        for proc in [gradio_process]:
+        for proc in [web_process]:
             try:
                 proc.terminate()
                 proc.wait(timeout=10)
@@ -176,7 +176,7 @@ def app_server(
         api_base_url  # API endpoints are directly on the API server
     )
 
-    processes = {"gradio": gradio_process}  # API runs in thread within gradio process
+    processes = {"web": web_process}  # API runs in thread within web process
 
     yield processes
 

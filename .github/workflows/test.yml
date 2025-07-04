@@ -99,22 +99,32 @@ jobs:
           # Run all integration tests systematically
           echo "📋 Integration Tests Summary:"
           
-          # Test 1: LangWatch Integration
-          echo "🤖 Testing LangWatch integration..."
-          poetry run python tests/integration/test_langwatch_integration.py
-          echo "✅ LangWatch integration test completed"
+          # Test 1: Modern Web UI Integration (Primary)
+          echo "🌐 Testing modern web UI integration..."
+          poetry run python tests/integration/test_web_interface_integration.py
+          echo "✅ Modern web UI integration test completed"
           
-          # Test 2: Multi-tenant Installation
+          # Test 2: Web UI Functionality
+          echo "🖥️ Testing web UI functionality..."
+          poetry run python tests/integration/test_web_ui_integration.py
+          echo "✅ Web UI functionality test completed"
+          
+          # Test 3: Multi-tenant Installation
           echo "🏢 Testing multi-tenant installation..."
           poetry run python tests/integration/test_mt_install.py
           echo "✅ Multi-tenant installation test completed"
           
-          # Test 3: New Architecture Integration
+          # Test 4: LangWatch Integration
+          echo "🤖 Testing LangWatch integration..."
+          poetry run python tests/integration/test_langwatch_integration.py
+          echo "✅ LangWatch integration test completed"
+          
+          # Test 5: New Architecture Integration
           echo "🏗️ Testing new architecture integration..."
           poetry run python tests/integration/test_new_architecture_integration.py
           echo "✅ New architecture integration test completed"
           
-          # Test 4: API Integration (comprehensive)
+          # Test 6: API Integration (comprehensive)
           echo "🔌 Testing comprehensive API integration..."
           poetry run python tests/integration/test_api_integration.py
           echo "✅ API integration test completed"

@@ -2,7 +2,7 @@
 
 > **The intelligent way to manage, optimize, and scale your AI prompts**
 
-A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments. Features advanced authentication, real-time cost estimation, AI-powered optimization, and secure API access.
+A comprehensive AI prompt management system featuring a **modern web interface** (FastAPI + HTMX + Tailwind CSS) with unified architecture supporting both single-user and multi-tenant deployments. Features advanced authentication, real-time cost estimation, AI-powered optimization, and secure API access.
 
 ```mermaid
 graph LR
@@ -82,15 +82,54 @@ graph LR
 - [🔧 Troubleshooting](#-troubleshooting) - Common issues and solutions
 - [📄 License](#-license) - Usage terms
 
+## 🌟 Modern Web Interface
+
+**Instruere now features a completely redesigned modern web interface** that replaces the legacy Gradio UI with a responsive, enterprise-ready web application:
+
+### ✨ What's New
+
+| Feature | Modern Web UI | Legacy Gradio |
+|---------|---------------|----------------|
+| **🎨 Design** | Responsive Tailwind CSS, mobile-optimized | Fixed desktop layout |
+| **⚡ Performance** | FastAPI + HTMX real-time updates | Page refreshes |
+| **🔐 Security** | Session-based auth, CSRF protection | Basic authentication |
+| **🌐 I18n** | 10 languages, dynamic switching | English only |
+| **📱 Mobile** | Full mobile support | Desktop only |
+| **🔧 API** | Integrated REST API | Separate API server |
+| **🎯 UX** | Modern components, drag-drop | Basic forms |
+
+### 🚀 Key Advantages
+
+- **⚡ Real-time Updates**: HTMX-powered dynamic interactions without page reloads
+- **📱 Mobile-First**: Responsive design that works on all devices
+- **🎨 Modern UI**: Clean, intuitive interface with consistent styling
+- **🔒 Enterprise Security**: Session management, CSRF protection, secure authentication
+- **🌍 Internationalization**: Full 10-language support with instant switching
+- **🔌 API Integration**: Built-in REST API for developer access
+- **♿ Accessibility**: Screen reader support, keyboard navigation, ARIA labels
+
+### 🔄 Migration from Gradio
+
+**The modern web UI is now the default!** The legacy Gradio interface is available as an optional extra:
+
+```bash
+# Default - Modern Web Interface
+python run.py                    # 🆕 Modern Web UI
+
+# Legacy - Gradio Interface (optional)
+poetry install --extras gradio   # Install Gradio dependency
+python run.py --gradio          # 🎗️ Legacy Gradio UI
+```
+
 ## 🏗️ System Architecture
 
 Instruere is built on a **unified, modular architecture** that scales from single-user development to enterprise multi-tenant deployments.
 
 ```mermaid
 graph TB
-    Client[🌐 Client Layer<br/>Web UI • API • Mobile] --> App[🚀 Application Layer<br/>Gradio • FastAPI • Auth]
-    App --> Logic[🧠 Business Logic<br/>Prompts • Calculator • Optimizer]
-    Logic --> Data[💾 Data Layer<br/>SQLite • PostgreSQL]
+    Client[🌐 Client Layer<br/>Modern Web UI • API • Mobile] --> App[🚀 Application Layer<br/>FastAPI + HTMX • Auth • Real-time]
+    App --> Logic[🧠 Business Logic<br/>Prompts • Calculator • Optimizer • AI Services]
+    Logic --> Data[💾 Data Layer<br/>SQLite • PostgreSQL • Multi-tenant]
     
     style Client fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
     style App fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
@@ -185,13 +224,14 @@ poetry run python run.py
 
 ### 🚀 Deployment Options
 
-| Environment | Command | Features | Use Case |
-|-------------|---------|----------|----------|
-| **🧪 Development** | `poetry run python run.py --single-user` | SQLite, Single User | Personal use, testing |
-| **🏢 Multi-Tenant** | `poetry run python run.py` | SQLite, Multi-tenant | Teams, organizations |
-| **🔌 With API** | `poetry run python run.py --with-api` | API + UI, Multi-tenant | Developer integration |
-| **🐳 Docker Dev** | `docker-compose up -d` | PostgreSQL + Redis + Full Stack | Development with persistence |
-| **🏭 Production** | `docker-compose -f docker-compose.prod.yml up -d` | Optimized + Health Checks + Redis | Scalable deployment |
+| Environment | Command | Interface | Features | Use Case |
+|-------------|---------|-----------|----------|----------|
+| **🧪 Development** | `poetry run python run.py --single-user` | Modern Web UI | SQLite, Single User | Personal use, testing |
+| **🏢 Multi-Tenant** | `poetry run python run.py` | Modern Web UI | SQLite, Multi-tenant, Auth | Teams, organizations |
+| **🔌 With API** | `poetry run python run.py --with-api` | Web UI + API | API + UI, Multi-tenant | Developer integration |
+| **🎗️ Legacy Gradio** | `poetry install --extras gradio && python run.py --gradio` | Gradio UI | Legacy interface | Gradio compatibility |
+| **🐳 Docker Dev** | `docker-compose up -d` | Modern Web UI | PostgreSQL + Redis + Full Stack | Development with persistence |
+| **🏭 Production** | `docker-compose -f docker-compose.prod.yml up -d` | Modern Web UI | Optimized + Health Checks + Redis | Scalable deployment |
 
 **✅ Testing Status**: 21 test files (11 unit + 10 integration) with comprehensive coverage across all deployment modes and architecture components.
 

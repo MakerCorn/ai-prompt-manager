@@ -26,17 +26,18 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
 
-  # AI Prompt Manager Application with Dual-Server API (Production)
+  # AI Prompt Manager Application with Modern Web UI (Production)
   app:
     # Use latest stable release from GitHub Container Registry
     image: ghcr.io/makercorn/ai-prompt-manager:stable
     ports:
-      - "7860:7860"  # Gradio Web UI
-      - "7861:7861"  # FastAPI Server
+      - "7860:7860"  # Modern Web UI (FastAPI + HTMX)
+      - "7861:7861"  # API Server
     environment:
       # Application Mode (unified launcher configuration)
       MULTITENANT_MODE: ${MULTITENANT_MODE:-true}   # Enable multi-tenant mode with authentication
-      ENABLE_API: ${ENABLE_API:-true}               # Enable dual-server API architecture
+      ENABLE_API: ${ENABLE_API:-true}               # Enable API endpoints
+      USE_GRADIO: ${USE_GRADIO:-false}              # Use modern web UI (default)
       
       # Database Configuration (PostgreSQL for production)
       DB_TYPE: postgres
@@ -82,9 +83,9 @@ services:
       - prompt_network
     restart: unless-stopped
     
-    # Health check (updated for dual-server architecture)
+    # Health check (updated for modern web UI)
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7861/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:7860/login", "||", "curl", "-f", "http://localhost:7860/"]
       interval: 30s
       timeout: 10s
       retries: 3

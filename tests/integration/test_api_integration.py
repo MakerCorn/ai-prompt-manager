@@ -5,7 +5,6 @@ Tests the combined Gradio + FastAPI application
 """
 
 import os
-import threading
 import time
 
 import requests
@@ -68,7 +67,7 @@ def start_server_background():
             if process.poll() is not None:
                 # Process has terminated
                 stdout, _ = process.communicate()
-                print(f"❌ Server process terminated early:")
+                print("❌ Server process terminated early:")
                 print(stdout)
                 return None, None, None
 
@@ -88,10 +87,10 @@ def start_server_background():
                             f"✅ Server started successfully after {startup_time} seconds"
                         )
                         return process, test_port, api_port
-                except:
+                except Exception:
                     pass  # Continue waiting
 
-        print(f"⚠️  Server taking longer than expected to start...")
+        print("⚠️  Server taking longer than expected to start...")
         return process, test_port, api_port
 
     except Exception as e:
@@ -99,128 +98,151 @@ def start_server_background():
         return None, None, None
 
 
-def test_api_endpoints(base_port, api_port):
+def test_api_endpoints():
     """Test API endpoints"""
-    base_url = f"http://127.0.0.1:{base_port}"
-    # API is on separate port
-    api_url = f"http://127.0.0.1:{api_port}"
+    # Start test server
+    result = start_server_background()
+    if result[0] is None:
+        print("❌ Failed to start server")
+        return
 
-    print("🧪 Testing API Integration...")
-    print("=" * 50)
+    process, base_port, api_port = result
 
-    # Wait for server to be ready
-    print("⏳ Waiting for server to start...")
-    server_ready = False
+    try:
+        base_url = f"http://127.0.0.1:{base_port}"
+        # API is on separate port
+        api_url = f"http://127.0.0.1:{api_port}"
 
-    for i in range(30):  # Wait up to 30 seconds
+        print("🧪 Testing API Integration...")
+        print("=" * 50)
+
+        # Wait for server to be ready
+        print("⏳ Waiting for server to start...")
+        server_ready = False
+
+        for i in range(30):  # Wait up to 30 seconds
+            try:
+                # First check if basic web server is up
+                response = requests.get(base_url, timeout=2)
+                if response.status_code == 200:
+                    print(f"📱 Web interface is up (attempt {i+1})")
+
+                    # Now check API health endpoint on separate port
+                    try:
+                        api_response = requests.get(f"{api_url}/health", timeout=2)
+                        if api_response.status_code == 200:
+                            print("✅ Server and API are ready!")
+                            server_ready = True
+                            break
+                        else:
+                            print(f"⏳ API not ready yet: {api_response.status_code}")
+                    except requests.exceptions.RequestException as api_e:
+                        print(f"⏳ API endpoint not available yet: {api_e}")
+                else:
+                    print(f"⏳ Server not ready: {response.status_code}")
+
+            except requests.exceptions.RequestException as e:
+                print(f"⏳ Connection attempt {i+1}: {type(e).__name__}")
+
+            time.sleep(1)
+
+        if not server_ready:
+            print("❌ Server failed to start within 30 seconds")
+            return False
+
+        # Test 1: Basic server connectivity
+        print("\n1. Testing server connectivity...")
         try:
-            # First check if basic Gradio server is up
-            response = requests.get(base_url, timeout=2)
+            response = requests.get(base_url)
             if response.status_code == 200:
-                print(f"📱 Gradio interface is up (attempt {i+1})")
-
-                # Now check API health endpoint on separate port
-                try:
-                    api_response = requests.get(f"{api_url}/health", timeout=2)
-                    if api_response.status_code == 200:
-                        print("✅ Server and API are ready!")
-                        server_ready = True
-                        break
-                    else:
-                        print(f"⏳ API not ready yet: {api_response.status_code}")
-                except requests.exceptions.RequestException as api_e:
-                    print(f"⏳ API endpoint not available yet: {api_e}")
+                print("✅ Web server is accessible")
             else:
-                print(f"⏳ Server not ready: {response.status_code}")
-
-        except requests.exceptions.RequestException as e:
-            print(f"⏳ Connection attempt {i+1}: {type(e).__name__}")
-
-        time.sleep(1)
-
-    if not server_ready:
-        print("❌ Server failed to start within 30 seconds")
-        return False
-
-    # Test 1: Basic server connectivity
-    print("\n1. Testing server connectivity...")
-    try:
-        response = requests.get(base_url)
-        if response.status_code == 200:
-            print("✅ Gradio server is accessible")
-        else:
-            print(f"❌ Server check failed: {response.status_code}")
+                print(f"❌ Server check failed: {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"❌ Server connectivity error: {e}")
             return False
-    except Exception as e:
-        print(f"❌ Server connectivity error: {e}")
-        return False
 
-    # Test 2: Check if application is in correct mode
-    print("\n2. Testing application mode...")
-    try:
-        response = requests.get(base_url)
-        if "AI Prompt Manager" in response.text:
-            print("✅ Application title found")
+        # Test 2: Check if application is in correct mode
+        print("\n2. Testing application mode...")
+        try:
+            response = requests.get(base_url)
+            if "AI Prompt Manager" in response.text:
+                print("✅ Application title found")
 
-            # Check for login form presence (indicates multi-tenant mode)
-            if "login" in response.text.lower() or "password" in response.text.lower():
-                print("✅ Multi-tenant mode detected (login form present)")
+                # Check for login form presence (indicates multi-tenant mode)
+                if (
+                    "login" in response.text.lower()
+                    or "password" in response.text.lower()
+                ):
+                    print("✅ Multi-tenant mode detected (login form present)")
+                else:
+                    print("ℹ️  Single-user mode detected (no login form)")
             else:
-                print("ℹ️  Single-user mode detected (no login form)")
-        else:
-            print("❌ Application doesn't appear to be AI Prompt Manager")
+                print("❌ Application doesn't appear to be AI Prompt Manager")
+                return False
+        except Exception as e:
+            print(f"❌ Mode detection error: {e}")
             return False
-    except Exception as e:
-        print(f"❌ Mode detection error: {e}")
-        return False
 
-    # Test 3: API health check
-    print("\n3. Testing API health endpoint...")
-    try:
-        response = requests.get(f"{api_url}/health", timeout=5)
-        if response.status_code == 200:
-            print("✅ API health check passed")
-            data = response.json()
-            print(f"   Status: {data.get('status', 'unknown')}")
-            print(f"   Timestamp: {data.get('timestamp', 'N/A')}")
-        else:
-            print(f"❌ API health check failed: {response.status_code}")
+        # Test 3: API health check
+        print("\n3. Testing API health endpoint...")
+        try:
+            response = requests.get(f"{api_url}/health", timeout=5)
+            if response.status_code == 200:
+                print("✅ API health check passed")
+                data = response.json()
+                print(f"   Status: {data.get('status', 'unknown')}")
+                print(f"   Timestamp: {data.get('timestamp', 'N/A')}")
+            else:
+                print(f"❌ API health check failed: {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"❌ API health check error: {e}")
             return False
-    except Exception as e:
-        print(f"❌ API health check error: {e}")
-        return False
 
-    # Test 4: API info endpoint
-    print("\n4. Testing API info endpoint...")
-    try:
-        response = requests.get(f"{api_url}/info", timeout=5)
-        if response.status_code == 200:
-            print("✅ API info endpoint accessible")
-            data = response.json()
-            print(f"   Service: {data.get('service', 'N/A')}")
-            print(f"   Version: {data.get('version', 'N/A')}")
-        else:
-            print(f"❌ API info failed: {response.status_code}")
+        # Test 4: API info endpoint
+        print("\n4. Testing API info endpoint...")
+        try:
+            response = requests.get(f"{api_url}/info", timeout=5)
+            if response.status_code == 200:
+                print("✅ API info endpoint accessible")
+                data = response.json()
+                print(f"   Service: {data.get('service', 'N/A')}")
+                print(f"   Version: {data.get('version', 'N/A')}")
+            else:
+                print(f"❌ API info failed: {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"❌ API info error: {e}")
             return False
-    except Exception as e:
-        print(f"❌ API info error: {e}")
-        return False
 
-    print("\n" + "=" * 50)
-    print("✅ Basic server integration test completed!")
-    print()
-    print("Summary:")
-    print("- ✅ Unified launcher (run.py) works correctly")
-    print("- ✅ Server starts and responds to requests")
-    print("- ✅ Application loads with correct title")
-    print("- ✅ API integration with dual-server architecture")
-    print(f"- ✅ API server runs on port 7861 (main port + 1)")
-    print()
-    print("API Endpoints Available:")
-    print(f"- Health: {api_url}/health")
-    print(f"- Info: {api_url}/info")
-    print(f"- Docs: {api_url}/docs")
-    print(f"- Root: {api_url}/")
+        print("\n" + "=" * 50)
+        print("✅ Basic server integration test completed!")
+        print()
+        print("Summary:")
+        print("- ✅ Unified launcher (run.py) works correctly")
+        print("- ✅ Server starts and responds to requests")
+        print("- ✅ Application loads with correct title")
+        print("- ✅ API integration with dual-server architecture")
+        print(f"- ✅ API server runs on port {api_port} (main port + 1)")
+        print()
+        print("API Endpoints Available:")
+        print(f"- Health: {api_url}/health")
+        print(f"- Info: {api_url}/info")
+        print(f"- Docs: {api_url}/docs")
+        print(f"- Root: {api_url}/")
+
+    finally:
+        # Clean up server process
+        if process:
+            try:
+                process.terminate()
+                process.wait(timeout=5)
+                print("🧹 Server process cleaned up")
+            except Exception:
+                process.kill()
+                print("🧹 Server process forcefully terminated")
 
     return True
 
@@ -260,7 +282,7 @@ def main():
                 server_process.terminate()
                 server_process.wait(timeout=5)
                 print("🧹 Server process cleaned up")
-            except:
+            except Exception:
                 server_process.kill()
                 print("🧹 Server process forcefully terminated")
 

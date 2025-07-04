@@ -26,19 +26,20 @@ services:
       - prompt_network
     command: redis-server --appendonly yes
 
-  # AI Prompt Manager Application with Dual-Server API
+  # AI Prompt Manager Application with Modern Web UI
   app:
     # Use pre-built image from GitHub Container Registry
     image: ghcr.io/makercorn/ai-prompt-manager:latest
     # Or build locally by uncommenting the line below and commenting the image line
     # build: .
     ports:
-      - "7860:7860"  # Gradio Web UI
-      - "7861:7861"  # FastAPI Server (when ENABLE_API=true)
+      - "7860:7860"  # Modern Web UI (FastAPI + HTMX)
+      - "7861:7861"  # API Server (when ENABLE_API=true)
     environment:
       # Application Mode (unified launcher configuration)
       MULTITENANT_MODE: "true"   # Enable multi-tenant mode with authentication
-      ENABLE_API: "true"         # Enable dual-server API architecture
+      ENABLE_API: "true"         # Enable API endpoints
+      USE_GRADIO: "false"        # Use modern web UI (default)
       
       # Database Configuration (uncomment for PostgreSQL)
       # DB_TYPE: postgres

@@ -103,10 +103,16 @@ class PromptDataManager:
                 """
                 DO $$
                 BEGIN
-                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='prompts' AND column_name='tenant_id') THEN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='prompts' AND column_name='tenant_id'
+                    ) THEN
                         ALTER TABLE prompts ADD COLUMN tenant_id UUID;
                     END IF;
-                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='prompts' AND column_name='user_id') THEN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='prompts' AND column_name='user_id'
+                    ) THEN
                         ALTER TABLE prompts ADD COLUMN user_id UUID;
                     END IF;
                 END $$;
@@ -543,7 +549,12 @@ class PromptDataManager:
 
         categories = [row[0] for row in cursor.fetchall()]
         conn.close()
-        return categories
+
+        # If no categories exist yet (empty database), provide default categories
+        if not categories:
+            categories = ["Business", "Technical", "Creative", "Analytical", "General"]
+
+        return sorted(categories)
 
     def search_prompts(
         self, search_term: str, include_enhancement_prompts: bool = True

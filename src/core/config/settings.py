@@ -270,7 +270,6 @@ class AppConfig:
     log_file: Optional[str] = None
 
     # Feature flags
-    enable_gradio_share: bool = False
 
     # Component configs
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
@@ -298,7 +297,6 @@ class AppConfig:
             default_language=os.getenv("DEFAULT_LANGUAGE", "en"),
             log_level=log_level,
             log_file=os.getenv("LOG_FILE"),
-            enable_gradio_share=os.getenv("GRADIO_SHARE", "false").lower() == "true",
             # Component configs
             database=DatabaseConfig.from_env(),
             auth=AuthConfig.from_env(),

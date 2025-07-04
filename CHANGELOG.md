@@ -1,5 +1,70 @@
 # Changelog
 
+## [0.4.1] - 2025-07-04
+
+### 🎭 Web UI E2E Testing & Code Quality Improvements
+
+#### **FastAPI Web Interface E2E Testing**
+- **New Web UI E2E Test Suite**: Complete browser automation testing framework
+  - **Playwright Integration**: Modern browser automation with Chromium support
+  - **Comprehensive Test Coverage**: 12 distinct test scenarios covering all major workflows
+  - **Multi-tenant Authentication**: Full login/logout workflow testing with tenant isolation
+  - **Single-User Mode Support**: Complete testing coverage for both authentication modes
+  - **Prompt Management**: End-to-end testing of create, edit, delete, search, and filter operations
+  - **UI Interaction Testing**: Navigation, language switching, responsive design validation
+  - **Advanced Features**: Prompt execution, optimization, translation, and API integration testing
+
+#### **Critical Bug Fixes**
+- **Multiprocessing Pickle Error**: Fixed critical test execution failure
+  - Moved `run_server` function to module level as `_run_web_test_server` for pickle compatibility
+  - Resolved `AttributeError: Can't get local object` during Playwright test runs
+- **Category Selection Timeout**: Fixed 30-second timeout in prompt creation
+  - Modified `get_categories()` to provide default categories when database is empty
+  - Ensures ["Business", "Technical", "Creative", "Analytical", "General"] are always available
+- **Single-User Mode Template Rendering**: Fixed UI display issues
+  - Updated base template to show navigation in both multi-tenant and single-user modes
+  - Added conditional rendering for user-specific vs single-user mode indicators
+  - Fixed dashboard welcome messages and user context handling
+
+#### **Authentication & UI Improvements**
+- **Enhanced Authentication Setup**: Updated Playwright tests with current API patterns
+  - Fixed tenant creation and user setup for reliable test execution
+  - Improved database query patterns for tenant ID retrieval
+- **Template Context Management**: Improved template rendering consistency
+  - Added proper context handling for single-user mode across all routes
+  - Enhanced navigation and user menu conditional rendering
+  - Fixed user profile and settings page access patterns
+
+#### **Code Quality & Standards**
+- **Code Formatting**: Applied Black formatter to ensure consistent Python code style
+  - Reformatted 4 core files: `run.py`, `tests/e2e/test_web_ui_e2e.py`, `prompt_data_manager.py`, `web_app.py`
+- **Import Organization**: Applied isort for standardized import ordering
+- **Linting**: Fixed flake8 line length violations in core files
+  - Addressed line length issues in SQL queries and string formatting
+  - Improved code readability with proper line breaks and indentation
+- **Security Scanning**: Addressed bandit security warnings
+  - Added proper `nosec` comments for intentional binding to all interfaces
+  - Validated that hardcoded passwords are test-only and appropriately handled
+
+#### **Documentation Updates**
+- **Enhanced E2E Testing Documentation**: Updated CLAUDE.md with comprehensive E2E testing guidance
+  - Added Web UI E2E test execution commands and debugging options
+  - Documented test coverage areas and key features
+  - Included environment variable configuration for test customization
+- **Code Quality Tools**: Updated build commands with actual linting and formatting tools
+  - Added complete sequence for code quality: black, isort, flake8, bandit
+  - Provided proper command-line options and configurations
+
+#### **Test Infrastructure Improvements**
+- **Environment Variable Support**: Enhanced test configuration flexibility
+  - `E2E_HEADLESS=false` for visible browser debugging
+  - `E2E_SLOW_MO=500` for slow motion test observation
+  - Combined debugging options for detailed test analysis
+- **Test Isolation**: Improved test database and server management
+  - Temporary database creation and cleanup
+  - Isolated test server instances on dedicated ports
+  - Proper process lifecycle management for reliable test execution
+
 ## [0.4.0] - 2025-07-04
 
 ### 🔌 Dual-Server API Architecture Implementation

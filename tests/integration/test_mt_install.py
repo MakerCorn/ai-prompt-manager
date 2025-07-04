@@ -21,9 +21,9 @@ def test_imports():
 
         print("  ✅ prompt_data_manager imported successfully")
 
-        from prompt_manager import create_interface  # noqa: F401
+        from web_app import create_web_app  # noqa: F401
 
-        print("  ✅ prompt_manager imported successfully")
+        print("  ✅ web_app imported successfully")
 
         return True
     except ImportError as e:
@@ -163,20 +163,20 @@ def test_prompt_management():
 
 
 def test_ui_creation():
-    """Test that the UI can be created"""
-    print("\n🖥️ Testing UI creation...")
+    """Test that the web UI can be created"""
+    print("\n🖥️ Testing web UI creation...")
 
     try:
-        from prompt_manager import create_interface
+        from web_app import create_web_app
 
-        # Create interface (without launching)
-        create_interface()  # noqa: F841
-        print("  ✅ Gradio interface created successfully")
+        # Create web app (without launching)
+        app = create_web_app()  # noqa: F841
+        print("  ✅ Web interface created successfully")
 
         return True
 
     except Exception as e:
-        print(f"  ❌ UI creation error: {e}")
+        print(f"  ❌ Web UI creation error: {e}")
         return False
 
 
@@ -209,7 +209,7 @@ def main():
     if passed == total:
         print("\n🎉 All tests passed! Multi-tenant system is ready to use.")
         print("\n🚀 To start the application:")
-        print("   poetry run python run.py")
+        print("   poetry run python run.py --web")
         print("\n🔑 Default credentials:")
         print("   Email: admin@localhost")
         print("   Password: admin123")

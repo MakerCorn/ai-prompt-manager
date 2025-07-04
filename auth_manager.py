@@ -586,7 +586,7 @@ class AuthManager:
         except Exception as e:
             try:
                 conn.close()
-            except:
+            except Exception:
                 pass
             return False, None, f"Authentication error: {str(e)}"
 
@@ -1068,6 +1068,49 @@ class AuthManager:
         conn.close()
         return users
 
+    def get_user_by_id(self, user_id: str) -> Optional[User]:
+        """Get user by ID"""
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        if self.db_type == "postgres":
+            cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return None
+
+        if self.db_type == "postgres":
+            user = User(
+                id=row["id"],
+                tenant_id=row["tenant_id"],
+                email=row["email"],
+                first_name=row["first_name"],
+                last_name=row["last_name"],
+                role=row["role"],
+                is_active=bool(row["is_active"]),
+                created_at=row["created_at"],
+                last_login=row["last_login"],
+            )
+        else:
+            user = User(
+                id=row[0],
+                tenant_id=row[1],
+                email=row[2],
+                first_name=row[4],
+                last_name=row[5],
+                role=row[6],
+                is_active=bool(row[7]),
+                created_at=row[9],
+                last_login=row[10],
+            )
+
+        conn.close()
+        return user
+
     def handle_entra_id_callback(
         self, code: str, state: str
     ) -> Tuple[bool, Optional[User], str]:
@@ -1382,3 +1425,102 @@ class AuthManager:
             "entra_id": self.is_entra_id_enabled(),
             "adfs": self.adfs_enabled,
         }
+
+    def get_admin_stats(self) -> Dict[str, int]:
+        """Get admin dashboard statistics"""
+        with self.get_conn() as conn:
+            cursor = conn.cursor()
+
+            stats = {}
+
+            # Total users
+            cursor.execute("SELECT COUNT(*) FROM users WHERE is_active = ?", (True,))
+            stats["total_users"] = cursor.fetchone()[0]
+
+            # Active tenants
+            cursor.execute("SELECT COUNT(*) FROM tenants WHERE is_active = ?", (True,))
+            stats["active_tenants"] = cursor.fetchone()[0]
+
+            # Total prompts (approximate, would need access to prompts table)
+            try:
+                cursor.execute("SELECT COUNT(*) FROM prompts")
+                stats["total_prompts"] = cursor.fetchone()[0]
+            except sqlite3.OperationalError:
+                stats["total_prompts"] = 0
+
+            # API tokens
+            try:
+                cursor.execute(
+                    "SELECT COUNT(*) FROM api_tokens WHERE expires_at > ? OR expires_at IS NULL",
+                    (datetime.now(),),
+                )
+                stats["api_tokens"] = cursor.fetchone()[0]
+            except sqlite3.OperationalError:
+                stats["api_tokens"] = 0
+
+            return stats
+
+    def get_all_users_for_tenant(self, tenant_id: str) -> List[User]:
+        """Get all users for a specific tenant (for admin view)"""
+        with self.get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT u.id, u.tenant_id, u.email, u.first_name, u.last_name,
+                       u.role, u.is_active, u.created_at, u.last_login, t.name as tenant_name
+                FROM users u
+                LEFT JOIN tenants t ON u.tenant_id = t.id
+                WHERE u.tenant_id = ?
+                ORDER BY u.created_at DESC
+            """,
+                (tenant_id,),
+            )
+
+            users = []
+            for row in cursor.fetchall():
+                user = User(
+                    id=row[0],
+                    tenant_id=row[1],
+                    email=row[2],
+                    first_name=row[3] or "",
+                    last_name=row[4] or "",
+                    role=row[5],
+                    is_active=bool(row[6]),
+                    created_at=datetime.fromisoformat(row[7]),
+                    last_login=datetime.fromisoformat(row[8]) if row[8] else None,
+                )
+                # Add tenant name as extra attribute
+                user.tenant_name = row[9]
+                users.append(user)
+
+            return users
+
+    def get_tenant_by_id(self, tenant_id: str) -> Optional[Tenant]:
+        """Get tenant by ID"""
+        with self.get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT id, name, subdomain, max_users, is_active, created_at,
+                       (SELECT COUNT(*) FROM users WHERE tenant_id = t.id AND is_active = 1) as user_count
+                FROM tenants t
+                WHERE id = ?
+            """,
+                (tenant_id,),
+            )
+
+            row = cursor.fetchone()
+            if row:
+                tenant = Tenant(
+                    id=row[0],
+                    name=row[1],
+                    subdomain=row[2],
+                    max_users=row[3],
+                    is_active=bool(row[4]),
+                    created_at=datetime.fromisoformat(row[5]) if row[5] else None,
+                )
+                # Add user count as extra attribute
+                tenant.user_count = row[6]
+                return tenant
+
+            return None

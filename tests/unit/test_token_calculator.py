@@ -441,8 +441,6 @@ class TestTokenCalculator:
         analysis = calculator.analyze_prompt_complexity(repetitive_text)
 
         # Implementation doesn't set repetition_detected flag but may add suggestions
-        # Check if repetition is mentioned in suggestions
-        suggestions_text = " ".join(analysis["suggestions"]).lower()
         # The implementation only detects repetition for texts with >20 words
         # and repetition ratio > 0.3, so this short text won't trigger it
         assert "suggestions" in analysis
@@ -569,7 +567,7 @@ class TestTokenCalculator:
             try:
                 estimate = calculator.estimate_tokens(sample_text, model, 100)
                 estimates.append(estimate)
-            except:
+            except Exception:
                 # Some variants might not be recognized, which is acceptable
                 pass
 

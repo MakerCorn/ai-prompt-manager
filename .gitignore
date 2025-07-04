@@ -26,6 +26,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+bandit_*.json
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -180,4 +182,6 @@ prompts.db
 
 # Claude Code files
 .claude/
-CLAUDE.md
+CLAUDE.local.md
+
+cookies.txt

@@ -201,7 +201,7 @@ class TestDeploymentScenarios(E2ETestBase):
                     print("✅ API health endpoint responding")
                 else:
                     print("⚠️ API endpoints not fully integrated yet")
-            except:
+            except Exception:
                 print("⚠️ API endpoints not accessible - integration may need work")
 
             # The main test is that the app starts with API config

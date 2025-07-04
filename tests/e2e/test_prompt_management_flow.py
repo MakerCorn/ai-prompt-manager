@@ -21,7 +21,7 @@ class TestPromptManagementFlow(E2ETestBase):
         # Wait for page to load and look for login elements
         try:
             page.wait_for_load_state("networkidle", timeout=10000)
-        except:
+        except Exception:
             # If networkidle fails, wait for domcontentloaded instead
             page.wait_for_load_state("domcontentloaded", timeout=5000)
 
@@ -52,7 +52,7 @@ class TestPromptManagementFlow(E2ETestBase):
                             parent = element.query_selector("..")
                             if parent:
                                 label_text = parent.text_content() or ""
-                        except:
+                        except Exception:
                             pass
 
                         if any(
@@ -63,7 +63,7 @@ class TestPromptManagementFlow(E2ETestBase):
                             break
                 if email_input:
                     break
-            except:
+            except Exception:
                 continue
 
         if not email_input:
@@ -71,7 +71,7 @@ class TestPromptManagementFlow(E2ETestBase):
             try:
                 inputs = page.query_selector_all("input, textarea")
                 email_input = next((inp for inp in inputs if inp.is_visible()), None)
-            except:
+            except Exception:
                 pass
 
         if email_input:
@@ -101,7 +101,7 @@ class TestPromptManagementFlow(E2ETestBase):
                                 break
                     if password_input:
                         break
-                except:
+                except Exception:
                     continue
 
             if password_input:
@@ -121,12 +121,12 @@ class TestPromptManagementFlow(E2ETestBase):
                         if button and button.is_visible():
                             button.click()
                             break
-                    except:
+                    except Exception:
                         continue
 
                 try:
                     page.wait_for_load_state("networkidle", timeout=5000)
-                except:
+                except Exception:
                     page.wait_for_load_state("domcontentloaded", timeout=3000)
                 page.wait_for_timeout(2000)  # Give UI time to settle
             else:
@@ -315,7 +315,7 @@ class TestPromptManagementFlow(E2ETestBase):
                 assert (
                     len(page.content()) > 1000
                 ), "Application should render substantial content"
-                
+
                 # Check for actual application errors, not CSS variables
                 page_content = page.content().lower()
                 critical_errors = [
@@ -324,11 +324,13 @@ class TestPromptManagementFlow(E2ETestBase):
                     "traceback",
                     "exception occurred",
                     "error: ",
-                    "fatal error"
+                    "fatal error",
                 ]
-                
+
                 for error_pattern in critical_errors:
-                    assert error_pattern not in page_content, f"Application shows critical error: {error_pattern}"
+                    assert (
+                        error_pattern not in page_content
+                    ), f"Application shows critical error: {error_pattern}"
 
                 print("✅ Prompt library workflow completed")
 
@@ -457,7 +459,7 @@ class TestPromptManagementFlow(E2ETestBase):
                 page.goto(test_config["base_url"])
                 try:
                     page.wait_for_load_state("networkidle", timeout=10000)
-                except:
+                except Exception:
                     # Fallback if networkidle fails
                     page.wait_for_load_state("domcontentloaded", timeout=5000)
                 assert len(page.content()) > 500, "Application should remain functional"

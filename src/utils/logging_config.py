@@ -109,7 +109,6 @@ def setup_logging(
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("psycopg2").setLevel(logging.WARNING)
-    logging.getLogger("gradio").setLevel(logging.WARNING)
 
     # Log the configuration
     logger = logging.getLogger("logging_config")

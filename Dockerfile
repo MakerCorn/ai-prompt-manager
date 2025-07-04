@@ -8,6 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LOCAL_DEV_MODE=false \
     MULTITENANT_MODE=true \
     ENABLE_API=true \
+    USE_GRADIO=false \
     DB_TYPE=sqlite \
     DB_PATH=/app/data/prompts.db \
     SERVER_HOST=0.0.0.0 \
@@ -36,6 +37,7 @@ RUN poetry config virtualenvs.create false \
 
 # Copy application files after dependencies are installed
 COPY *.py ./
+COPY web_templates/ ./web_templates/
 COPY src/ ./src/
 COPY tests/ ./tests/
 COPY scripts/ ./scripts/
@@ -46,12 +48,12 @@ RUN mkdir -p /app/data
 # Test that both legacy and new architecture components can be imported and initialized
 RUN python scripts/docker-test.py
 
-# Expose port for Gradio and API
+# Expose port for modern web UI
 EXPOSE 7860
 
-# Health check
+# Health check for modern web interface
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7860/api/health || exit 1
+    CMD curl -f http://localhost:7860/login || curl -f http://localhost:7860/ || exit 1
 
-# Use unified launcher (defaults to multi-tenant mode with API enabled via env vars)
+# Use unified launcher (defaults to modern web UI with multi-tenant mode and API enabled)
 CMD ["python", "run.py"]

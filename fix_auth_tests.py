@@ -26,12 +26,12 @@ def fix_auth_tests():
             sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
         )
         assert tenant_success, f"Failed to create tenant: {{tenant_message}}"
-        
+
         # Get the tenant ID after creation
         tenants = auth_manager.get_all_tenants()
         tenant = next((t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None)
         assert tenant is not None, "Tenant should exist after creation"
-        
+
 {method_middle}        user_success, user_message = auth_manager.create_user(
             tenant.id,"""
 
