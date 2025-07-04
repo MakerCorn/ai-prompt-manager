@@ -2126,6 +2126,21 @@ pytest = ">=7.0.0"
 test = ["black (>=22.1.0)", "flake8 (>=4.0.1)", "pre-commit (>=2.17.0)", "tox (>=3.24.5)"]
 
 [[package]]
+name = "pytest-timeout"
+version = "2.4.0"
+description = "pytest plugin to abort hanging tests"
+optional = false
+python-versions = ">=3.7"
+groups = ["dev", "e2e", "test"]
+files = [
+    {file = "pytest_timeout-2.4.0-py3-none-any.whl", hash = "sha256:c42667e5cdadb151aeb5b26d114aff6bdf5a907f176a007a30b940d3d865b5c2"},
+    {file = "pytest_timeout-2.4.0.tar.gz", hash = "sha256:7e68e90b01f9eff71332b25001f85c75495fc4e3a836701876183c4bcfd0540a"},
+]
+
+[package.dependencies]
+pytest = ">=7.0.0"
+
+[[package]]
 name = "pytest-xdist"
 version = "3.8.0"
 description = "pytest xdist plugin for distributed testing, most importantly across multiple CPUs"
@@ -3074,4 +3089,4 @@ password-hashing = ["argon2-cffi", "bcrypt"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "5b28bcc3f0d6044cb50a2cef0d602a5322d48e3c2c4714676b94271866a1bf1e"
+content-hash = "5149e08e05f32bc58740f5ba2efaba86b4f89ab0dac2dc836eaef575953ed9df"

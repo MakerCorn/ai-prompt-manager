@@ -33,6 +33,10 @@
   - Real HTTP request validation
   - Comprehensive error handling and cleanup
   - CI/CD compatible test execution
+- **E2E Test Dependencies**: Fixed pytest timeout configuration
+  - Added `pytest-timeout` plugin to all test groups
+  - Configured default 300-second timeout for long-running E2E tests
+  - Resolved pytest argument recognition issues in CI/CD
 
 #### **Startup Consolidation**
 - **Single Launcher**: Eliminated multiple startup files as requested
