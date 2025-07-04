@@ -26,7 +26,7 @@ def start_server_background():
         # Import the unified run module
         import argparse
 
-        from run import create_interface, get_configuration
+        from run import get_configuration
 
         # Create mock args for multi-tenant + API mode
         class MockArgs:
