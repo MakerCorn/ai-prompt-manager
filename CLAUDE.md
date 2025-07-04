@@ -255,8 +255,8 @@ E2E_SLOW_MO=500 python tests/e2e/test_web_ui_e2e.py     # Slow motion debugging
 python -c "
 from auth_manager import AuthManager
 from prompt_data_manager import PromptDataManager  
-from prompt_manager import create_interface
-print('✅ Legacy components working')
+from run import main
+print('✅ Core components working')
 "
 
 python -c "

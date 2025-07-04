@@ -10,7 +10,6 @@ authors = ["MakerCorn <corn.mendoza@outlook.com>"]
 license = "Non-Commercial"
 readme = "README.md"
 packages = [
-    { include = "prompt_manager.py" }, 
     { include = "prompt_data_manager.py" },
     { include = "auth_manager.py" },
     { include = "api_token_manager.py" },

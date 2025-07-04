@@ -45,6 +45,10 @@
 - **Security Scanning**: Addressed bandit security warnings
   - Added proper `nosec` comments for intentional binding to all interfaces
   - Validated that hardcoded passwords are test-only and appropriately handled
+- **Legacy Code Cleanup**: Removed obsolete `prompt_manager.py` references
+  - Cleaned up `pyproject.toml` package references to fix Poetry installation errors
+  - Updated documentation to use modern import patterns (`run.main` instead of `prompt_manager.create_interface`)
+  - Updated Docker test scripts to remove legacy import dependencies
 
 #### **Documentation Updates**
 - **Enhanced E2E Testing Documentation**: Updated CLAUDE.md with comprehensive E2E testing guidance

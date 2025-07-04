@@ -13,9 +13,7 @@ sys.path.insert(0, "./src")
 def test_imports():
     """Test that all components can be imported."""
     try:
-        # Test legacy imports
-        import prompt_manager  # noqa: F401
-
+        # Test core imports
         import api_endpoints  # noqa: F401
         import auth_manager  # noqa: F401
         from src.core.base.database_manager import DatabaseManager  # noqa: F401
