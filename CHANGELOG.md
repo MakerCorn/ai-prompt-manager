@@ -1,6 +1,49 @@
 # Changelog
 
-## [Unreleased] - Semantic Versioning & Deployment Infrastructure Updates
+## [Unreleased] - Dual-Server API Architecture & Infrastructure Updates
+
+### 🔌 Dual-Server API Architecture Implementation
+
+#### **Revolutionary API Integration**
+- **Dual-Server Architecture**: Implemented completely new API architecture with separate FastAPI server
+  - **Gradio UI Server**: Runs on main port (e.g., 7860) for web interface
+  - **FastAPI Server**: Runs on main port + 1 (e.g., 7861) for API endpoints
+  - **Threading**: API server runs in separate daemon thread for optimal performance
+  - **Unified Launcher**: Both servers managed by single `run.py --with-api` command
+- **API Endpoints**: Complete set of functional API endpoints
+  - `/health` - Health check with timestamp
+  - `/info` - Service information and versioning
+  - `/docs` - Interactive Swagger UI documentation
+  - `/redoc` - ReDoc API documentation
+  - `/` - API root with endpoint discovery
+- **Port Management**: Intelligent port allocation system
+  - Automatic port calculation (API port = main port + 1)
+  - Configurable port ranges for development and production
+  - Docker-compatible port mapping for both services
+
+#### **Integration Testing Framework**
+- **Comprehensive API Testing**: Completely overhauled integration test suite
+  - Dynamic port allocation to prevent conflicts
+  - Dual-server startup validation
+  - Health check and endpoint accessibility testing
+  - API documentation verification
+  - Process lifecycle management
+- **Test Infrastructure**: Enhanced test reliability and coverage
+  - Subprocess-based server management
+  - Real HTTP request validation
+  - Comprehensive error handling and cleanup
+  - CI/CD compatible test execution
+
+#### **Startup Consolidation**
+- **Single Launcher**: Eliminated multiple startup files as requested
+  - Removed `run_mt_with_api.py` redundancy
+  - Consolidated all deployment modes into `run.py`
+  - Unified argument handling and configuration
+- **Mode Support**: All deployment modes work with single launcher
+  - `--single-user` - Single user mode
+  - `--with-api` - Dual-server API architecture
+  - `--single-user --with-api` - Combined mode
+  - Custom port and host configuration
 
 ### 🚀 Semantic Versioning Implementation
 
@@ -20,9 +63,16 @@
 ### 🚀 Deployment Infrastructure Overhaul
 
 #### **Docker Deployment Updates**
+- **Dual-Port Configuration**: Updated Docker configurations for dual-server architecture
+  - `docker-compose.yml`: Maps ports 7860 (UI) and 7861 (API)
+  - `docker-compose.prod.yml`: Production configuration with dual-port mapping
+  - Health checks updated to use API server endpoint (`http://localhost:7861/health`)
 - **Container Registry Paths**: Updated docker-compose.yml and docker-compose.prod.yml to use correct GitHub Container Registry paths
   - Changed from `ghcr.io/OWNER/REPO:latest` to `ghcr.io/makercorn/ai-prompt-manager:latest`
   - Production image updated to use `ghcr.io/makercorn/ai-prompt-manager:stable` tag
+- **Environment Variables**: Updated configuration comments to reflect dual-server architecture
+  - `ENABLE_API=true` now enables dual-server mode
+  - Clear documentation of port mapping requirements
 - **Multi-Platform Support**: All Docker images now support both `linux/amd64` and `linux/arm64` architectures
 - **Container Signing**: All Docker images are signed with Sigstore/Cosign for supply chain security
 

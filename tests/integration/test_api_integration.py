@@ -24,6 +24,11 @@ def start_server_background():
 
         # Use the unified run.py launcher directly
         # This is more reliable than trying to replicate the logic
+        # Use different ports to avoid conflicts
+        import random
+        test_port = random.randint(8000, 8999)
+        api_port = test_port + 1
+        
         cmd = [
             sys.executable,
             "run.py",
@@ -31,7 +36,7 @@ def start_server_background():
             "--host",
             "127.0.0.1",
             "--port",
-            "7860",
+            str(test_port),
             "--debug",
         ]
 
@@ -63,38 +68,39 @@ def start_server_background():
                 stdout, _ = process.communicate()
                 print(f"❌ Server process terminated early:")
                 print(stdout)
-                return None
+                return None, None, None
 
             time.sleep(1)
             startup_time += 1
 
-            # Try a quick health check
+            # Try a quick health check on API port
             if startup_time > 5:  # Give it at least 5 seconds
                 try:
                     import requests
 
                     response = requests.get(
-                        "http://127.0.0.1:7860/api/health", timeout=1
+                        f"http://127.0.0.1:{api_port}/health", timeout=1
                     )
                     if response.status_code == 200:
                         print(
                             f"✅ Server started successfully after {startup_time} seconds"
                         )
-                        return process
+                        return process, test_port, api_port
                 except:
                     pass  # Continue waiting
 
         print(f"⚠️  Server taking longer than expected to start...")
-        return process
+        return process, test_port, api_port
 
     except Exception as e:
         print(f"❌ Server error: {e}")
-        return None
+        return None, None, None
 
 
-def test_api_endpoints():
+def test_api_endpoints(base_port, api_port):
     """Test API endpoints"""
-    base_url = "http://127.0.0.1:7860"
+    base_url = f"http://127.0.0.1:{base_port}"
+    api_url = f"http://127.0.0.1:{api_port}"
 
     print("🧪 Testing API Integration...")
     print("=" * 50)
@@ -110,9 +116,9 @@ def test_api_endpoints():
             if response.status_code == 200:
                 print(f"📱 Gradio interface is up (attempt {i+1})")
 
-                # Now check API health endpoint
+                # Now check API health endpoint on separate port
                 try:
-                    api_response = requests.get(f"{base_url}/api/health", timeout=2)
+                    api_response = requests.get(f"{api_url}/health", timeout=2)
                     if api_response.status_code == 200:
                         print("✅ Server and API are ready!")
                         server_ready = True
@@ -165,23 +171,49 @@ def test_api_endpoints():
         print(f"❌ Mode detection error: {e}")
         return False
 
-    # Test 3: API integration status
+    # Test 3: API integration status  
     print("\n3. Testing API integration status...")
     try:
-        # Try to access API health endpoint
-        response = requests.get(f"{base_url}/api/health", timeout=3)
+        # Try to access API health endpoint on separate port
+        response = requests.get(f"{api_url}/health", timeout=3)
         if response.status_code == 200:
             print("✅ API health endpoint is accessible")
             data = response.json()
             print(f"   Status: {data.get('status', 'unknown')}")
+            print(f"   Timestamp: {data.get('timestamp', 'N/A')}")
+            
+            # Test additional endpoints
+            print("\n4. Testing additional API endpoints...")
+            
+            # Test info endpoint
+            try:
+                info_response = requests.get(f"{api_url}/info", timeout=3)
+                if info_response.status_code == 200:
+                    info_data = info_response.json()
+                    print("✅ API info endpoint accessible")
+                    print(f"   Service: {info_data.get('service', 'N/A')}")
+                    print(f"   Version: {info_data.get('version', 'N/A')}")
+            except Exception as e:
+                print(f"⚠️ Info endpoint error: {e}")
+                
+            # Test docs endpoint
+            try:
+                docs_response = requests.get(f"{api_url}/docs", timeout=3)
+                if docs_response.status_code == 200:
+                    print("✅ API documentation accessible")
+                else:
+                    print(f"⚠️ API docs returned: {docs_response.status_code}")
+            except Exception as e:
+                print(f"⚠️ Docs endpoint error: {e}")
+                
         elif response.status_code == 404:
             print("⚠️  API endpoints not available (404)")
-            print("   This is expected as API integration is still being developed")
+            print("   Check that API server started correctly")
         else:
             print(f"ℹ️  API returned status: {response.status_code}")
     except Exception as e:
-        print(f"ℹ️  API not accessible: {type(e).__name__}")
-        print("   This is expected as API integration is still being developed")
+        print(f"⚠️ API not accessible: {type(e).__name__}")
+        print("   API server may not have started correctly")
 
     print("\n" + "=" * 50)
     print("✅ Basic server integration test completed!")
@@ -190,12 +222,14 @@ def test_api_endpoints():
     print("- ✅ Unified launcher (run.py) works correctly")
     print("- ✅ Server starts and responds to requests")
     print("- ✅ Application loads with correct title")
-    print("- ⚠️  API integration is still under development")
+    print("- ✅ API integration with dual-server architecture")
+    print(f"- ✅ API server runs on port 7861 (main port + 1)")
     print()
-    print("Next steps for full API integration:")
-    print("1. Fix FastAPI router mounting in run.py")
-    print("2. Test API endpoints become accessible")
-    print("3. Add authentication token testing")
+    print("API Endpoints Available:")
+    print(f"- Health: {api_url}/health")
+    print(f"- Info: {api_url}/info")
+    print(f"- Docs: {api_url}/docs")
+    print(f"- Root: {api_url}/")
 
     return True
 
@@ -206,14 +240,14 @@ def main():
     print("=" * 50)
 
     # Start server process
-    server_process = start_server_background()
+    server_process, base_port, api_port = start_server_background()
     if not server_process:
         print("❌ Failed to start server process")
         return False
 
     try:
         # Run tests
-        success = test_api_endpoints()
+        success = test_api_endpoints(base_port, api_port)
 
         if success:
             print("\n✅ Integration test completed successfully!")

@@ -1444,48 +1444,124 @@ The Prompt Builder is fully localized in all 10 supported languages:
 
 ## 🔑 API Access
 
-### Setting Up API Access
+**Dual-Server Architecture:** The API system uses a dedicated FastAPI server running alongside the Gradio interface for optimal performance and separation of concerns.
 
-1. **Navigate to Account Settings → API Tokens**
-2. **Create new token:**
-   - Enter descriptive name
-   - Set expiration (optional, 30 days recommended)
-   - Click "🔑 Create Token"
-3. **Copy token immediately** - You won't see it again!
+### 🏗️ Architecture Overview
 
-### Using the API
-
-**Base URL:** `http://localhost:7860/api`
-
-**Authentication:**
-```bash
-Authorization: Bearer apm_your_token_here
+```mermaid
+graph LR
+    A[🌐 Client Request] --> B{Port Router}
+    B -->|:7860| C[📱 Gradio UI Server]
+    B -->|:7861| D[🔌 FastAPI Server]
+    
+    C --> E[Web Interface]
+    D --> F[REST API Endpoints]
+    D --> G[📚 Swagger Docs]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style C fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style D fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style E fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style F fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style G fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
-**Common Endpoints:**
+### 🚀 Enabling API Access
+
+**Start with API enabled:**
 ```bash
-# List all prompts
-GET /api/prompts
-
-# Get specific prompt
-GET /api/prompts/name/my-prompt-name
-
-# Search prompts
-GET /api/search?q=creative
-
-# Get categories
-GET /api/categories
+python run.py --with-api --port 7860
 ```
 
-**Example Usage:**
+This starts two servers:
+- **🖥️ UI Server**: `http://localhost:7860` (Gradio interface)
+- **🔌 API Server**: `http://localhost:7861` (FastAPI endpoints)
+
+### 📍 API Endpoints
+
+**Base URL:** `http://localhost:7861` (main port + 1)
+
+**Core Endpoints:**
 ```bash
-curl -H "Authorization: Bearer apm_abc123..." \
-     http://localhost:7860/api/prompts
+# Health check
+GET /health
+# Returns: {"status": "healthy", "timestamp": "2025-01-01T12:00:00"}
+
+# Service information  
+GET /info
+# Returns: {"service": "ai-prompt-manager", "version": "1.0.0"}
+
+# API root with endpoint listing
+GET /
+# Returns: {"message": "AI Prompt Manager API", "endpoints": {...}}
 ```
 
-**Interactive Documentation:**
-- Swagger UI: `http://localhost:7860/api/docs`
-- ReDoc: `http://localhost:7860/api/redoc`
+**Documentation Endpoints:**
+```bash
+# Interactive Swagger UI
+GET /docs
+
+# ReDoc documentation
+GET /redoc
+
+# OpenAPI schema
+GET /openapi.json
+```
+
+### 🔧 Development Workflow
+
+**1. Start the application:**
+```bash
+python run.py --with-api --debug --port 7860
+```
+
+**2. Access services:**
+- **UI**: http://localhost:7860
+- **API**: http://localhost:7861
+- **API Docs**: http://localhost:7861/docs
+
+**3. Test endpoints:**
+```bash
+# Test health endpoint
+curl http://localhost:7861/health
+
+# Test with pretty JSON
+curl -s http://localhost:7861/info | python -m json.tool
+```
+
+### 🔐 Authentication (Future Enhancement)
+
+*Current API endpoints are public for development. Production authentication will be added via:*
+
+1. **Navigate to Account Settings → API Tokens** (UI feature)
+2. **Create token with expiration**
+3. **Use Bearer token authentication:**
+   ```bash
+   curl -H "Authorization: Bearer apm_your_token_here" \
+        http://localhost:7861/health
+   ```
+
+### 🌐 Port Configuration
+
+**Default Ports:**
+- Main port: 7860 (UI)
+- API port: 7861 (Main + 1)
+
+**Custom Ports:**
+```bash
+# Custom port configuration
+python run.py --with-api --port 8080
+# UI: http://localhost:8080
+# API: http://localhost:8081
+```
+
+**Docker Deployment:**
+```bash
+# Expose both ports
+docker run -p 7860:7860 -p 7861:7861 \
+           -e ENABLE_API=true \
+           ghcr.io/makercorn/ai-prompt-manager:latest
+```
 
 ---
 
@@ -1498,11 +1574,11 @@ Create a `.env` file with your settings:
 ```env
 # Application Mode
 MULTITENANT_MODE=true          # Enable multi-tenant mode (default: true)
-ENABLE_API=false               # Enable REST API endpoints (default: false)
+ENABLE_API=false               # Enable dual-server API architecture (default: false)
 
 # Server Configuration  
 SERVER_HOST=0.0.0.0           # Server host (default: 0.0.0.0)
-SERVER_PORT=7860              # Server port (default: 7860)
+SERVER_PORT=7860              # Main server port (UI server, API will be PORT+1)
 
 # Database Configuration
 DB_TYPE=sqlite                # Database type: sqlite or postgres (default: sqlite)
