@@ -478,10 +478,9 @@ class AuthManager:
         self, email: str, password: str, subdomain: Optional[str] = None
     ) -> Tuple[bool, Optional[User], str]:
         """Authenticate user with email/password"""
-        conn = self.get_conn()
-        cursor = conn.cursor()
-
         try:
+            conn = self.get_conn()
+            cursor = conn.cursor()
             # Find user with optional tenant filtering
             if subdomain and subdomain != "localhost":
                 if self.db_type == "postgres":
@@ -585,7 +584,10 @@ class AuthManager:
             return True, user, "Authentication successful"
 
         except Exception as e:
-            conn.close()
+            try:
+                conn.close()
+            except:
+                pass
             return False, None, f"Authentication error: {str(e)}"
 
     def create_session(
@@ -698,15 +700,15 @@ class AuthManager:
                 )
             else:
                 user = User(
-                    id=row[5],  # user id
-                    tenant_id=row[6],
-                    email=row[7],
-                    first_name=row[9],
-                    last_name=row[10],
-                    role=row[11],
-                    is_active=bool(row[12]),
-                    created_at=row[14],
-                    last_login=row[15],
+                    id=row[7],  # u.id
+                    tenant_id=row[8],  # u.tenant_id
+                    email=row[9],  # u.email
+                    first_name=row[11],  # u.first_name
+                    last_name=row[12],  # u.last_name
+                    role=row[13],  # u.role
+                    is_active=bool(row[14]),  # u.is_active
+                    created_at=row[16],  # u.created_at
+                    last_login=row[17],  # u.last_login
                 )
 
             conn.close()

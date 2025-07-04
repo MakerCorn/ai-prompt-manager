@@ -10,6 +10,8 @@ This software is licensed for non-commercial use only. See LICENSE file for deta
 """
 
 import json
+import os
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 import gradio as gr
@@ -573,6 +575,21 @@ Please provide only the enhanced prompt as your response, without any explanatio
 
 # Initialize the prompt manager
 prompt_manager = AIPromptManager()
+
+# Handle single-user mode
+if os.getenv("MULTITENANT_MODE", "true").lower() == "false":
+    # Create a default user for single-user mode
+    default_user = User(
+        id="single-user-1",
+        tenant_id="single-tenant",
+        email="user@local",
+        first_name="User",
+        last_name="Local",
+        role="admin",
+        is_active=True,
+        created_at=datetime.now(),
+    )
+    prompt_manager.set_current_user(default_user)
 
 # Session state management
 session_store: Dict[str, object] = {}
@@ -1425,6 +1442,9 @@ def change_language(language: str):
 # Create modern Gradio interface
 def create_interface():
     """Create modernized interface with i18n support and improved design"""
+    # Check if we're in single-user mode
+    is_single_user = os.getenv("MULTITENANT_MODE", "true").lower() == "false"
+
     with gr.Blocks(
         title=t("app.title"),
         theme=ModernTheme.create_theme(),
@@ -1447,7 +1467,9 @@ def create_interface():
         auth_status = gr.Markdown(t("app.status.not_authenticated"))
 
         # Modern login interface with internationalization
-        with gr.Row(visible=True, elem_classes=["login-section"]) as login_section:
+        with gr.Row(
+            visible=not is_single_user, elem_classes=["login-section"]
+        ) as login_section:
             with gr.Column():
                 UIComponents.create_section_header("auth.login", "🔐")
 
@@ -1483,7 +1505,9 @@ def create_interface():
                         sso_message = UIComponents.create_status_display("status.info")
 
         # Main application interface with modern design
-        with gr.Row(visible=False, elem_classes=["main-section"]) as main_section:
+        with gr.Row(
+            visible=is_single_user, elem_classes=["main-section"]
+        ) as main_section:
             with gr.Tabs(elem_classes=["modern-tabs"]):
                 # Prompt Management Tab
                 with gr.TabItem(f"📝 {t('nav.prompts')}", elem_classes=["modern-tab"]):

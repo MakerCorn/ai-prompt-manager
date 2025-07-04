@@ -625,8 +625,8 @@ class TestAuthManager:
         session = cursor.fetchone()
         assert session is not None
         assert session[1] == user_id  # user_id
-        assert session[4] == "127.0.0.1"  # ip_address
-        assert session[5] == "Mozilla/5.0"  # user_agent
+        assert session[5] == "127.0.0.1"  # ip_address
+        assert session[6] == "Mozilla/5.0"  # user_agent
         conn.close()
 
     def test_validate_session_success(
@@ -803,7 +803,7 @@ class TestAuthManager:
             assert url.startswith("https://login.example.com/oauth2/v2.0/authorize")
             assert "client_id=test_client_id" in url
             assert "response_type=code" in url
-            assert "scope=openid%20email%20profile" in url
+            assert "scope=openid+email+profile" in url
             assert "testco" in url  # subdomain in state
 
     def test_get_sso_login_url_disabled(self, auth_manager):

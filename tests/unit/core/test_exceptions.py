@@ -7,16 +7,12 @@ behavior, error details, and dictionary conversion.
 
 import pytest
 
-from src.core.exceptions.base import (
-    AuthenticationException,
-    AuthorizationException,
-    BaseAppException,
-    ConfigurationException,
-    DatabaseException,
-    ExternalServiceException,
-    ServiceException,
-    ValidationException,
-)
+from src.core.exceptions.base import (AuthenticationException,
+                                      AuthorizationException, BaseAppException,
+                                      ConfigurationException,
+                                      DatabaseException,
+                                      ExternalServiceException,
+                                      ServiceException, ValidationException)
 
 
 class TestBaseAppException:

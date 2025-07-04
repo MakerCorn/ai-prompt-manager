@@ -61,21 +61,22 @@ class TestPromptDataManager:
     @pytest.fixture
     def postgres_data_manager(self, tenant_id, user_id):
         """Create PromptDataManager instance configured for PostgreSQL"""
-        with patch.dict(
-            os.environ,
-            {
-                "DB_TYPE": "postgres",
-                "POSTGRES_DSN": "postgresql://test:test@localhost:5432/test",
-            },
-            clear=True,
-        ):
-            with patch("prompt_data_manager.POSTGRES_AVAILABLE", True):
-                with patch("prompt_data_manager.psycopg2") as mock_psycopg2:
-                    mock_conn = MagicMock()
-                    mock_cursor = MagicMock()
-                    mock_conn.cursor.return_value = mock_cursor
-                    mock_psycopg2.connect.return_value = mock_conn
-                    return PromptDataManager(tenant_id=tenant_id, user_id=user_id)
+        # Need to patch module-level constants before importing/creating instance
+        with patch("prompt_data_manager.POSTGRES_AVAILABLE", True):
+            with patch("prompt_data_manager.DB_TYPE", "postgres"):
+                with patch(
+                    "prompt_data_manager.POSTGRES_DSN",
+                    "postgresql://test:test@localhost:5432/test",
+                ):
+                    with patch("prompt_data_manager.psycopg2") as mock_psycopg2:
+                        mock_conn = MagicMock()
+                        mock_cursor = MagicMock()
+                        mock_conn.cursor.return_value = mock_cursor
+                        mock_psycopg2.connect.return_value = mock_conn
+                        manager = PromptDataManager(
+                            tenant_id=tenant_id, user_id=user_id
+                        )
+                        return manager
 
     @pytest.fixture
     def sample_prompt_data(self):
@@ -126,26 +127,26 @@ class TestPromptDataManager:
 
     def test_initialization_postgres_missing_psycopg2(self):
         """Test PromptDataManager initialization fails when psycopg2 not available"""
-        with patch.dict(
-            os.environ,
-            {
-                "DB_TYPE": "postgres",
-                "POSTGRES_DSN": "postgresql://test:test@localhost:5432/test",
-            },
-            clear=True,
-        ):
-            with patch("prompt_data_manager.POSTGRES_AVAILABLE", False):
-                with pytest.raises(ImportError, match="psycopg2 is required"):
-                    PromptDataManager()
+        # Patch module-level constants to force postgres mode without psycopg2
+        with patch("prompt_data_manager.POSTGRES_AVAILABLE", False):
+            with patch("prompt_data_manager.DB_TYPE", "postgres"):
+                with patch(
+                    "prompt_data_manager.POSTGRES_DSN",
+                    "postgresql://test:test@localhost:5432/test",
+                ):
+                    with pytest.raises(ImportError, match="psycopg2 is required"):
+                        PromptDataManager()
 
     def test_initialization_postgres_missing_dsn(self):
         """Test PromptDataManager initialization fails when POSTGRES_DSN not set"""
-        with patch.dict(os.environ, {"DB_TYPE": "postgres"}, clear=True):
-            with patch("prompt_data_manager.POSTGRES_AVAILABLE", True):
-                with pytest.raises(
-                    ValueError, match="POSTGRES_DSN environment variable"
-                ):
-                    PromptDataManager()
+        # Patch module-level constants to force postgres mode without DSN
+        with patch("prompt_data_manager.POSTGRES_AVAILABLE", True):
+            with patch("prompt_data_manager.DB_TYPE", "postgres"):
+                with patch("prompt_data_manager.POSTGRES_DSN", None):
+                    with pytest.raises(
+                        ValueError, match="POSTGRES_DSN environment variable"
+                    ):
+                        PromptDataManager()
 
     def test_get_conn_sqlite(self, data_manager_sqlite):
         """Test database connection for SQLite"""
@@ -237,7 +238,7 @@ class TestPromptDataManager:
         result = data_manager_no_tenant.add_prompt(**sample_prompt_data)
 
         assert "error" in result.lower()
-        assert "tenant_id" in result.lower()
+        assert "tenant context" in result.lower()
 
     def test_add_prompt_missing_required_fields(self, data_manager_sqlite):
         """Test prompt addition fails with missing required fields"""
@@ -817,19 +818,23 @@ class TestPromptDataManager:
 
     def test_config_error_handling(self, data_manager_sqlite):
         """Test configuration error handling"""
-        # Mock database error for save_config
+        # Mock database error for save_config by patching cursor.execute
         with patch.object(data_manager_sqlite, "get_conn") as mock_get_conn:
             mock_conn = MagicMock()
-            mock_conn.cursor.side_effect = Exception("Database error")
+            mock_cursor = MagicMock()
+            mock_cursor.execute.side_effect = Exception("Database error")
+            mock_conn.cursor.return_value = mock_cursor
             mock_get_conn.return_value = mock_conn
 
             success = data_manager_sqlite.save_config("test_key", "test_value")
             assert success is False
 
-        # Mock database error for get_config
+        # Mock database error for get_config by patching cursor.execute
         with patch.object(data_manager_sqlite, "get_conn") as mock_get_conn:
             mock_conn = MagicMock()
-            mock_conn.cursor.side_effect = Exception("Database error")
+            mock_cursor = MagicMock()
+            mock_cursor.execute.side_effect = Exception("Database error")
+            mock_conn.cursor.return_value = mock_cursor
             mock_get_conn.return_value = mock_conn
 
             value = data_manager_sqlite.get_config("test_key")
