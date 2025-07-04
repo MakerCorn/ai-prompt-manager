@@ -19,51 +19,43 @@ def start_server_background():
     try:
         # Set environment for multi-tenant mode with API
         import os
+        import sys
+        import subprocess
 
-        os.environ["MULTITENANT_MODE"] = "true"
-        os.environ["ENABLE_API"] = "true"
-
-        # Import the unified run module
-        import argparse
-
-        from run import get_configuration
-
-        # Create mock args for multi-tenant + API mode
-        class MockArgs:
-            single_user = False
-            multi_tenant = True
-            with_api = True
-            host = "127.0.0.1"
-            port = 7860
-            debug = True
-            share = False
-
-        args = MockArgs()
-        config = get_configuration(args)
-
-        # Create the Gradio interface
-        from prompt_manager import create_interface
-
-        app = create_interface()
-
-        # Add API integration
-        if config["enable_api"]:
-            from api_endpoints import APIManager
-
-            api_manager = APIManager()
-            api_router = api_manager.get_router()
-            app.app.include_router(api_router, prefix="/api")
-
-        # Launch the app
-        app.launch(
-            server_name="127.0.0.1",
-            server_port=7860,
-            share=False,
-            show_error=False,
-            quiet=True,  # Reduce log noise
+        # Use the unified run.py launcher directly
+        # This is more reliable than trying to replicate the logic
+        cmd = [
+            sys.executable, "run.py",
+            "--with-api",
+            "--host", "127.0.0.1", 
+            "--port", "7860",
+            "--debug"
+        ]
+        
+        # Set environment variables
+        env = os.environ.copy()
+        env["MULTITENANT_MODE"] = "true"
+        env["ENABLE_API"] = "true"
+        env["LOCAL_DEV_MODE"] = "true"
+        
+        # Start the process
+        process = subprocess.Popen(
+            cmd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True
         )
+        
+        # Give it time to start
+        import time
+        time.sleep(5)
+        
+        return process
+        
     except Exception as e:
         print(f"❌ Server error: {e}")
+        return None
 
 
 def test_api_endpoints():
@@ -147,7 +139,7 @@ def test_api_endpoints():
     print("🎉 All tests passed! API integration is working correctly.")
     print()
     print("Next steps:")
-    print("1. Start the server: poetry run python run_mt_with_api.py")
+    print("1. Start the server: poetry run python run.py --with-api")
     print("2. Open web UI: http://localhost:7860")
     print("3. Login with: admin@localhost / admin123")
     print("4. Create API tokens in Account Settings")
@@ -161,9 +153,11 @@ def main():
     print("🚀 AI Prompt Manager API Integration Test")
     print("=" * 50)
 
-    # Start server in background thread
-    server_thread = threading.Thread(target=start_server_background, daemon=True)
-    server_thread.start()
+    # Start server process
+    server_process = start_server_background()
+    if not server_process:
+        print("❌ Failed to start server process")
+        return False
 
     try:
         # Run tests
@@ -182,6 +176,16 @@ def main():
     except Exception as e:
         print(f"\n❌ Test error: {e}")
         return 1
+    finally:
+        # Clean up server process
+        if server_process:
+            try:
+                server_process.terminate()
+                server_process.wait(timeout=5)
+                print("🧹 Server process cleaned up")
+            except:
+                server_process.kill()
+                print("🧹 Server process forcefully terminated")
 
 
 if __name__ == "__main__":
