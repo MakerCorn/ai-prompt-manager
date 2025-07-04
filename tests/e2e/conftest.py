@@ -41,12 +41,13 @@ def test_config() -> Dict[str, Any]:
 
     return {
         "base_url": f"http://localhost:{port}",
-        "api_base": f"http://localhost:{port}/api",
+        "api_base": f"http://localhost:{port + 1}",  # API runs on port+1
         "timeout": 60,  # Increased timeout for startup
         "db_path": "e2e_test.db",
         "headless": os.getenv("E2E_HEADLESS", "true").lower() == "true",
         "slow_mo": int(os.getenv("E2E_SLOW_MO", "0")),
         "port": port,
+        "api_port": port + 1,  # Add API port to config
     }
 
 
@@ -105,8 +106,8 @@ def app_server(
             universal_newlines=True,
         )
 
-    # API endpoints are now integrated into the Gradio server
-    print("🔌 API endpoints integrated into Gradio server")
+    # API endpoints run in separate thread within the same process
+    print("🔌 API server runs as separate thread in Gradio process")
 
     # Wait for both servers to be ready
     print("⏱️ Waiting for servers to start...")
@@ -125,12 +126,13 @@ def app_server(
             pass
         time.sleep(1)
 
-    # Wait for API server
+    # Wait for API server (dual-server architecture)
     api_ready = False
+    api_base_url = f"http://localhost:{test_config['api_port']}"
     start_time = time.time()
     while time.time() - start_time < test_config["timeout"]:
         try:
-            response = requests.get(f"{api_base_url}/api/health", timeout=5)
+            response = requests.get(f"{api_base_url}/health", timeout=5)
             if response.status_code == 200:
                 api_ready = True
                 print(f"✅ API server ready at {api_base_url}")
@@ -166,10 +168,10 @@ def app_server(
 
         pytest.fail("E2E test servers failed to start")
 
-    # Update test config with API server info
-    test_config["api_base"] = f"{api_base_url}/api"
+    # Update test config with API server info (dual-server architecture)
+    test_config["api_base"] = api_base_url  # API endpoints are directly on the API server
 
-    processes = {"gradio": gradio_process, "api": api_process}
+    processes = {"gradio": gradio_process}  # API runs in thread within gradio process
 
     yield processes
 
