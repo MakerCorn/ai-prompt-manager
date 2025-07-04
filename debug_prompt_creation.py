@@ -13,8 +13,7 @@ from src.core.base.database_manager import DatabaseManager  # noqa: E402
 from src.core.config.settings import DatabaseConfig  # noqa: E402
 from src.core.config.settings import DatabaseType  # noqa: E402
 from src.prompts.models.prompt import Prompt  # noqa: E402
-from src.prompts.repositories.prompt_repository import \
-    PromptRepository  # noqa: E402
+from src.prompts.repositories.prompt_repository import PromptRepository  # noqa: E402
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG)

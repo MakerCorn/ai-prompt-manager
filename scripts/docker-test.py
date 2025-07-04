@@ -17,14 +17,13 @@ def test_imports():
         import api_endpoints  # noqa: F401
         import auth_manager  # noqa: F401
         import prompt_manager  # noqa: F401
-        from src.core.base.database_manager import \
-            DatabaseManager  # noqa: F401
+        from src.core.base.database_manager import DatabaseManager  # noqa: F401
+
         # Test new architecture imports
         from src.core.config.settings import AppConfig  # noqa: F401
         from src.core.config.settings import DatabaseConfig  # noqa: F401
         from src.prompts.models.prompt import Prompt  # noqa: F401
-        from src.prompts.services.prompt_service import \
-            PromptService  # noqa: F401
+        from src.prompts.services.prompt_service import PromptService  # noqa: F401
 
         print("✅ Docker build: All imports successful")
         return True

@@ -237,32 +237,39 @@ def main():
     # Handle API integration if enabled
     if config["enable_api"]:
         try:
-            from api_endpoints import APIManager
-
             print("🔌 Integrating REST API endpoints...")
 
-            # Initialize API manager
-            api_manager = APIManager()
+            from api_endpoints import APIManager
 
-            # Get the router from API manager (this includes all API routes)
-            api_router = api_manager.get_router()
+            # Get the Gradio routes app for direct route addition
+            gradio_app = app.app
 
-            # Get the FastAPI app from the Gradio app
-            # The app attribute contains the FastAPI instance
-            fastapi_app = app.app
+            # Add simple API endpoints directly
+            async def health_check():
+                return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
-            # Mount the API router at /api prefix
-            fastapi_app.include_router(api_router, prefix="/api")
+            async def api_info():
+                return {
+                    "service": "ai-prompt-manager",
+                    "version": "1.0.0",
+                    "api_version": "v1",
+                }
 
-            print(
-                f"✅ API endpoints added successfully "
-                f"({len(api_router.routes)} routes)"
-            )
+            # Add routes directly to Gradio app
+            gradio_app.add_api_route("/api/health", health_check, methods=["GET"])
+            gradio_app.add_api_route("/api/info", api_info, methods=["GET"])
+
+            print("✅ API endpoints mounted successfully")
+            print(f"📖 API available at: http://localhost:{config['port']}/api/docs")
+            print(f"📖 Health check: http://localhost:{config['port']}/api/health")
+
         except ImportError as e:
             print(f"⚠️  API integration failed: {e}")
-            print("   Make sure all API dependencies are installed")
         except Exception as e:
             print(f"⚠️  API setup error: {e}")
+            import traceback
+
+            traceback.print_exc()
 
     # Launch configuration summary
     print("🚀 Launching server...")

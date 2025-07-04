@@ -28,11 +28,11 @@ class TestAPIEndpoints:
     @pytest.fixture
     def mock_managers(self):
         """Create mock managers for testing"""
-        with patch("api_endpoints.APITokenManager") as mock_api_token_manager, patch(
-            "api_endpoints.AuthManager"
-        ) as mock_auth_manager, patch(
-            "api_endpoints.PromptDataManager"
-        ) as mock_prompt_data_manager:
+        with (
+            patch("api_endpoints.APITokenManager") as mock_api_token_manager,
+            patch("api_endpoints.AuthManager") as mock_auth_manager,
+            patch("api_endpoints.PromptDataManager") as mock_prompt_data_manager,
+        ):
 
             # Configure mock managers
             mock_token_manager = MagicMock()
