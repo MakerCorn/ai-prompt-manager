@@ -275,35 +275,66 @@ def main():
                     "api_version": "v1",
                 }
 
+            @api_app.get("/")
+            async def api_root():
+                return {
+                    "message": "AI Prompt Manager API",
+                    "status": "running",
+                    "endpoints": {
+                        "health": "/health",
+                        "info": "/info", 
+                        "docs": "/docs",
+                        "redoc": "/redoc",
+                    }
+                }
+
             # Calculate API port (main port + 1)
             api_port = config["port"] + 1
 
-            # Function to run the API server
+            # Function to run the API server with better error handling
             def run_api_server():
-                import asyncio
-
-                # Create a new event loop for this thread
-                asyncio.set_event_loop(asyncio.new_event_loop())
-                uvicorn.run(
-                    api_app,
-                    host=config["host"],
-                    port=api_port,
-                    log_level="info",
-                    access_log=True,
-                    loop="asyncio",
-                )
+                try:
+                    import asyncio
+                    import time
+                    
+                    # Create a new event loop for this thread
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    
+                    print(f"🚀 Starting API server on {config['host']}:{api_port}")
+                    
+                    # Use uvicorn server directly for better control
+                    config_obj = uvicorn.Config(
+                        api_app,
+                        host=config["host"],
+                        port=api_port,
+                        log_level="info",
+                        access_log=False,  # Reduce noise
+                        loop="asyncio"
+                    )
+                    server = uvicorn.Server(config_obj)
+                    
+                    # Run the server
+                    loop.run_until_complete(server.serve())
+                    
+                except Exception as e:
+                    print(f"❌ API server error: {e}")
+                    import traceback
+                    traceback.print_exc()
 
             # Start API server in a separate thread
             api_thread = threading.Thread(target=run_api_server, daemon=True)
             api_thread.start()
+            
+            # Wait a moment for the server to start
+            import time
+            time.sleep(2)
 
-            print("✅ API server thread started successfully")
-            print(
-                f"📖 API should be available at: http://{config['host']}:{api_port}/docs"
-            )
+            print("✅ API server thread started")
+            print(f"📖 API Docs: http://{config['host']}:{api_port}/docs")
             print(f"📖 Health check: http://{config['host']}:{api_port}/health")
             print(f"📖 API info: http://{config['host']}:{api_port}/info")
-            print(f"🔧 API thread is alive: {api_thread.is_alive()}")
+            print(f"🔧 Thread alive: {api_thread.is_alive()}")
 
         except ImportError as e:
             print(f"⚠️  API integration failed: {e}")
