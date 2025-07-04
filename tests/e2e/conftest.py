@@ -161,7 +161,7 @@ def app_server(
             print(f"Could not read API log: {e}")
 
         # Cleanup
-        for proc in [gradio_process, api_process]:
+        for proc in [gradio_process]:
             try:
                 proc.terminate()
                 proc.wait(timeout=10)

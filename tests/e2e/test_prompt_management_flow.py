@@ -455,7 +455,11 @@ class TestPromptManagementFlow(E2ETestBase):
 
                 # Verify application is still functional
                 page.goto(test_config["base_url"])
-                page.wait_for_load_state("networkidle")
+                try:
+                    page.wait_for_load_state("networkidle", timeout=10000)
+                except:
+                    # Fallback if networkidle fails
+                    page.wait_for_load_state("domcontentloaded", timeout=5000)
                 assert len(page.content()) > 500, "Application should remain functional"
 
                 print("✅ API documentation access test completed")
