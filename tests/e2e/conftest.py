@@ -85,7 +85,7 @@ def app_server(
     gradio_log_path = os.path.join(temp_dir, "gradio_server.log")
     api_log_path = os.path.join(temp_dir, "api_server.log")
 
-    # Start Gradio server with API integration 
+    # Start Gradio server with API integration
     print(f"🎭 Starting Gradio server with API on {test_config['base_url']}")
     gradio_cmd = [
         sys.executable,
@@ -127,6 +127,9 @@ def app_server(
         time.sleep(1)
 
     # Wait for API server (dual-server architecture)
+    # Give the Gradio server a bit more time to start the API thread
+    time.sleep(3)
+
     api_ready = False
     api_base_url = f"http://localhost:{test_config['api_port']}"
     start_time = time.time()
@@ -137,9 +140,9 @@ def app_server(
                 api_ready = True
                 print(f"✅ API server ready at {api_base_url}")
                 break
-        except requests.exceptions.RequestException:
-            pass
-        time.sleep(1)
+        except requests.exceptions.RequestException as e:
+            print(f"⏳ API server not ready yet: {e}")
+        time.sleep(2)  # Wait a bit longer between attempts
 
     if not gradio_ready or not api_ready:
         print(f"❌ Server startup failed - Gradio: {gradio_ready}, API: {api_ready}")
@@ -169,7 +172,9 @@ def app_server(
         pytest.fail("E2E test servers failed to start")
 
     # Update test config with API server info (dual-server architecture)
-    test_config["api_base"] = api_base_url  # API endpoints are directly on the API server
+    test_config["api_base"] = (
+        api_base_url  # API endpoints are directly on the API server
+    )
 
     processes = {"gradio": gradio_process}  # API runs in thread within gradio process
 

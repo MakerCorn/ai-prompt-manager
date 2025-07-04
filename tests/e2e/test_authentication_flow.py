@@ -155,16 +155,24 @@ class TestAuthenticationFlow(E2ETestBase):
 
                 # Should not show authenticated content without proper login
                 # Check for main content that should be hidden without authentication
-                authenticated_indicators = ["logout", "signed in as", "welcome", "create prompt"]
+                authenticated_indicators = [
+                    "logout",
+                    "signed in as",
+                    "welcome",
+                    "create prompt",
+                ]
                 has_authenticated_content = any(
                     indicator in page_content.lower()
                     for indicator in authenticated_indicators
                 )
-                
+
                 # In multi-tenant mode, main functionality should be hidden behind auth
                 # But we need to be more specific about what constitutes authenticated content
-                main_interface_hidden = "main-section" not in page_content or 'visible":false' in page_content
-                
+                main_interface_hidden = (
+                    "main-section" not in page_content
+                    or 'visible":false' in page_content
+                )
+
                 # Either no authenticated content OR main interface is properly hidden
                 assert (
                     not has_authenticated_content or main_interface_hidden

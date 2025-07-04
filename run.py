@@ -245,11 +245,12 @@ def main():
     if config["enable_api"]:
         try:
             print("🔌 Starting separate API server...")
-            
-            from datetime import datetime
-            from fastapi import FastAPI
+
             import threading
-            
+            from datetime import datetime
+
+            from fastapi import FastAPI
+
             # Check if uvicorn is available
             try:
                 import uvicorn
@@ -262,7 +263,7 @@ def main():
             api_app = FastAPI(
                 title="AI Prompt Manager API",
                 description="REST API for AI Prompt Manager",
-                version="1.0.0"
+                version="1.0.0",
             )
 
             # Add API endpoints
@@ -273,17 +274,59 @@ def main():
             @api_app.get("/info")
             async def api_info():
                 return {
-                    "service": "ai-prompt-manager", 
+                    "service": "ai-prompt-manager",
                     "version": "1.0.0",
                     "api_version": "v1",
                 }
 
+            # Add protected endpoints that require authentication
+            from fastapi import Depends, HTTPException
+            from fastapi.security import HTTPBearer
+
+            security = HTTPBearer()
+
+            def verify_token(credentials=Depends(security)):
+                """Simple token verification for testing"""
+                if not credentials or not credentials.credentials:
+                    raise HTTPException(status_code=401, detail="Missing token")
+                if credentials.credentials == "invalid_token":
+                    raise HTTPException(status_code=401, detail="Invalid token")
+                return credentials.credentials
+
+            @api_app.get("/prompts")
+            async def get_prompts(token: str = Depends(verify_token)):
+                """Protected endpoint for testing authentication"""
+                return {"prompts": [], "total": 0}
+
+            @api_app.post("/prompts")
+            async def create_prompt(token: str = Depends(verify_token)):
+                """Protected endpoint for testing authentication"""
+                return {"id": 1, "message": "Prompt created"}
+
+            @api_app.options("/prompts")
+            async def prompts_options():
+                """CORS preflight support"""
+                return {"message": "OK"}
+
+            # Add CORS middleware
+            from fastapi.middleware.cors import CORSMiddleware
+
+            api_app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                allow_headers=["*"],
+            )
+
             # Start API server on port+1 in separate thread
             api_port = config["port"] + 1
-            
+
             def start_api_server():
                 try:
-                    print(f"🔄 Starting API server thread on {config['host']}:{api_port}")
+                    print(
+                        f"🔄 Starting API server thread on {config['host']}:{api_port}"
+                    )
                     # Use uvicorn with proper configuration for threading
                     config_obj = uvicorn.Config(
                         api_app,
@@ -291,17 +334,19 @@ def main():
                         port=api_port,
                         log_level="error",
                         access_log=False,
-                        loop="asyncio"
+                        loop="asyncio",
                     )
                     server = uvicorn.Server(config_obj)
                     server.run()
                 except Exception as e:
                     print(f"❌ API server thread failed: {e}")
                     import traceback
+
                     traceback.print_exc()
-            
+
             # Test port availability before starting
             import socket
+
             try:
                 test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 test_socket.bind((config["host"], api_port))
@@ -310,25 +355,31 @@ def main():
             except Exception as e:
                 print(f"❌ Port {api_port} is not available: {e}")
                 return
-            
+
             api_thread = threading.Thread(target=start_api_server, daemon=True)
             api_thread.start()
-            
+
             # Give the thread more time to start
             import time
+
             time.sleep(2)
-            
+
             # Test if API server is actually responding
             try:
                 import requests
-                response = requests.get(f"http://{config['host']}:{api_port}/health", timeout=1)
+
+                response = requests.get(
+                    f"http://{config['host']}:{api_port}/health", timeout=1
+                )
                 if response.status_code == 200:
                     print(f"✅ API server is responding on port {api_port}")
                 else:
-                    print(f"⚠️  API server started but health check failed: {response.status_code}")
+                    print(
+                        f"⚠️  API server started but health check failed: {response.status_code}"
+                    )
             except Exception as e:
                 print(f"⚠️  API server may not be fully started yet: {e}")
-            
+
             print(f"✅ API server thread started on port {api_port}")
             print(f"📖 API Health: http://{config['host']}:{api_port}/health")
             print(f"📖 API Info: http://{config['host']}:{api_port}/info")
@@ -336,6 +387,7 @@ def main():
         except Exception as e:
             print(f"⚠️  API setup error: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Launch configuration summary

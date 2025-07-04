@@ -19,17 +19,18 @@ def start_server_background():
     try:
         # Set environment for multi-tenant mode with API
         import os
-        import subprocess
-        import sys
 
         # Use the unified run.py launcher directly
         # This is more reliable than trying to replicate the logic
         # Use different ports to avoid conflicts
         import random
+        import subprocess
+        import sys
+
         test_port = random.randint(8000, 8999)
         # API runs on separate port (port + 1)
         api_port = test_port + 1
-        
+
         cmd = [
             sys.executable,
             "run.py",
