@@ -216,6 +216,14 @@ def main():
     # Display startup information
     display_startup_info(config)
 
+    # Update display for API integration
+    if config["enable_api"]:
+        api_port = config["port"] + 1
+        print(f"🔗 API Integration: Separate server approach")
+        print(f"   📊 API Server Port: {api_port}")
+        print(f"   🌐 API Base URL: http://{config['host']}:{api_port}")
+        print()
+
     # Set environment variables for the application
     if not config["multitenant_mode"]:
         os.environ["MULTITENANT_MODE"] = "false"
@@ -237,17 +245,29 @@ def main():
     # Handle API integration if enabled
     if config["enable_api"]:
         try:
-            print("🔌 Integrating REST API endpoints...")
+            print("🔌 Starting separate API server...")
 
-            from api_endpoints import APIManager
+            import threading
+            from datetime import datetime
 
-            # Get the Gradio routes app for direct route addition
-            gradio_app = app.app
+            import uvicorn
+            from fastapi import FastAPI
 
-            # Add simple API endpoints directly
+            # Create a separate FastAPI app for API endpoints
+            api_app = FastAPI(
+                title="AI Prompt Manager API",
+                description="REST API for AI Prompt Manager",
+                version="1.0.0",
+                docs_url="/docs",
+                redoc_url="/redoc",
+            )
+
+            # Add simple API endpoints to the API app
+            @api_app.get("/health")
             async def health_check():
                 return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
+            @api_app.get("/info")
             async def api_info():
                 return {
                     "service": "ai-prompt-manager",
@@ -255,13 +275,35 @@ def main():
                     "api_version": "v1",
                 }
 
-            # Add routes directly to Gradio app
-            gradio_app.add_api_route("/api/health", health_check, methods=["GET"])
-            gradio_app.add_api_route("/api/info", api_info, methods=["GET"])
+            # Calculate API port (main port + 1)
+            api_port = config["port"] + 1
 
-            print("✅ API endpoints mounted successfully")
-            print(f"📖 API available at: http://localhost:{config['port']}/api/docs")
-            print(f"📖 Health check: http://localhost:{config['port']}/api/health")
+            # Function to run the API server
+            def run_api_server():
+                import asyncio
+
+                # Create a new event loop for this thread
+                asyncio.set_event_loop(asyncio.new_event_loop())
+                uvicorn.run(
+                    api_app,
+                    host=config["host"],
+                    port=api_port,
+                    log_level="info",
+                    access_log=True,
+                    loop="asyncio",
+                )
+
+            # Start API server in a separate thread
+            api_thread = threading.Thread(target=run_api_server, daemon=True)
+            api_thread.start()
+
+            print("✅ API server thread started successfully")
+            print(
+                f"📖 API should be available at: http://{config['host']}:{api_port}/docs"
+            )
+            print(f"📖 Health check: http://{config['host']}:{api_port}/health")
+            print(f"📖 API info: http://{config['host']}:{api_port}/info")
+            print(f"🔧 API thread is alive: {api_thread.is_alive()}")
 
         except ImportError as e:
             print(f"⚠️  API integration failed: {e}")
