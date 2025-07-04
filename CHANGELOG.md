@@ -49,6 +49,10 @@
   - Cleaned up `pyproject.toml` package references to fix Poetry installation errors
   - Updated documentation to use modern import patterns (`run.main` instead of `prompt_manager.create_interface`)
   - Updated Docker test scripts to remove legacy import dependencies
+- **Test Dependencies**: Fixed missing `httpx` dependency for FastAPI TestClient
+  - Added `httpx ^0.24.0` to both dev and test dependency groups in `pyproject.toml`
+  - Resolved unit test collection errors in `tests/unit/test_api_endpoints.py`
+  - Updated Poetry lock file to include required HTTP client library
 
 #### **Documentation Updates**
 - **Enhanced E2E Testing Documentation**: Updated CLAUDE.md with comprehensive E2E testing guidance
