@@ -13,7 +13,7 @@ def test_endpoints():
     base_url = "http://127.0.0.1:7860"
 
     print("🧪 Testing API endpoints...")
-    print("⚠️  Make sure server is running: poetry run python run_mt_with_api.py")
+    print("⚠️  Make sure server is running: poetry run python run.py --with-api")
     print()
 
     # Test 1: Health check

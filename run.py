@@ -241,38 +241,22 @@ def main():
 
             print("🔌 Integrating REST API endpoints...")
 
-            # Get the FastAPI app from the Gradio app
-            if hasattr(app, "fastapi_app"):
-                fastapi_app = app.fastapi_app
-            elif hasattr(app, "app"):
-                fastapi_app = app.app
-            else:
-                raise Exception("Cannot find FastAPI app in Gradio interface")
-
-            # Initialize API manager and mount API sub-application
+            # Initialize API manager
             api_manager = APIManager()
 
-            # Create a sub-app that strips the /api prefix from the original routes
-            from fastapi import APIRouter, FastAPI
+            # Get the router from API manager (this includes all API routes)
+            api_router = api_manager.get_router()
 
-            api_sub_app = FastAPI()
+            # Get the FastAPI app from the Gradio app
+            # The app attribute contains the FastAPI instance
+            fastapi_app = app.app
 
-            # Create a router and add routes without /api prefix
-            router = APIRouter()
-
-            # Manually add key routes to test
-            @router.get("/health")
-            async def health_check():
-                return {"status": "healthy", "timestamp": "2025-07-04T00:00:00"}
-
-            api_sub_app.include_router(router)
-
-            # Mount the sub-app at /api
-            fastapi_app.mount("/api", api_sub_app, name="api")
+            # Mount the API router at /api prefix
+            fastapi_app.include_router(api_router, prefix="/api")
 
             print(
                 f"✅ API endpoints added successfully "
-                f"({len(api_manager.app.routes)} routes)"
+                f"({len(api_router.routes)} routes)"
             )
         except ImportError as e:
             print(f"⚠️  API integration failed: {e}")

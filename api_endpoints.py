@@ -95,11 +95,29 @@ class APIManager:
 
         router = APIRouter()
 
-        # Copy all routes from the main app to the router
-        for route in self.app.routes:
-            if hasattr(route, "path") and route.path.startswith("/api/"):
-                # Add the route to the router
-                router.routes.append(route)
+        # Since routes are defined with /api/ prefix in setup_routes,
+        # we need to create new routes without the prefix for the router
+        # The prefix will be added when including the router
+
+        # Health endpoint
+        @router.get("/health")
+        async def health_check():
+            return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+        # User info endpoint
+        @router.get("/user/info", response_model=APIResponse)
+        async def get_user_info(
+            current_user: UserInfo = Depends(self.get_current_user),
+        ):
+            return APIResponse(
+                success=True,
+                message="User info retrieved successfully",
+                data={
+                    "user_id": current_user.user_id,
+                    "tenant_id": current_user.tenant_id,
+                    "role": current_user.role,
+                },
+            )
 
         return router
 

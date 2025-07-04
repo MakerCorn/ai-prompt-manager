@@ -17,11 +17,44 @@ os.environ.setdefault("LOCAL_DEV_MODE", "true")
 def start_server_background():
     """Start the server in background"""
     try:
-        # Import here to avoid issues with environment setup
-        from run_mt_with_api import create_combined_app
+        # Set environment for multi-tenant mode with API
+        import os
 
-        app = create_combined_app()
-        # Use Gradio's launch method instead of uvicorn directly
+        os.environ["MULTITENANT_MODE"] = "true"
+        os.environ["ENABLE_API"] = "true"
+
+        # Import the unified run module
+        import argparse
+
+        from run import create_interface, get_configuration
+
+        # Create mock args for multi-tenant + API mode
+        class MockArgs:
+            single_user = False
+            multi_tenant = True
+            with_api = True
+            host = "127.0.0.1"
+            port = 7860
+            debug = True
+            share = False
+
+        args = MockArgs()
+        config = get_configuration(args)
+
+        # Create the Gradio interface
+        from prompt_manager import create_interface
+
+        app = create_interface()
+
+        # Add API integration
+        if config["enable_api"]:
+            from api_endpoints import APIManager
+
+            api_manager = APIManager()
+            api_router = api_manager.get_router()
+            app.app.include_router(api_router, prefix="/api")
+
+        # Launch the app
         app.launch(
             server_name="127.0.0.1",
             server_port=7860,
