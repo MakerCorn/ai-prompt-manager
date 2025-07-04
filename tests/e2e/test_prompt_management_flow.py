@@ -315,9 +315,20 @@ class TestPromptManagementFlow(E2ETestBase):
                 assert (
                     len(page.content()) > 1000
                 ), "Application should render substantial content"
-                assert (
-                    "error" not in page.content().lower() or "500" not in page.content()
-                ), "Application should not show critical errors"
+                
+                # Check for actual application errors, not CSS variables
+                page_content = page.content().lower()
+                critical_errors = [
+                    "500 internal server error",
+                    "application error",
+                    "traceback",
+                    "exception occurred",
+                    "error: ",
+                    "fatal error"
+                ]
+                
+                for error_pattern in critical_errors:
+                    assert error_pattern not in page_content, f"Application shows critical error: {error_pattern}"
 
                 print("✅ Prompt library workflow completed")
 
