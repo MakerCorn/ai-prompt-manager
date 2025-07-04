@@ -1,6 +1,21 @@
 # Changelog
 
-## [Unreleased] - Deployment Infrastructure Updates & Testing Enhancements
+## [Unreleased] - Semantic Versioning & Deployment Infrastructure Updates
+
+### 🚀 Semantic Versioning Implementation
+
+#### **Automated Version Management**
+- **Semantic Versioning Workflow**: Implemented comprehensive semantic versioning with automatic version bumping
+  - Support for patch (0.3.2 → 0.3.3), minor (0.3.2 → 0.4.0), and major (0.3.2 → 1.0.0) version increments
+  - Automatic pyproject.toml version updates using Poetry
+  - Intelligent changelog extraction and integration into releases
+- **Release Workflow Enhancement**: Complete overhaul of release.yml with semantic versioning support
+  - Manual release triggering with version type selection (patch/minor/major)
+  - Pre-release and draft release support
+  - Automatic git tagging and repository updates
+- **Poetry Integration**: Full integration with Poetry for version management and package building
+  - Automatic version detection and calculation
+  - Consistent version handling across all release artifacts
 
 ### 🚀 Deployment Infrastructure Overhaul
 
@@ -43,10 +58,13 @@
 - **Supply Chain Security**: Implemented comprehensive security measures for Docker image distribution
 
 ### 📋 Files Updated
+- `.github/workflows/release.yml` - Complete rewrite with semantic versioning support
+- `.github/workflows/release-legacy.yml` - Backup of original release workflow
 - `docker-compose.yml` - Updated GitHub Container Registry image paths
 - `docker-compose.prod.yml` - Updated production Docker configuration with correct registry paths
 - `.github/workflows/test.yml` - Enhanced with comprehensive unit test execution
-- `README.md` - Updated deployment documentation and testing status
+- `README.md` - Updated deployment documentation, testing status, and semantic versioning instructions
+- `CHANGELOG.md` - Added comprehensive documentation of infrastructure updates
 - Documentation updates across deployment guides and testing instructions
 
 ## [Previous] - Advanced Release Pipeline & Draft Mode

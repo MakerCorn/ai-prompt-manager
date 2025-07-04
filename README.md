@@ -2280,22 +2280,25 @@ The project uses automated releases that create both Python packages and Docker 
 
 **🚀 Creating a Release:**
 ```bash
-# Using the release script (recommended)
+# Semantic versioning via GitHub Actions (recommended)
+# Go to Actions → Semantic Version Release → Run workflow
+# Select version type: patch (0.3.2 → 0.3.3), minor (0.3.2 → 0.4.0), or major (0.3.2 → 1.0.0)
+
+# Or using the release script (legacy)
 ./scripts/create-release.sh
 
-# Manual process
+# Manual process (legacy)
 git tag v1.0.0
 git push origin v1.0.0
-
-# Or trigger manually via GitHub Actions
-# Go to Actions → Release → Run workflow
 ```
 
-The release script (`scripts/create-release.sh`) automates:
-- ✅ Version validation and updating
-- ✅ CHANGELOG.md prompts
-- ✅ Git tagging and pushing
-- ✅ Automated workflow triggering
+**🎯 Semantic Versioning Workflow Features:**
+- ✅ **Automatic Version Bumping**: Choose patch, minor, or major version increments
+- ✅ **Poetry Integration**: Automatic pyproject.toml version updates
+- ✅ **Changelog Integration**: Extracts and formats changelog content for releases
+- ✅ **Multi-Platform Docker**: Builds and signs images for linux/amd64 and linux/arm64
+- ✅ **PyPI Publishing**: Automatic package publishing for stable releases
+- ✅ **Release Flexibility**: Support for pre-releases and draft releases
 
 **📦 Release Artifacts:**
 - **Python Packages**: Wheel and source distributions

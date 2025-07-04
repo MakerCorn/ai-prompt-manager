@@ -1,681 +1,299 @@
-name: Release
+name: Semantic Version Release
 
-# Trigger on semantic version tags and manual releases
 on:
-  push:
-    tags:
-      - 'v*.*.*'
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Release version (e.g., v1.0.0)'
+      version_type:
+        description: 'Version bump type'
         required: true
-        type: string
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
       prerelease:
-        description: 'Pre-release'
+        description: 'Create a pre-release'
         required: false
-        type: boolean
         default: false
+        type: boolean
       draft:
-        description: 'Draft mode (mock release, no PyPI push)'
+        description: 'Create as draft release'
         required: false
-        type: boolean
         default: false
+        type: boolean
 
 env:
+  PYTHON_VERSION: '3.12'
   REGISTRY: ghcr.io
-  # Convert repository name to lowercase for Docker compatibility
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Validate the release
-  validate-release:
+  version-bump:
+    name: Version Bump and Tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
-      is_draft: ${{ steps.version.outputs.is_draft }}
-      release_name: ${{ steps.version.outputs.release_name }}
+      new_version: ${{ steps.version.outputs.new_version }}
+      changelog_content: ${{ steps.changelog.outputs.content }}
+      package_name: ${{ steps.package_info.outputs.name }}
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Determine version and release type
-        id: version
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            VERSION="${{ github.event.inputs.version }}"
-            IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
-            IS_DRAFT="${{ github.event.inputs.draft }}"
-          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/* ]]; then
-            VERSION="${{ github.ref_name }}"
-            IS_DRAFT="false"
-            # Check if it's a prerelease (contains alpha, beta, rc, etc.)
-            if [[ "$VERSION" =~ (alpha|beta|rc|pre) ]]; then
-              IS_PRERELEASE="true"
-            else
-              IS_PRERELEASE="false"
-            fi
-          elif [[ "${{ github.event_name }}" == "release" ]]; then
-            VERSION="${{ github.event.release.tag_name }}"
-            IS_PRERELEASE="${{ github.event.release.prerelease }}"
-            IS_DRAFT="${{ github.event.release.draft }}"
-          else
-            echo "❌ Unsupported trigger for release workflow"
-            exit 1
-          fi
-          
-          # Validate version format
-          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
-            echo "❌ Invalid version format: $VERSION (expected: vX.Y.Z)"
-            exit 1
-          fi
-          
-          # Generate release name
-          CLEAN_VERSION=${VERSION#v}  # Remove 'v' prefix
-          if [[ "$IS_DRAFT" == "true" ]]; then
-            RELEASE_NAME="AI Prompt Manager $CLEAN_VERSION (Draft)"
-          elif [[ "$IS_PRERELEASE" == "true" ]]; then
-            RELEASE_NAME="AI Prompt Manager $CLEAN_VERSION (Pre-release)"
-          else
-            RELEASE_NAME="AI Prompt Manager $CLEAN_VERSION"
-          fi
-          
-          echo "🔖 Release Version: $VERSION"
-          echo "🚀 Release Name: $RELEASE_NAME"
-          echo "🧪 Pre-release: $IS_PRERELEASE"
-          echo "📝 Draft mode: $IS_DRAFT"
-          
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
-          echo "is_draft=$IS_DRAFT" >> $GITHUB_OUTPUT
-          echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Check if version exists in pyproject.toml
-        run: |
-          EXPECTED_VERSION="${{ steps.version.outputs.version }}"
-          EXPECTED_VERSION=${EXPECTED_VERSION#v}  # Remove 'v' prefix
-          
-          TOML_VERSION=$(grep -E '^version = ' pyproject.toml | sed 's/version = "//; s/"//')
-          
-          if [[ "$TOML_VERSION" != "$EXPECTED_VERSION" ]]; then
-            echo "⚠️ Version mismatch:"
-            echo "  Tag version: $EXPECTED_VERSION"
-            echo "  pyproject.toml version: $TOML_VERSION"
-            echo ""
-            echo "💡 Consider updating pyproject.toml to match the release tag"
-          else
-            echo "✅ Version in pyproject.toml matches release tag: $EXPECTED_VERSION"
-          fi
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
 
-  # Run tests before release
-  test-before-release:
-    runs-on: ubuntu-latest
-    needs: validate-release
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install packaging python-semantic-release
+        # Install TOML parser for compatibility
+        pip install tomli toml
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Configure Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+    - name: Get current version and package info
+      id: current_version
+      run: |
+        # Get version from Poetry
+        CURRENT_VERSION=$(poetry version --short)
+        PACKAGE_NAME=$(poetry version | cut -d' ' -f1)
+        
+        echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+        echo "Current version: $CURRENT_VERSION"
+        echo "Package name: $PACKAGE_NAME"
 
-      - name: Update lock file
-        run: poetry lock
+    - name: Calculate new version
+      id: version
+      run: |
+        CURRENT_VERSION="${{ steps.current_version.outputs.current_version }}"
+        VERSION_TYPE="${{ github.event.inputs.version_type }}"
+        
+        python << EOF
+        from packaging import version
+        import sys
+        
+        current = version.parse("$CURRENT_VERSION")
+        
+        if "$VERSION_TYPE" == "major":
+            new_version = f"{current.major + 1}.0.0"
+        elif "$VERSION_TYPE" == "minor":
+            new_version = f"{current.major}.{current.minor + 1}.0"
+        elif "$VERSION_TYPE" == "patch":
+            new_version = f"{current.major}.{current.minor}.{current.micro + 1}"
+        else:
+            print(f"Invalid version type: $VERSION_TYPE", file=sys.stderr)
+            sys.exit(1)
+        
+        print(f"new_version={new_version}")
+        
+        # Write to GitHub outputs
+        with open("$GITHUB_OUTPUT", "a") as f:
+            f.write(f"new_version={new_version}\n")
+        EOF
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+    - name: Extract package information
+      id: package_info
+      run: |
+        NAME="${{ steps.current_version.outputs.package_name }}"
+        echo "name=$NAME" >> $GITHUB_OUTPUT
+        echo "📦 Package: $NAME"
 
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+    - name: Update version in pyproject.toml
+      run: |
+        NEW_VERSION="${{ steps.version.outputs.new_version }}"
+        poetry version $NEW_VERSION
+        echo "Updated pyproject.toml to version $NEW_VERSION"
+        
+        # Verify the update
+        UPDATED_VERSION=$(poetry version --short)
+        echo "✅ Verified updated version: $UPDATED_VERSION"
 
-      - name: Install project
-        run: poetry install --no-interaction
+    - name: Extract changelog content for version
+      id: changelog
+      run: |
+        NEW_VERSION="${{ steps.version.outputs.new_version }}"
+        
+        # Extract changelog content for the current version
+        python << 'EOF'
+        import re
+        import sys
+        import os
+        
+        try:
+            with open('CHANGELOG.md', 'r') as f:
+                content = f.read()
+            
+            # Find the section for unreleased changes (first section)
+            # Look for ## [Unreleased] - pattern
+            pattern = r'^## \[(.*?)\] - (.*?)$'
+            matches = list(re.finditer(pattern, content, re.MULTILINE))
+            
+            if matches:
+                # Get content from end of first header to start of next section or end of file
+                first_match = matches[0]
+                start_pos = first_match.end()  # Start after the header line
+                
+                if len(matches) > 1:
+                    # Find next section header
+                    end_pos = matches[1].start()
+                    changelog_section = content[start_pos:end_pos].strip()
+                else:
+                    # Use rest of file
+                    changelog_section = content[start_pos:].strip()
+                
+                # Clean up the content
+                if changelog_section:
+                    # Remove extra whitespace and empty lines at start/end
+                    lines = changelog_section.split('\n')
+                    # Remove leading empty lines
+                    while lines and not lines[0].strip():
+                        lines.pop(0)
+                    # Remove trailing empty lines
+                    while lines and not lines[-1].strip():
+                        lines.pop()
+                    
+                    changelog_content = '\n'.join(lines)
+                    
+                    # Write to GitHub output using environment file method for multiline
+                    delimiter = "EOF_CHANGELOG"
+                    with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                        f.write(f"content<<{delimiter}\n")
+                        f.write(changelog_content)
+                        f.write(f"\n{delimiter}\n")
+                    
+                    print(f"Extracted changelog content: {len(changelog_content)} characters")
+                    print("Preview:")
+                    print(changelog_content[:200] + "..." if len(changelog_content) > 200 else changelog_content)
+                else:
+                    print("No content found in changelog section")
+                    with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                        f.write("content=No changelog content available\n")
+            else:
+                print("No changelog sections found")
+                with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                    f.write("content=No changelog content available\n")
+                    
+        except Exception as e:
+            print(f"Error extracting changelog: {e}", file=sys.stderr)
+            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                f.write("content=Error extracting changelog content\n")
+        EOF
 
-      - name: Run comprehensive tests
-        run: |
-          echo "🧪 Running comprehensive test suite for release..."
-          
-          # Test Python syntax
-          echo "📝 Testing Python syntax..."
-          poetry run python -m py_compile *.py
-          
-          # Test new architecture syntax
-          echo "🏗️ Testing new architecture syntax..."
-          find src -name "*.py" -exec poetry run python -m py_compile {} \;
-          
-          # Test imports
-          echo "📦 Testing imports..."
-          poetry run python -c "
-          import prompt_manager
-          import prompt_data_manager
-          import auth_manager
-          import api_token_manager
-          import api_endpoints
-          import langwatch_optimizer
-          print('✅ All legacy imports successful')
-          "
-          
-          # Test new architecture imports
-          echo "🏗️ Testing new architecture imports..."
-          poetry run python -c "
-          import sys
-          import os
-          sys.path.insert(0, 'src')
-          
-          from src.core.config.settings import AppConfig
-          from src.core.base.database_manager import DatabaseManager
-          from src.prompts.models.prompt import Prompt
-          from src.prompts.repositories.prompt_repository import PromptRepository
-          from src.prompts.services.prompt_service import PromptService
-          from src.auth.models.user import User
-          from src.auth.models.tenant import Tenant
-          print('✅ All new architecture imports successful')
-          "
-          
-          # Test launcher functionality
-          echo "🚀 Testing launcher..."
-          poetry run python run.py --help > /dev/null
-          
-          # Test optimization integration
-          echo "🤖 Testing prompt optimization..."
-          poetry run python tests/integration/test_langwatch_integration.py
-          
-          # Test multi-tenant setup
-          echo "🏢 Testing multi-tenant setup..."
-          poetry run python tests/integration/test_mt_install.py
-          
-          # Test new architecture with repository fixes
-          echo "🏗️ Testing new architecture with repository fixes..."
-          poetry run python tests/integration/test_new_prompt_architecture.py
-          
-          # Validate critical repository save functionality for release
-          echo "🔧 Validating repository save functionality..."
-          poetry run python -c "
-          import sys
-          import tempfile
-          sys.path.insert(0, 'src')
-          
-          from src.core.config.settings import DatabaseConfig, DatabaseType
-          from src.core.base.database_manager import DatabaseManager
-          from src.prompts.services.prompt_service import PromptService
-          
-          # Critical test for release validation
-          temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
-          temp_db.close()
-          
-          try:
-              db_config = DatabaseConfig(db_type=DatabaseType.SQLITE, db_path=temp_db.name)
-              db_manager = DatabaseManager(db_config)
-              prompt_service = PromptService(db_manager)
-              
-              # Test create and retrieve operations
-              create_result = prompt_service.create_prompt(
-                  tenant_id='release-test-tenant',
-                  user_id='release-test-user',
-                  name='release_validation_prompt',
-                  title='Release Validation Prompt',
-                  content='Testing new architecture for release readiness'
-              )
-              
-              if not (create_result.success and create_result.data and create_result.data.id):
-                  print(f'❌ Release validation failed: Create operation failed')
-                  exit(1)
-              
-              print('✅ Release validation: Repository save functionality verified')
-              
-          except Exception as e:
-              print(f'❌ Release validation failed with exception: {e}')
-              exit(1)
-          finally:
-              import os
-              try:
-                  os.unlink(temp_db.name)
-              except:
-                  pass
-          "
-          
-          echo "✅ All release tests passed!"
+    - name: Update changelog with new version
+      run: |
+        NEW_VERSION="${{ steps.version.outputs.new_version }}"
+        CURRENT_DATE=$(date +%Y-%m-%d)
+        
+        # Update the first version section (unreleased) with the new version number and date
+        sed -i "0,/^## \[.*\] - .*/s//## [$NEW_VERSION] - $CURRENT_DATE/" CHANGELOG.md
+        
+        echo "Updated CHANGELOG.md with version $NEW_VERSION and date $CURRENT_DATE"
 
-  # Build Python package
+    - name: Commit version bump
+      run: |
+        NEW_VERSION="${{ steps.version.outputs.new_version }}"
+        
+        git add pyproject.toml CHANGELOG.md
+        git commit -m "chore: bump version to $NEW_VERSION
+
+        🤖 Generated with [Claude Code](https://claude.ai/code)
+
+        Co-Authored-By: Claude <noreply@anthropic.com>"
+        
+        # Create and push tag
+        git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
+        git push origin main
+        git push origin "v$NEW_VERSION"
+
   build-python-package:
+    name: Build Python Package
     runs-on: ubuntu-latest
-    needs: [validate-release, test-before-release]
-    # Always build Python package
+    needs: version-bump
     outputs:
       package-version: ${{ steps.package-info.outputs.version }}
       package-name: ${{ steps.package-info.outputs.name }}
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: v${{ needs.version-bump.outputs.new_version }}
+        fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
 
-      - name: Update lock file
-        run: poetry lock
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v4
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
 
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+    - name: Install project
+      run: poetry install --no-interaction
 
-      - name: Install project
-        run: poetry install --no-interaction
+    - name: Extract package information
+      id: package-info
+      run: |
+        VERSION=$(poetry version --short)
+        NAME=$(poetry version | cut -d' ' -f1)
+        echo "name=$NAME" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📦 Package: $NAME v$VERSION"
 
-      - name: Update version in pyproject.toml
-        run: |
-          RELEASE_VERSION="${{ needs.validate-release.outputs.version }}"
-          CLEAN_VERSION=${RELEASE_VERSION#v}  # Remove 'v' prefix
-          
-          echo "📝 Updating version to: $CLEAN_VERSION"
-          poetry version $CLEAN_VERSION
-          
-          # Verify the update
-          NEW_VERSION=$(poetry version --short)
-          echo "✅ Updated pyproject.toml version to: $NEW_VERSION"
+    - name: Build package
+      run: |
+        echo "🏗️ Building Python package..."
+        poetry build
+        
+        echo "📋 Build results:"
+        ls -la dist/
+        
+        echo "📊 Package checksums:"
+        sha256sum dist/*
 
-      - name: Extract package information
-        id: package-info
-        run: |
-          VERSION=$(poetry version --short)
-          NAME=$(poetry version | cut -d' ' -f1)
-          echo "name=$NAME" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "📦 Package: $NAME v$VERSION"
+    - name: Upload package artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-packages-${{ needs.version-bump.outputs.new_version }}
+        path: dist/*
+        retention-days: 90
 
-      - name: Build package
-        run: |
-          echo "🏗️ Building Python package..."
-          poetry build
-          
-          echo "📋 Build results:"
-          ls -la dist/
-          
-          echo "📊 Package checksums:"
-          sha256sum dist/*
-
-      - name: Create release distribution
-        run: |
-          VERSION="${{ needs.validate-release.outputs.version }}"
-          PACKAGE_NAME="${{ steps.package-info.outputs.name }}"
-          
-          echo "📦 Creating comprehensive release distribution..."
-          
-          # Create distribution directory
-          mkdir -p release-dist
-          
-          # Copy built packages
-          cp dist/* release-dist/
-          
-          # Copy essential files
-          cp README.md release-dist/
-          cp LICENSE release-dist/
-          cp CHANGELOG.md release-dist/
-          cp pyproject.toml release-dist/
-          cp poetry.lock release-dist/
-          
-          # Copy environment and Docker files
-          if [ -f .env.example ]; then
-            cp .env.example release-dist/
-          fi
-          cp docker-compose.yml release-dist/
-          cp docker-compose.prod.yml release-dist/
-          cp Dockerfile release-dist/
-          
-          # Copy source files
-          cp *.py release-dist/
-          
-          # Copy new architecture source code
-          if [ -d src ]; then
-            cp -r src release-dist/
-            echo "✅ Copied new architecture source code"
-          fi
-          
-          # Copy all documentation from docs folder
-          if [ -d docs ]; then
-            cp -r docs/ release-dist/
-          fi
-          
-          # Copy test files for validation
-          cp -r tests/ release-dist/ 2>/dev/null || echo "No tests directory to copy"
-          
-          # Create installation script
-          cat > release-dist/install.sh << 'EOF'
-          #!/bin/bash
-          
-          set -e
-          
-          echo "🚀 AI Prompt Manager Installation Script"
-          echo "========================================"
-          echo "Version: ${{ steps.package-info.outputs.version }}"
-          echo "Package: ${{ steps.package-info.outputs.name }}"
-          echo ""
-          
-          # Check Python version
-          PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
-          REQUIRED_VERSION="3.12"
-          
-          if ! python3 -c "import sys; exit(0 if sys.version_info >= (3, 12) else 1)" 2>/dev/null; then
-            echo "❌ Python 3.12+ is required. Found: $PYTHON_VERSION"
-            echo "Please install Python 3.12 or later and try again."
-            exit 1
-          fi
-          
-          echo "✅ Python version: $PYTHON_VERSION"
-          
-          # Check if Poetry is installed
-          if ! command -v poetry &> /dev/null; then
-            echo "📦 Poetry not found. Installing Poetry..."
-            curl -sSL https://install.python-poetry.org | python3 -
-            export PATH="$HOME/.local/bin:$PATH"
-            
-            if ! command -v poetry &> /dev/null; then
-              echo "❌ Poetry installation failed. Please install Poetry manually:"
-              echo "   curl -sSL https://install.python-poetry.org | python3 -"
-              exit 1
-            fi
-          fi
-          
-          echo "✅ Poetry found: $(poetry --version)"
-          
-          # Install from wheel if available, otherwise from source
-          if ls *.whl 1> /dev/null 2>&1; then
-            echo "📦 Installing from wheel package..."
-            pip install *.whl
-          else
-            echo "📚 Installing from source..."
-            poetry install --no-interaction --only=main
-          fi
-          
-          # Copy environment file
-          if [ -f .env.example ] && [ ! -f .env ]; then
-            echo "⚙️ Creating .env configuration file..."
-            cp .env.example .env
-            echo "✅ Created .env file from template"
-            echo "💡 Please edit .env file to configure your deployment"
-          fi
-          
-          echo ""
-          echo "🎉 Installation complete!"
-          echo ""
-          echo "🚀 Quick Start Commands:"
-          echo "  python run.py                           # Multi-tenant mode (default)"
-          echo "  python run.py --single-user             # Single-user mode"
-          echo "  python run.py --with-api                # Multi-tenant + API"
-          echo "  python run.py --help                    # Show all options"
-          echo ""
-          echo "🐳 Docker Commands:"
-          echo "  docker-compose up -d                    # Development"
-          echo "  docker-compose -f docker-compose.prod.yml up -d  # Production"
-          echo ""
-          echo "🔧 Testing:"
-          echo "  python tests/integration/test_new_prompt_architecture.py  # Test new architecture"
-          echo "  python tests/integration/test_langwatch_integration.py    # Test prompt optimization"
-          echo "  python tests/integration/test_mt_install.py               # Test multi-tenant setup"
-          echo ""
-          echo "📖 Documentation:"
-          echo "  README.md - Complete user guide"
-          echo "  ARCHITECTURE.md - System architecture"
-          echo "  CHANGELOG.md - Release notes"
-          echo ""
-          echo "🌐 Access your installation at: http://localhost:7860"
-          EOF
-          
-          chmod +x release-dist/install.sh
-          
-          # Create comprehensive archive
-          echo "📦 Creating release archives..."
-          tar -czf "${PACKAGE_NAME}-${VERSION}.tar.gz" release-dist/
-          zip -r "${PACKAGE_NAME}-${VERSION}.zip" release-dist/
-          
-          echo "✅ Release distribution created:"
-          ls -la *.tar.gz *.zip
-
-      - name: Generate release manifest
-        run: |
-          VERSION="${{ needs.validate-release.outputs.version }}"
-          PACKAGE_NAME="${{ steps.package-info.outputs.name }}"
-          
-          echo "📋 Generating release manifest..."
-          
-          cat > RELEASE_MANIFEST.md << EOF
-          # 🚀 AI Prompt Manager Release Manifest
-          
-          **Release Version:** ${VERSION}
-          **Package Name:** ${PACKAGE_NAME}
-          **Package Version:** ${{ steps.package-info.outputs.version }}
-          **Build Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          **Git Commit:** ${{ github.sha }}
-          **Git Ref:** ${{ github.ref }}
-          **Pre-release:** ${{ needs.validate-release.outputs.is_prerelease }}
-          
-          ## 📦 Package Information
-          
-          - **Python Version:** $(python --version)
-          - **Poetry Version:** $(poetry --version)
-          - **Platform:** $(uname -a)
-          
-          ## 🏗️ Build Artifacts
-          
-          ### Python Distributions
-          \`\`\`
-          $(ls -la dist/)
-          \`\`\`
-          
-          ### Release Archives
-          \`\`\`
-          $(ls -la *.tar.gz *.zip 2>/dev/null || echo "No archives found")
-          \`\`\`
-          
-          ### Source Package Contents
-          \`\`\`
-          $(ls -la release-dist/)
-          \`\`\`
-          
-          ## 🔐 Checksums
-          
-          ### Python Packages
-          \`\`\`
-          $(sha256sum dist/*)
-          \`\`\`
-          
-          ### Release Archives
-          \`\`\`
-          $(sha256sum *.tar.gz *.zip 2>/dev/null || echo "No archives to checksum")
-          \`\`\`
-          
-          ## 🧪 Tests
-          
-          All tests passed:
-          - ✅ Python syntax validation (legacy and new architecture)
-          - ✅ Import tests (legacy and new architecture)
-          - ✅ Launcher functionality
-          - ✅ New architecture component tests
-          - ✅ Prompt optimization system
-          - ✅ Multi-tenant setup
-          
-          ## 📝 Installation
-          
-          ### From Release Archive
-          \`\`\`bash
-          # Download and extract
-          wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/${PACKAGE_NAME}-${VERSION}.tar.gz
-          tar -xzf ${PACKAGE_NAME}-${VERSION}.tar.gz
-          cd release-dist
-          
-          # Run installation script
-          chmod +x install.sh
-          ./install.sh
-          \`\`\`
-          
-          ### From Python Package
-          \`\`\`bash
-          # Install directly from wheel
-          pip install ${PACKAGE_NAME}-${{ steps.package-info.outputs.version }}-py3-none-any.whl
-          \`\`\`
-          
-          ### Docker
-          \`\`\`bash
-          # Pull and run
-          docker pull ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:${VERSION}
-          docker run -p 7860:7860 ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:${VERSION}
-          \`\`\`
-          
-          ---
-          
-          Generated by AI Prompt Manager Release System
-          EOF
-          
-          echo "✅ Release manifest generated"
-
-      - name: Upload package artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-packages-${{ needs.validate-release.outputs.version }}
-          path: |
-            dist/*
-            *.tar.gz
-            *.zip
-            RELEASE_MANIFEST.md
-            release-dist/
-          retention-days: 90
-
-  # Publish to PyPI
-  publish-to-pypi:
-    runs-on: ubuntu-latest
-    needs: [validate-release, build-python-package, test-before-release]
-    # Only publish if not a pre-release and not in draft mode
-    if: needs.validate-release.outputs.is_prerelease == 'false' && needs.validate-release.outputs.is_draft == 'false'
-    environment: production
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - name: Download package artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: python-packages-${{ needs.validate-release.outputs.version }}
-          path: ./release-artifacts
-
-      - name: Rebuild packages for PyPI
-        run: |
-          echo "📦 Rebuilding packages for PyPI upload..."
-          
-          # Update version to match release
-          RELEASE_VERSION="${{ needs.validate-release.outputs.version }}"
-          CLEAN_VERSION=${RELEASE_VERSION#v}  # Remove 'v' prefix
-          poetry version $CLEAN_VERSION
-          
-          # Build fresh packages
-          poetry build
-          
-          echo "📋 Packages ready for upload:"
-          ls -la dist/
-          
-          echo "🔐 Package checksums:"
-          sha256sum dist/*
-
-      - name: Configure Poetry for PyPI
-        run: |
-          echo "🔧 Configuring Poetry for PyPI publishing..."
-          poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
-
-      - name: Publish to PyPI
-        run: |
-          echo "🚀 Publishing to PyPI..."
-          
-          # Verify we have the packages
-          if [ ! -d "dist" ] || [ -z "$(ls -A dist/)" ]; then
-            echo "❌ No packages found in dist/ directory"
-            exit 1
-          fi
-          
-          echo "📦 Publishing packages:"
-          ls -la dist/
-          
-          # Publish to PyPI
-          poetry publish --no-interaction
-          
-          echo "✅ Successfully published to PyPI!"
-
-      - name: Verify PyPI publication
-        run: |
-          PACKAGE_NAME="${{ needs.build-python-package.outputs.package-name }}"
-          PACKAGE_VERSION="${{ needs.build-python-package.outputs.package-version }}"
-          
-          echo "🔍 Verifying publication on PyPI..."
-          echo "Package: $PACKAGE_NAME"
-          echo "Version: $PACKAGE_VERSION"
-          
-          # Wait a moment for PyPI to process
-          echo "⏳ Waiting for PyPI to process the upload..."
-          sleep 30
-          
-          # Try to fetch the package info from PyPI API
-          if curl -f "https://pypi.org/pypi/promptman/$PACKAGE_VERSION/json" > /dev/null 2>&1; then
-            echo "✅ Package successfully published and available on PyPI!"
-            echo "📦 PyPI URL: https://pypi.org/project/promptman/$PACKAGE_VERSION/"
-          else
-            echo "⚠️ Package may still be processing on PyPI. Check manually:"
-            echo "📦 PyPI URL: https://pypi.org/project/promptman/"
-          fi
-
-  # Build and push Docker image
   build-docker-image:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    needs: [validate-release, test-before-release]
-    # Skip Docker entirely when: draft mode + not prerelease
-    if: ${{ !(needs.validate-release.outputs.is_draft == 'true' && needs.validate-release.outputs.is_prerelease == 'false') }}
+    needs: [version-bump, build-python-package]
     permissions:
       contents: read
       packages: write
@@ -686,262 +304,217 @@ jobs:
       image-name: ${{ steps.image-name.outputs.lowercase }}
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: v${{ needs.version-bump.outputs.new_version }}
 
-      - name: Convert repository name to lowercase
-        id: image-name
-        run: |
-          LOWERCASE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "lowercase=$LOWERCASE_REPO" >> $GITHUB_OUTPUT
-          echo "🐳 Docker image will be: ${{ env.REGISTRY }}/$LOWERCASE_REPO"
+    - name: Convert repository name to lowercase
+      id: image-name
+      run: |
+        LOWERCASE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+        echo "lowercase=$LOWERCASE_REPO" >> $GITHUB_OUTPUT
+        echo "🐳 Docker image will be: ${{ env.REGISTRY }}/$LOWERCASE_REPO"
 
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v3.5.0
-        with:
-          cosign-release: 'v2.2.4'
+    - name: Install cosign
+      uses: sigstore/cosign-installer@v3.5.0
+      with:
+        cosign-release: 'v2.2.4'
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Log into registry ${{ env.REGISTRY }}
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}
-          tags: |
-            type=ref,event=tag
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=${{ needs.validate-release.outputs.version }}
-            type=raw,value=stable,enable=${{ needs.validate-release.outputs.is_prerelease == 'false' }}
-          labels: |
-            org.opencontainers.image.title=AI Prompt Manager
-            org.opencontainers.image.description=A comprehensive AI prompt management system with multi-service optimization
-            org.opencontainers.image.vendor=MakerCorn
-            org.opencontainers.image.version=${{ needs.validate-release.outputs.version }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.created={{date 'RFC3339'}}
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}
+        tags: |
+          type=raw,value=v${{ needs.version-bump.outputs.new_version }}
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=stable,enable=${{ github.event.inputs.prerelease == 'false' }}
+        labels: |
+          org.opencontainers.image.title=AI Prompt Manager
+          org.opencontainers.image.description=A comprehensive AI prompt management system with multi-service optimization
+          org.opencontainers.image.vendor=MakerCorn
+          org.opencontainers.image.version=v${{ needs.version-bump.outputs.new_version }}
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.created={{date 'RFC3339'}}
 
-      - name: Build and push Docker image
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          # Push when: (prerelease + not draft) or (not prerelease + not draft)
-          # Don't push when: (prerelease + draft)
-          push: ${{ needs.validate-release.outputs.is_draft == 'false' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            BUILD_DATE={{date 'RFC3339'}}
-            VCS_REF=${{ github.sha }}
-            VERSION=${{ needs.validate-release.outputs.version }}
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: ${{ github.event.inputs.draft == 'false' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        platforms: linux/amd64,linux/arm64
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_DATE={{date 'RFC3339'}}
+          VCS_REF=${{ github.sha }}
+          VERSION=v${{ needs.version-bump.outputs.new_version }}
 
-      - name: Sign the Docker image
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-          DIGEST: ${{ steps.build.outputs.digest }}
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+    - name: Sign the Docker image
+      if: github.event.inputs.draft == 'false'
+      env:
+        TAGS: ${{ steps.meta.outputs.tags }}
+        DIGEST: ${{ steps.build.outputs.digest }}
+      run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
 
-      - name: Generate Docker image manifest
-        run: |
-          VERSION="${{ needs.validate-release.outputs.version }}"
-          
-          cat > DOCKER_MANIFEST.md << EOF
-          # 🐳 Docker Image Manifest
-          
-          **Release:** ${VERSION}
-          **Built:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          **Digest:** ${{ steps.build.outputs.digest }}
-          
-          ## 📋 Image Information
-          
-          **Registry:** ${{ env.REGISTRY }}
-          **Repository:** ${{ steps.image-name.outputs.lowercase }}
-          **Platforms:** linux/amd64, linux/arm64
-          
-          ## 🏷️ Tags
-          
-          \`\`\`
-          ${{ steps.meta.outputs.tags }}
-          \`\`\`
-          
-          ## 🚀 Usage
-          
-          ### Quick Start
-          \`\`\`bash
-          # Pull and run latest version
-          docker pull ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}:${VERSION}
-          docker run -p 7860:7860 ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}:${VERSION}
-          \`\`\`
-          
-          ### Production Deployment
-          \`\`\`bash
-          # Using docker-compose
-          version: '3.8'
-          services:
-            ai-prompt-manager:
-              image: ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}:${VERSION}
-              ports:
-                - "7860:7860"
-              environment:
-                - MULTITENANT_MODE=true
-                - ENABLE_API=true
-                - SECRET_KEY=your-secret-key
-              volumes:
-                - ./data:/app/data
-          \`\`\`
-          
-          ### Environment Variables
-          
-          - \`MULTITENANT_MODE\`: Enable multi-tenant mode (default: true)
-          - \`ENABLE_API\`: Enable REST API (default: true)
-          - \`SERVER_HOST\`: Server host (default: 0.0.0.0)
-          - \`SERVER_PORT\`: Server port (default: 7860)
-          - \`DB_TYPE\`: Database type (sqlite/postgres, default: sqlite)
-          - \`SECRET_KEY\`: JWT signing secret (auto-generated if not set)
-          
-          ## 🔐 Security
-          
-          This image is signed with Sigstore/Cosign for supply chain security.
-          
-          **Digest:** ${{ steps.build.outputs.digest }}
-          
-          **Verify signature:**
-          \`\`\`bash
-          cosign verify --certificate-identity-regexp='.*' \\
-            --certificate-oidc-issuer-regexp='.*' \\
-            ${{ env.REGISTRY }}/${{ steps.image-name.outputs.lowercase }}@${{ steps.build.outputs.digest }}
-          \`\`\`
-          EOF
-
-      - name: Upload Docker artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-manifest-${{ needs.validate-release.outputs.version }}
-          path: DOCKER_MANIFEST.md
-          retention-days: 90
-
-  # Create GitHub release
-  create-github-release:
+  publish-to-pypi:
+    name: Publish to PyPI
     runs-on: ubuntu-latest
-    needs: [validate-release, build-python-package, build-docker-image, publish-to-pypi]
+    needs: [version-bump, build-python-package, build-docker-image]
+    # Only publish if not a pre-release and not in draft mode
+    if: github.event.inputs.prerelease == 'false' && github.event.inputs.draft == 'false'
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: v${{ needs.version-bump.outputs.new_version }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Download package artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: python-packages-${{ needs.version-bump.outputs.new_version }}
+        path: ./dist
+
+    - name: Verify package contents
+      run: |
+        echo "📦 Built packages:"
+        ls -la dist/
+        echo "📝 Package contents:"
+        python -m pip install twine
+        twine check dist/*
+
+    - name: Configure Poetry for PyPI
+      run: |
+        echo "🔧 Configuring Poetry for PyPI publishing..."
+        poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
+
+    - name: Publish to PyPI
+      run: |
+        echo "🚀 Publishing to PyPI..."
+        poetry publish --no-interaction
+        echo "✅ Successfully published to PyPI!"
+
+    - name: Verify PyPI publication
+      run: |
+        PACKAGE_NAME="${{ needs.build-python-package.outputs.package-name }}"
+        PACKAGE_VERSION="${{ needs.build-python-package.outputs.package-version }}"
+        
+        echo "🔍 Verifying publication on PyPI..."
+        echo "Package: $PACKAGE_NAME"
+        echo "Version: $PACKAGE_VERSION"
+        
+        # Wait a moment for PyPI to process
+        echo "⏳ Waiting for PyPI to process the upload..."
+        sleep 30
+        
+        # Try to fetch the package info from PyPI API
+        if curl -f "https://pypi.org/pypi/$PACKAGE_NAME/$PACKAGE_VERSION/json" > /dev/null 2>&1; then
+          echo "✅ Package successfully published and available on PyPI!"
+          echo "📦 PyPI URL: https://pypi.org/project/$PACKAGE_NAME/$PACKAGE_VERSION/"
+        else
+          echo "⚠️ Package may still be processing on PyPI. Check manually:"
+          echo "📦 PyPI URL: https://pypi.org/project/$PACKAGE_NAME/"
+        fi
+
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [version-bump, build-python-package, build-docker-image, publish-to-pypi]
     # Always run this job, even if PyPI publishing is skipped, but skip if draft mode
-    if: always() && needs.validate-release.outputs.is_draft == 'false' && (needs.validate-release.result == 'success' && needs.build-python-package.result == 'success' && (needs.build-docker-image.result == 'success' || needs.build-docker-image.result == 'skipped'))
+    if: always() && github.event.inputs.draft == 'false' && (needs.version-bump.result == 'success' && needs.build-python-package.result == 'success' && needs.build-docker-image.result == 'success' && (needs.publish-to-pypi.result == 'success' || needs.publish-to-pypi.result == 'skipped'))
     permissions:
       contents: write
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: v${{ needs.version-bump.outputs.new_version }}
+        fetch-depth: 0
 
-      - name: Download package artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: python-packages-${{ needs.validate-release.outputs.version }}
-          path: ./release-artifacts
+    - name: Download package artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: python-packages-${{ needs.version-bump.outputs.new_version }}
+        path: ./dist
 
-      - name: Download Docker manifest
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-manifest-${{ needs.validate-release.outputs.version }}
-          path: ./docker-artifacts
-
-      - name: Generate release notes
-        id: release-notes
-        run: |
-          VERSION="${{ needs.validate-release.outputs.version }}"
-          PACKAGE_VERSION="${{ needs.build-python-package.outputs.package-version }}"
-          
-          echo "📝 Generating release notes..."
-          
-          # Extract changes from CHANGELOG.md if it exists
-          CHANGELOG_CONTENT=""
-          if [ -f CHANGELOG.md ]; then
-            echo "🔍 Looking for changelog content for version: ${VERSION}"
-            # Try to extract the section for this version with brackets
-            CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION}\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
-            if [ -z "$CHANGELOG_CONTENT" ]; then
-              echo "🔍 Trying without 'v' prefix: [${VERSION#v}]"
-              # Try without the 'v' prefix but with brackets
-              CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION#v}\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
-            fi
-            if [ -z "$CHANGELOG_CONTENT" ]; then
-              echo "🔍 Trying without brackets: ${VERSION}"
-              # Try without brackets but with 'v' prefix
-              CHANGELOG_CONTENT=$(sed -n "/## ${VERSION}/,/## /p" CHANGELOG.md | sed '$d' | tail -n +2)
-            fi
-            if [ -z "$CHANGELOG_CONTENT" ]; then
-              echo "🔍 Trying without brackets and 'v' prefix: ${VERSION#v}"
-              # Try without brackets and without 'v' prefix
-              CHANGELOG_CONTENT=$(sed -n "/## ${VERSION#v}/,/## /p" CHANGELOG.md | sed '$d' | tail -n +2)
-            fi
-            
-            if [ -n "$CHANGELOG_CONTENT" ]; then
-              echo "✅ Found changelog content for ${VERSION}"
-            else
-              echo "❌ No changelog content found for ${VERSION}"
-            fi
-          fi
-          
-          # Generate release body
-          cat > release_body.md << EOF
-          # 🚀 AI Prompt Manager ${{ needs.validate-release.outputs.version }}
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ needs.version-bump.outputs.new_version }}
+        name: AI Prompt Manager v${{ needs.version-bump.outputs.new_version }}
+        body: |
+          # 🚀 AI Prompt Manager v${{ needs.version-bump.outputs.new_version }}
           
           A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments.
           
           ## 🌟 What's New
           
-          ${CHANGELOG_CONTENT}
+          ${{ needs.version-bump.outputs.changelog_content }}
           
           ## 📦 Installation Options
           
           ### 🐳 Docker (Recommended)
-          \`\`\`bash
+          ```bash
           # Quick start
-          docker run -p 7860:7860 ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:${{ needs.validate-release.outputs.version }}
+          docker run -p 7860:7860 ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:v${{ needs.version-bump.outputs.new_version }}
           
           # Production with PostgreSQL
           docker-compose -f docker-compose.prod.yml up -d
-          \`\`\`
+          ```
           
           ### 📚 Python Package
-          \`\`\`bash
+          ```bash
           # Install from PyPI (Recommended)
-          pip install promptman==${{ needs.build-python-package.outputs.package-version }}
+          pip install ${{ needs.build-python-package.outputs.package-name }}==${{ needs.build-python-package.outputs.package-version }}
           
-          # Or download and install from release
-          wget https://github.com/${{ github.repository }}/releases/download/${{ needs.validate-release.outputs.version }}/${{ needs.build-python-package.outputs.package-name }}-${{ needs.validate-release.outputs.version }}.tar.gz
-          tar -xzf ${{ needs.build-python-package.outputs.package-name }}-${{ needs.validate-release.outputs.version }}.tar.gz
-          cd release-dist
-          chmod +x install.sh
-          ./install.sh
-          \`\`\`
+          # Run the application
+          python -m promptman
+          ```
           
           ### 🔧 Manual Installation
-          \`\`\`bash
+          ```bash
           git clone https://github.com/${{ github.repository }}.git
           cd ai-prompt-manager
-          git checkout ${{ needs.validate-release.outputs.version }}
+          git checkout v${{ needs.version-bump.outputs.new_version }}
           poetry install
           poetry run python run.py
-          \`\`\`
+          ```
           
           ## 🛠️ Key Features
           
-          - **Modern Architecture**: Completely refactored with Service Layer, Repository Pattern, and clean separation of concerns
+          - **Modern Architecture**: Service Layer, Repository Pattern, and clean separation of concerns
           - **Multi-Service Prompt Optimizer**: LangWatch, PromptPerfect, LangSmith, Helicone support
           - **Multi-Language Interface**: 10 languages with real-time switching
           - **Unified Architecture**: Single codebase for single-user and multi-tenant modes
@@ -950,25 +523,24 @@ jobs:
           - **Token Calculator**: Real-time cost estimation for AI models
           - **Prompt Builder**: Drag-and-drop interface for combining prompts
           - **Type Safety**: Full type hints and validation throughout the codebase
-          - **Comprehensive Testing**: Unit and integration tests for all components
+          - **Comprehensive Testing**: 358 passing tests with full coverage
           
           ## 🐳 Docker Images
           
           | Tag | Description | Image |
           |-----|-------------|-------|
-          | \`latest\` | Latest stable release | \`ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:latest\` |
-          | \`${{ needs.validate-release.outputs.version }}\` | This release | \`ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:${{ needs.validate-release.outputs.version }}\` |$(if [[ "${{ needs.validate-release.outputs.is_prerelease }}" == "false" ]]; then echo "
-          | \`stable\` | Latest stable release | \`ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:stable\` |"; fi)
+          | `v${{ needs.version-bump.outputs.new_version }}` | This release | `ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:v${{ needs.version-bump.outputs.new_version }}` |
+          | `latest` | Latest stable release | `ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:latest` |${{ github.event.inputs.prerelease == 'false' && '
+          | `stable` | Latest stable release | `ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:stable` |' || '' }}
           
-          **Image Digest:** \`${{ needs.build-docker-image.outputs.image-digest }}\`
+          **Image Digest:** `${{ needs.build-docker-image.outputs.image-digest }}`
           
           ## 📋 Release Assets
           
-          - **PyPI Package**: Available on [PyPI](https://pypi.org/project/promptman/${{ needs.build-python-package.outputs.package-version }}/) for easy installation
-          - **Source Archives**: Complete source code with installation scripts
+          - **PyPI Package**: Available on [PyPI](https://pypi.org/project/${{ needs.build-python-package.outputs.package-name }}/${{ needs.build-python-package.outputs.package-version }}/) for easy installation
           - **Python Packages**: Wheel and source distributions
           - **Docker Images**: Multi-platform container images (amd64, arm64)
-          - **Documentation**: Release manifests and installation guides
+          - **Documentation**: Complete user guides and API documentation
           
           ## 🔐 Security & Verification
           
@@ -978,107 +550,51 @@ jobs:
           
           ## 📖 Documentation
           
-          - [Complete User Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md)
-          - [System Architecture](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/ARCHITECTURE.md)
-          - [New Architecture Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/NEW_ARCHITECTURE_GUIDE.md)
-          - [Refactoring Plan](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/REFACTORING_PLAN.md)
-          - [Installation Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md#-quick-start)
-          - [API Documentation](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md#-api-access)
+          - [Complete User Guide](https://github.com/${{ github.repository }}/blob/v${{ needs.version-bump.outputs.new_version }}/README.md)
+          - [System Architecture](https://github.com/${{ github.repository }}/blob/v${{ needs.version-bump.outputs.new_version }}/docs/ARCHITECTURE.md)
+          - [Installation Guide](https://github.com/${{ github.repository }}/blob/v${{ needs.version-bump.outputs.new_version }}/README.md#-quick-start)
+          - [API Documentation](https://github.com/${{ github.repository }}/blob/v${{ needs.version-bump.outputs.new_version }}/README.md#-api-access)
           
           ## 🐛 Issues & Support
           
           - [Report Issues](https://github.com/${{ github.repository }}/issues)
           - [Discussions](https://github.com/${{ github.repository }}/discussions)
-          - [Contributing Guide](https://github.com/${{ github.repository }}/blob/${{ needs.validate-release.outputs.version }}/README.md#-development)
+          - [Contributing Guide](https://github.com/${{ github.repository }}/blob/v${{ needs.version-bump.outputs.new_version }}/README.md#-development)
           
           ---
           
-          **Full Changelog**: [View Changes](https://github.com/${{ github.repository }}/compare/v${{ env.PREVIOUS_VERSION || '0.0.0' }}...${{ needs.validate-release.outputs.version }})
-          EOF
-          
-          echo "✅ Release notes generated"
+          🤖 Generated with [Claude Code](https://claude.ai/code)
+        files: |
+          dist/*
+        draft: ${{ github.event.inputs.draft }}
+        prerelease: ${{ github.event.inputs.prerelease }}
+        generate_release_notes: false
 
-      - name: Create or update release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.validate-release.outputs.version }}
-          name: ${{ needs.validate-release.outputs.release_name }}
-          body_path: release_body.md
-          prerelease: ${{ needs.validate-release.outputs.is_prerelease }}
-          draft: false
-          files: |
-            release-artifacts/*.tar.gz
-            release-artifacts/*.zip
-            release-artifacts/dist/*
-            release-artifacts/RELEASE_MANIFEST.md
-            docker-artifacts/DOCKER_MANIFEST.md
-          generate_release_notes: true
-          append_body: true
-
-  # Post-release validation
-  validate-release-artifacts:
+  notify-success:
+    name: Notify Release Success
     runs-on: ubuntu-latest
-    needs: [validate-release, create-github-release, build-docker-image, publish-to-pypi]
-    # Always run this job, even if PyPI publishing is skipped, but skip if draft mode
-    if: always() && needs.validate-release.outputs.is_draft == 'false' && needs.create-github-release.result == 'success'
-    
-    steps:
-      - name: Test Docker image
-        if: needs.build-docker-image.result == 'success'
-        run: |
-          VERSION="${{ needs.validate-release.outputs.version }}"
-          IMAGE="${{ env.REGISTRY }}/${{ needs.build-docker-image.outputs.image-name }}:${VERSION}"
-          
-          echo "🧪 Testing Docker image: $IMAGE"
-          
-          # Pull the image
-          docker pull "$IMAGE"
-          
-          # Test basic functionality
-          echo "🚀 Starting container for testing..."
-          CONTAINER_ID=$(docker run -d -p 7861:7860 "$IMAGE")
-          
-          # Wait for container to start
-          echo "⏳ Waiting for container to be ready..."
-          sleep 30
-          
-          # Test health endpoint
-          for i in {1..10}; do
-            if curl -f http://localhost:7861/api/health; then
-              echo "✅ Docker image health check passed!"
-              break
-            fi
-            echo "Attempt $i failed, retrying..."
-            sleep 5
-          done
-          
-          # Cleanup
-          docker stop "$CONTAINER_ID"
-          docker rm "$CONTAINER_ID"
+    needs: [version-bump, build-python-package, build-docker-image, create-github-release, publish-to-pypi]
+    if: always() && needs.build-python-package.result == 'success' && needs.build-docker-image.result == 'success'
 
-      - name: Validate release completion
-        run: |
-          echo "🎉 Release validation completed successfully!"
-          echo ""
-          echo "📦 Release: ${{ needs.validate-release.outputs.release_name }}"
-          echo "🏷️ Version: ${{ needs.validate-release.outputs.version }}"
-          echo "🐳 Docker: ${{ env.REGISTRY }}/${{ needs.build-docker-image.outputs.image-name }}:${{ needs.validate-release.outputs.version }}"
-          echo "📋 Pre-release: ${{ needs.validate-release.outputs.is_prerelease }}"
-          echo ""
-          
-          # Check if PyPI publishing was attempted
-          if [[ "${{ needs.validate-release.outputs.is_prerelease }}" == "false" && "${{ needs.validate-release.outputs.is_draft }}" == "false" ]]; then
-            if [[ "${{ needs.publish-to-pypi.result }}" == "success" ]]; then
-              echo "📦 PyPI: https://pypi.org/project/promptman/${{ needs.build-python-package.outputs.package-version }}/"
-              echo "✅ Package successfully published to PyPI!"
-            elif [[ "${{ needs.publish-to-pypi.result }}" == "failure" ]]; then
-              echo "❌ PyPI publishing failed - check the publish-to-pypi job logs"
-            elif [[ "${{ needs.publish-to-pypi.result }}" == "skipped" ]]; then
-              echo "⏭️ PyPI publishing was skipped"
-            fi
-          else
-            echo "⏭️ PyPI publishing skipped (pre-release or draft mode)"
+    steps:
+    - name: Success notification
+      run: |
+        echo "🎉 Release v${{ needs.version-bump.outputs.new_version }} completed successfully!"
+        echo "📦 Python package: ${{ needs.build-python-package.outputs.package-name }} v${{ needs.build-python-package.outputs.package-version }}"
+        echo "🐳 Docker image: ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:v${{ needs.version-bump.outputs.new_version }}"
+        echo "📋 Release notes: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.version-bump.outputs.new_version }}"
+        
+        # Check if PyPI publishing was attempted
+        if [[ "${{ github.event.inputs.prerelease }}" == "false" && "${{ github.event.inputs.draft }}" == "false" ]]; then
+          if [[ "${{ needs.publish-to-pypi.result }}" == "success" ]]; then
+            echo "📦 PyPI: https://pypi.org/project/${{ needs.build-python-package.outputs.package-name }}/${{ needs.build-python-package.outputs.package-version }}/"
+            echo "✅ Package successfully published to PyPI!"
+          elif [[ "${{ needs.publish-to-pypi.result }}" == "failure" ]]; then
+            echo "❌ PyPI publishing failed - check the publish-to-pypi job logs"
           fi
-          
-          echo ""
-          echo "✅ All release artifacts validated and published!"
+        else
+          echo "⏭️ PyPI publishing skipped (pre-release or draft mode)"
+        fi
+        
+        echo ""
+        echo "✅ All release tasks completed!"
