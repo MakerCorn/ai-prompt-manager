@@ -13,6 +13,7 @@ try:
 
     BCRYPT_AVAILABLE = True
 except ImportError:
+    bcrypt = None
     BCRYPT_AVAILABLE = False
 
 try:
@@ -21,6 +22,8 @@ try:
 
     ARGON2_AVAILABLE = True
 except ImportError:
+    PasswordHasher = None
+    VerifyMismatchError = None
     ARGON2_AVAILABLE = False
 
 # Fallback to PBKDF2 if modern libraries not available
@@ -51,7 +54,12 @@ class PasswordHandler:
 
         # Initialize algorithm-specific handlers
         if self.algorithm == "argon2" and ARGON2_AVAILABLE:
-            self.argon2_hasher = PasswordHasher()
+            try:
+                from argon2 import PasswordHasher
+                self.argon2_hasher = PasswordHasher()
+            except ImportError:
+                # Fallback if argon2 is not actually available
+                self.algorithm = "bcrypt" if BCRYPT_AVAILABLE else "pbkdf2"
 
         self.logger.info(
             f"Password handler initialized with {self.algorithm} algorithm"
@@ -178,10 +186,12 @@ class PasswordHandler:
 
     def _verify_argon2(self, password: str, hashed_password: str) -> bool:
         """Verify password using Argon2."""
+        if not ARGON2_AVAILABLE:
+            return False
         try:
             self.argon2_hasher.verify(hashed_password, password)
             return True
-        except VerifyMismatchError:
+        except Exception:  # Catch any exception including VerifyMismatchError
             return False
 
     def _hash_bcrypt(self, password: str) -> Tuple[str, str]:

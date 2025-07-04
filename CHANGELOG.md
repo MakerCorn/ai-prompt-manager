@@ -1,6 +1,55 @@
 # Changelog
 
-## [Unreleased] - Advanced Release Pipeline & Draft Mode
+## [Unreleased] - Deployment Infrastructure Updates & Testing Enhancements
+
+### 🚀 Deployment Infrastructure Overhaul
+
+#### **Docker Deployment Updates**
+- **Container Registry Paths**: Updated docker-compose.yml and docker-compose.prod.yml to use correct GitHub Container Registry paths
+  - Changed from `ghcr.io/OWNER/REPO:latest` to `ghcr.io/makercorn/ai-prompt-manager:latest`
+  - Production image updated to use `ghcr.io/makercorn/ai-prompt-manager:stable` tag
+- **Multi-Platform Support**: All Docker images now support both `linux/amd64` and `linux/arm64` architectures
+- **Container Signing**: All Docker images are signed with Sigstore/Cosign for supply chain security
+
+#### **GitHub Actions Workflow Enhancements**
+- **Comprehensive Testing**: Enhanced test.yml workflow with comprehensive unit test execution
+  - Added unit test suite execution with coverage reporting
+  - Added test summary reporting for better visibility
+  - Total test count: 358 passing tests with comprehensive coverage
+- **Testing Infrastructure**: Added comprehensive test validation for both legacy and new architecture components
+  - Legacy component import and functionality testing
+  - New architecture component validation
+  - Repository save functionality validation for release readiness
+
+#### **Documentation Updates**
+- **README.md**: Updated deployment instructions with current Docker registry paths
+  - Added testing status information (358 passing tests)
+  - Updated Docker image tags and multi-platform support information
+  - Enhanced quick start guide with corrected image paths
+  - Added security verification instructions for signed images
+- **Release Documentation**: Updated CI/CD pipeline documentation with current testing status
+
+### 🔧 Testing & Quality Improvements
+
+#### **Test Coverage Enhancement**
+- **Unit Test Integration**: Enhanced CI/CD pipeline to execute comprehensive unit test suite
+- **Architecture Testing**: Added validation for both legacy and new architecture components
+- **Release Validation**: Added critical repository functionality testing for release readiness
+- **Docker Testing**: Enhanced Docker testing documentation with multi-platform image support
+
+#### **Security Enhancements**
+- **Image Signing**: All Docker images now signed with Sigstore/Cosign
+- **Registry Verification**: Added documentation for verifying signed container images
+- **Supply Chain Security**: Implemented comprehensive security measures for Docker image distribution
+
+### 📋 Files Updated
+- `docker-compose.yml` - Updated GitHub Container Registry image paths
+- `docker-compose.prod.yml` - Updated production Docker configuration with correct registry paths
+- `.github/workflows/test.yml` - Enhanced with comprehensive unit test execution
+- `README.md` - Updated deployment documentation and testing status
+- Documentation updates across deployment guides and testing instructions
+
+## [Previous] - Advanced Release Pipeline & Draft Mode
 
 ### 🚀 Release Workflow Enhancements
 

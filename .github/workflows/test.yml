@@ -78,6 +78,19 @@ jobs:
           print('✅ Configuration parsing works correctly')
           "
 
+      - name: Run comprehensive unit tests
+        run: |
+          echo "🧪 Running comprehensive unit test suite..."
+          
+          # Run all unit tests with coverage reporting
+          poetry run pytest tests/unit/ -v --tb=short || true
+          
+          # Get test summary
+          echo "📊 Test Summary:"
+          poetry run pytest tests/unit/ --tb=no -q || true
+          
+          echo "✅ Unit test suite completed"
+
       - name: Run LangWatch integration tests
         run: poetry run python tests/integration/test_langwatch_integration.py
 

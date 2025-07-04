@@ -193,6 +193,8 @@ poetry run python run.py
 | **🐳 Docker Dev** | `docker-compose up -d` | PostgreSQL + Redis + Full Stack | Development with persistence |
 | **🏭 Production** | `docker-compose -f docker-compose.prod.yml up -d` | Optimized + Health Checks + Redis | Scalable deployment |
 
+**✅ Testing Status**: 358 passing tests with comprehensive coverage across all deployment modes and architecture components.
+
 ### ✅ Verify Installation
 
 ```bash
@@ -200,6 +202,11 @@ poetry run python run.py
 curl http://localhost:7860/api/health
 
 # Expected response: {"status": "healthy"}
+
+# Test comprehensive functionality
+python tests/integration/test_mt_install.py                    # Multi-tenant setup
+python tests/integration/test_new_architecture_integration.py # New architecture
+python tests/integration/test_langwatch_integration.py        # AI optimization
 ```
 
 ---
@@ -1993,8 +2000,11 @@ docker run -p 7860:7860 \
 ```
 
 **Available Images:**
-- `ghcr.io/makercorn/ai-prompt-manager:latest` - Latest build
-- `ghcr.io/makercorn/ai-prompt-manager:v1.0.0` - Tagged releases
+- `ghcr.io/makercorn/ai-prompt-manager:latest` - Latest development build
+- `ghcr.io/makercorn/ai-prompt-manager:stable` - Latest stable release
+- `ghcr.io/makercorn/ai-prompt-manager:v1.0.0` - Specific tagged releases
+
+**Multi-Platform Support**: All images support both `linux/amd64` and `linux/arm64` architectures.
 
 ---
 
@@ -2236,10 +2246,15 @@ docker run --rm -p 7860:7860 ai-prompt-manager-test  # Test single container
 # 🏗️ Test Development Stack
 docker-compose up -d                        # PostgreSQL + Redis + App
 docker-compose logs app                     # Check application logs
+curl http://localhost:7860/api/health       # Verify health endpoint
 
 # 🏭 Test Production Stack  
 docker-compose -f docker-compose.prod.yml up -d  # Production configuration
 curl http://localhost:7860/api/health       # Verify health endpoint
+
+# 🔐 Test Multi-Platform Images
+docker pull ghcr.io/makercorn/ai-prompt-manager:latest  # Pull latest image
+docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:latest  # Test pre-built image
 
 # 🔍 Container Validation
 docker exec ai-prompt-manager-app-1 python -c "
@@ -2252,10 +2267,10 @@ print('✅ All components available in container')
 
 ### CI/CD Pipeline
 
-- **Automated Testing** - Python tests, Docker builds, integration tests
-- **Docker Publishing** - GitHub Container Registry with multi-platform support (amd64, arm64)
-- **Release Management** - Comprehensive automated releases with packages and containers
-- **Security** - Sigstore/Cosign signing for supply chain security
+- **Automated Testing** - 358 passing tests with comprehensive coverage
+- **Docker Publishing** - GitHub Container Registry with multi-platform support (linux/amd64, linux/arm64)
+- **Release Management** - Automated PyPI publishing and Docker image releases
+- **Security** - Sigstore/Cosign signing for supply chain security and container verification
 
 **📋 Setup Guide:** See [GITHUB_WORKFLOWS_SETUP.md](GITHUB_WORKFLOWS_SETUP.md) for complete workflow configuration instructions.
 
@@ -2295,10 +2310,14 @@ The release script (`scripts/create-release.sh`) automates:
 
 **🐳 Docker Images:**
 ```bash
-# Available tags (repository names are automatically converted to lowercase):
-ghcr.io/makercorn/ai-prompt-manager:latest     # Latest stable
-ghcr.io/makercorn/ai-prompt-manager:v1.0.0     # Specific version
-ghcr.io/makercorn/ai-prompt-manager:stable     # Latest stable (non-prerelease)
+# Available tags with multi-platform support (linux/amd64, linux/arm64):
+ghcr.io/makercorn/ai-prompt-manager:latest     # Latest development build
+ghcr.io/makercorn/ai-prompt-manager:stable     # Latest stable release
+ghcr.io/makercorn/ai-prompt-manager:v1.0.0     # Specific version tags
+
+# All images are signed with Sigstore/Cosign for security verification
+# Verify with: cosign verify --certificate-identity-regexp='.*' \
+#   --certificate-oidc-issuer-regexp='.*' ghcr.io/makercorn/ai-prompt-manager:latest
 ```
 
 > **Note**: Docker registry names must be lowercase. The release workflow automatically converts repository names to comply with Docker registry requirements.

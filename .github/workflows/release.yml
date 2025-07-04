@@ -581,6 +581,10 @@ jobs:
     # Only publish if not a pre-release and not in draft mode
     if: needs.validate-release.outputs.is_prerelease == 'false' && needs.validate-release.outputs.is_draft == 'false'
     environment: production
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     
     steps:
       - name: Checkout repository

@@ -29,7 +29,7 @@ services:
   # AI Prompt Manager Application with API (Production)
   app:
     # Use latest stable release from GitHub Container Registry
-    image: ghcr.io/OWNER/REPO:latest
+    image: ghcr.io/makercorn/ai-prompt-manager:stable
     ports:
       - "7860:7860"  # Web UI and API endpoints
     environment:

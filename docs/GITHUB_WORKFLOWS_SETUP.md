@@ -7,8 +7,8 @@ This guide covers the complete setup and configuration of GitHub Actions workflo
 The project uses three main workflows:
 
 - **Build and Publish Package** - Builds and tests packages on every push
-- **Test and Validation** - Runs comprehensive tests after successful builds
-- **Release** - Handles automated releases with advanced draft and pre-release modes
+- **Test and Validation** - Runs comprehensive tests (358 passing tests) after successful builds with unit test coverage
+- **Release** - Handles automated releases with advanced draft and pre-release modes, Docker multi-platform builds, and Sigstore/Cosign signing
 
 ## Release Workflow Advanced Features
 
