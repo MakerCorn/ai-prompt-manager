@@ -84,11 +84,12 @@ def app_server(
     gradio_log_path = os.path.join(temp_dir, "gradio_server.log")
     api_log_path = os.path.join(temp_dir, "api_server.log")
 
-    # Start Gradio server (without API integration to avoid conflicts)
-    print(f"🎭 Starting Gradio server on {test_config['base_url']}")
+    # Start Gradio server with API integration 
+    print(f"🎭 Starting Gradio server with API on {test_config['base_url']}")
     gradio_cmd = [
         sys.executable,
         "run.py",
+        "--with-api",
         "--port",
         str(test_config["port"]),
         "--host",
@@ -104,43 +105,8 @@ def app_server(
             universal_newlines=True,
         )
 
-    # Start standalone API server on different port
-    api_port = test_config["port"] + 1
-    api_base_url = f"http://localhost:{api_port}"
-    print(f"🔌 Starting standalone API server on {api_base_url}")
-
-    # Create environment setup for API server
-    env_setup = []
-    for k, v in env.items():
-        env_setup.append(f'"{k}": "{v}"')
-    env_dict_str = "{" + ", ".join(env_setup) + "}"
-
-    api_cmd = [
-        sys.executable,
-        "-c",
-        f"""
-import sys
-sys.path.insert(0, '.')
-from api_endpoints import get_api_app
-import uvicorn
-import os
-
-# Set up environment
-os.environ.update({env_dict_str})
-
-app = get_api_app()
-uvicorn.run(app, host="127.0.0.1", port={api_port}, log_level="error")
-""",
-    ]
-
-    with open(api_log_path, "w") as log_file:
-        api_process = subprocess.Popen(
-            api_cmd,
-            cwd=os.getcwd(),
-            stdout=log_file,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-        )
+    # API endpoints are now integrated into the Gradio server
+    print("🔌 API endpoints integrated into Gradio server")
 
     # Wait for both servers to be ready
     print("⏱️ Waiting for servers to start...")

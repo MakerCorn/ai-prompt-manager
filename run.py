@@ -218,10 +218,9 @@ def main():
 
     # Update display for API integration
     if config["enable_api"]:
-        api_port = config["port"] + 1
-        print(f"🔗 API Integration: Separate server approach")
-        print(f"   📊 API Server Port: {api_port}")
-        print(f"   🌐 API Base URL: http://{config['host']}:{api_port}")
+        print(f"🔗 API Integration: Unified server approach")
+        print(f"   📊 API Endpoints: Same port as Gradio app ({config['port']})")
+        print(f"   🌐 API Base URL: http://{config['host']}:{config['port']}/api")
         print()
 
     # Set environment variables for the application
@@ -242,106 +241,50 @@ def main():
         print(f"❌ Failed to initialize application: {e}")
         sys.exit(1)
 
-    # Handle API integration if enabled
+    # Handle API integration if enabled  
     if config["enable_api"]:
         try:
-            print("🔌 Starting separate API server...")
-
-            import threading
+            print("🔌 Integrating API endpoints into Gradio app...")
+            
             from datetime import datetime
+            from fastapi import APIRouter
 
-            import uvicorn
-            from fastapi import FastAPI
+            # Create API router for endpoints
+            api_router = APIRouter()
 
-            # Create a separate FastAPI app for API endpoints
-            api_app = FastAPI(
-                title="AI Prompt Manager API",
-                description="REST API for AI Prompt Manager",
-                version="1.0.0",
-                docs_url="/docs",
-                redoc_url="/redoc",
-            )
-
-            # Add simple API endpoints to the API app
-            @api_app.get("/health")
+            # Add API endpoints
+            @api_router.get("/health")
             async def health_check():
                 return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
-            @api_app.get("/info")
+            @api_router.get("/info")
             async def api_info():
                 return {
-                    "service": "ai-prompt-manager",
+                    "service": "ai-prompt-manager", 
                     "version": "1.0.0",
                     "api_version": "v1",
                 }
 
-            @api_app.get("/")
-            async def api_root():
-                return {
-                    "message": "AI Prompt Manager API",
-                    "status": "running",
-                    "endpoints": {
-                        "health": "/health",
-                        "info": "/info", 
-                        "docs": "/docs",
-                        "redoc": "/redoc",
-                    }
-                }
+            @api_router.get("/test")
+            async def test_endpoint():
+                return {"message": "API integration working", "service": "ai-prompt-manager"}
 
-            # Calculate API port (main port + 1)
-            api_port = config["port"] + 1
+            # Get the underlying FastAPI app from Gradio
+            fastapi_app = app.app
 
-            # Function to run the API server with better error handling
-            def run_api_server():
-                try:
-                    import asyncio
-                    import time
-                    
-                    # Create a new event loop for this thread
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    
-                    print(f"🚀 Starting API server on {config['host']}:{api_port}")
-                    
-                    # Use uvicorn server directly for better control
-                    config_obj = uvicorn.Config(
-                        api_app,
-                        host=config["host"],
-                        port=api_port,
-                        log_level="info",
-                        access_log=False,  # Reduce noise
-                        loop="asyncio"
-                    )
-                    server = uvicorn.Server(config_obj)
-                    
-                    # Run the server
-                    loop.run_until_complete(server.serve())
-                    
-                except Exception as e:
-                    print(f"❌ API server error: {e}")
-                    import traceback
-                    traceback.print_exc()
-
-            # Start API server in a separate thread
-            api_thread = threading.Thread(target=run_api_server, daemon=True)
-            api_thread.start()
+            # Include the API router with /api prefix
+            fastapi_app.include_router(api_router, prefix="/api")
             
-            # Wait a moment for the server to start
-            import time
-            time.sleep(2)
-
-            print("✅ API server thread started")
-            print(f"📖 API Docs: http://{config['host']}:{api_port}/docs")
-            print(f"📖 Health check: http://{config['host']}:{api_port}/health")
-            print(f"📖 API info: http://{config['host']}:{api_port}/info")
-            print(f"🔧 Thread alive: {api_thread.is_alive()}")
+            print("✅ API endpoints integrated successfully")
+            print(f"📖 Health check: http://{config['host']}:{config['port']}/api/health")
+            print(f"📖 API info: http://{config['host']}:{config['port']}/api/info")
+            print(f"📖 Test endpoint: http://{config['host']}:{config['port']}/api/test")
 
         except ImportError as e:
-            print(f"⚠️  API integration failed: {e}")
+            print(f"⚠️  API integration failed (missing dependencies): {e}")
         except Exception as e:
-            print(f"⚠️  API setup error: {e}")
+            print(f"⚠️  API integration error: {e}")
             import traceback
-
             traceback.print_exc()
 
     # Launch configuration summary
