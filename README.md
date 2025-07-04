@@ -595,7 +595,8 @@ The interface automatically adapts to different languages:
 ai-prompt-manager/
 ├── i18n.py                 # Internationalization system
 ├── ui_components.py        # Language-aware UI components
-└── prompt_manager.py       # Main interface with i18n integration
+├── run.py                  # Main launcher with i18n integration
+└── web_app.py              # Web interface with i18n integration
 ```
 
 #### **Browser Support**
@@ -2001,7 +2002,8 @@ docker-compose up -d
 ### Architecture
 
 **Core Components:**
-- `prompt_manager.py` - Unified web interface (single-user + multi-tenant)
+- `run.py` - Universal launcher (single-user + multi-tenant)
+- `web_app.py` - Modern FastAPI web interface
 - `prompt_data_manager.py` - Database abstraction with tenant isolation
 - `auth_manager.py` - Authentication and user management
 - `token_calculator.py` - Token estimation engine
@@ -2376,7 +2378,8 @@ docker run -p 7860:7860 ghcr.io/makercorn/ai-prompt-manager:latest  # Test pre-b
 docker exec ai-prompt-manager-app-1 python -c "
 import sys; sys.path.insert(0, '/app/src')
 from src.prompts.services.prompt_service import PromptService
-import prompt_manager, auth_manager
+import auth_manager
+from run import main
 print('✅ All components available in container')
 "
 ```

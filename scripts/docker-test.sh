@@ -65,15 +65,15 @@ test_imports() {
     
     echo "🔍 Testing import capabilities..."
     
-    # Test legacy imports
-    echo "  Testing legacy imports..."
+    # Test core imports
+    echo "  Testing core imports..."
     if docker exec $container_name python -c "
-import prompt_manager, auth_manager, api_endpoints
-print('✅ Legacy imports successful')
+import auth_manager, api_endpoints
+print('✅ Core imports successful')
 "; then
-        echo "  ✅ Legacy imports working"
+        echo "  ✅ Core imports working"
     else
-        echo "  ❌ Legacy imports failed"
+        echo "  ❌ Core imports failed"
         return 1
     fi
     

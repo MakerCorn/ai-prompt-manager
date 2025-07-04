@@ -18,28 +18,22 @@ python -m promptman
 
 ### Development Commands
 ```bash
-# Run application (different modes) - Modern Web UI by default
-python run.py                     # Multi-tenant mode (Modern Web UI)
-python run.py --single-user       # Single-user mode (Modern Web UI)
-python run.py --with-api          # Multi-tenant + API
+# Run application (different modes)
+python run.py                     # Multi-tenant mode (default)
+python run.py --single-user       # Single-user mode
+python run.py --with-api          # Multi-tenant + Dual-Server API
 python run.py --single-user --with-api  # Single-user + API
 python run.py --debug --port 8080 # Debug mode on custom port
 
-# Legacy Gradio interface (optional)
-poetry install --extras gradio    # Install Gradio dependency first
-python run.py --gradio            # Multi-tenant mode (Legacy Gradio)
-python run.py --gradio --single-user  # Single-user mode (Legacy Gradio)
+# API Architecture Notes:
+# --with-api enables dual-server architecture:
+#   - FastAPI Web UI: Main port (e.g., 8080)
+#   - FastAPI API Server: Main port + 1 (e.g., 8081)
 
-# Modern Web UI Architecture Notes:
-# Default: FastAPI + HTMX + Tailwind CSS modern web interface
-# --with-api enables API endpoints on the same port
-#   - Modern Web UI: Main port (e.g., 8080)
-#   - API Endpoints: Same port (e.g., 8080/api/)
-
-# Testing - Modern Web UI (Default)
-python tests/integration/test_web_interface_integration.py     # Modern Web UI integration
+# Testing - Web UI (FastAPI)
+python tests/integration/test_web_interface_integration.py     # Web interface integration
 python tests/integration/test_web_ui_integration.py            # Web UI functionality
-python tests/e2e/test_web_ui_e2e.py                          # End-to-end browser tests
+python tests/e2e/test_web_ui_e2e.py                          # End-to-end browser tests with Playwright
 
 # Testing - Legacy & Multi-tenant  
 python tests/integration/test_mt_install.py                    # Multi-tenant setup
@@ -80,17 +74,17 @@ docker build -t ai-prompt-manager .
 This project now uses a **modern web interface** as the default, built with FastAPI + HTMX + Tailwind CSS:
 
 **Core Application Components (Root Level):**
-- `web_app.py` - **Modern FastAPI web application (DEFAULT)**
-- `prompt_manager.py` - Legacy Gradio interface (optional)
+- `run.py` - Universal launcher supporting all deployment modes
+- `web_app.py` - Modern FastAPI web application
 - `auth_manager.py` - Authentication, user management, and tenant isolation
 - `prompt_data_manager.py` - Database operations with tenant-aware data access
 - `token_calculator.py` - AI model cost estimation and token calculation
 - `langwatch_optimizer.py` - AI-powered prompt optimization services
+- `api_endpoints.py` - REST API implementation with FastAPI
 - `api_token_manager.py` - Secure API token generation and validation
-- `run.py` - Universal launcher supporting all deployment modes
 - `__main__.py` - Package entry point for `python -m promptman` execution
 
-**Modern Web UI Architecture (web_templates/ directory):**
+**FastAPI Web UI Architecture (web_templates/ directory):**
 ```
 web_templates/
 ├── layouts/
@@ -112,13 +106,13 @@ web_templates/
     └── list.html                  # Template library
 ```
 
-**Modern Web UI Features:**
-- **FastAPI + HTMX**: Real-time updates without page reloads
+**FastAPI Web UI Features:**
+- **FastAPI + Jinja2**: Server-side rendered templates with modern styling
 - **Tailwind CSS**: Responsive, mobile-first design
 - **Multi-language Support**: 10 languages with dynamic switching
-- **Session Authentication**: Secure JWT-based sessions
-- **API Integration**: Built-in REST API endpoints
-- **Modern Components**: Modals, dropdowns, interactive forms
+- **Session Authentication**: Secure session-based authentication
+- **HTMX Integration**: Dynamic content updates without page reloads
+- **Modern Components**: Clean forms, navigation, and interactive elements
 - **Accessibility**: ARIA labels, keyboard navigation, screen reader support
 
 **Legacy Architecture (src/):**
@@ -367,9 +361,38 @@ The project is published to PyPI as `promptman`:
 - **Docker Images**: Published to `ghcr.io/makercorn/ai-prompt-manager`
 - **Release Assets**: Source archives, wheels, Docker images, and documentation
 
+## Docker Deployment
+
+### Docker Commands
+```bash
+# Build image locally
+docker build -t ai-prompt-manager .
+
+# Run container (single instance)
+docker run -p 7860:7860 ai-prompt-manager
+
+# Run with API enabled (dual ports)
+docker run -p 7860:7860 -p 7861:7861 -e ENABLE_API=true ai-prompt-manager
+
+# Development stack
+docker-compose up -d
+
+# Production stack  
+docker-compose -f docker-compose.prod.yml up -d
+
+# Test Docker setup
+./scripts/docker-test.sh
+```
+
+### Docker Architecture
+- **Single Port Mode**: Web UI on port 7860
+- **Dual Port Mode**: Web UI on 7860, API on 7861 (when ENABLE_API=true)
+- **Health Checks**: Configured for both login and root endpoints
+- **Environment Variables**: Full configuration via ENV vars for containerized deployment
+
 ## Common Development Tasks
 
-### Working with the Modern UI Architecture
+### Working with the FastAPI Web UI Architecture
 
 #### Adding New UI Features
 1. **Identify the appropriate UI module**:
@@ -460,7 +483,11 @@ E2E_HEADLESS=false E2E_SLOW_MO=500 poetry run pytest tests/e2e/ -v -s
 The project includes dedicated E2E tests for the FastAPI web interface using Playwright:
 
 ```bash
-# Run Web UI E2E tests directly
+# Install E2E dependencies first
+poetry install --with e2e
+poetry run playwright install chromium
+
+# Run Web UI E2E tests directly  
 python tests/e2e/test_web_ui_e2e.py
 
 # Run with visible browser for debugging
@@ -490,6 +517,11 @@ E2E_HEADLESS=false E2E_SLOW_MO=1000 python tests/e2e/test_web_ui_e2e.py
 - **Category Selection Fix**: Ensures default categories are available for empty databases
 - **Single-User Mode Support**: Complete testing coverage for both authentication modes
 - **Template Rendering**: Proper UI element handling for both authenticated and single-user modes
+
+**Critical Dependencies:**
+- **httpx**: Required for FastAPI TestClient - included in dev/test dependencies
+- **playwright**: Required for browser automation - install with `poetry install --with e2e`
+- **All imports updated**: No legacy `prompt_manager` references - use `run.main` and `web_app` instead
 
 ### E2E Test Infrastructure
 - **Test Server**: Automatic app server startup on port 7862 for isolated testing
