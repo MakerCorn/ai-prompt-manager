@@ -2802,4 +2802,6 @@ def create_interface():
 # Launch the application
 if __name__ == "__main__":
     app = create_interface()
-    app.launch(server_name="0.0.0.0", server_port=7860, share=False, show_error=True)
+    app.launch(
+        server_name="0.0.0.0", server_port=7860, share=False, show_error=True
+    )  # nosec B104: Binding to all interfaces is intentional for web application deployment

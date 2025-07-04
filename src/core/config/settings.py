@@ -257,7 +257,7 @@ class AppConfig:
     """Main application configuration."""
 
     # Server settings
-    host: str = "0.0.0.0"
+    host: str = "0.0.0.0"  # nosec B104: Binding to all interfaces is intentional
     port: int = 7860
     debug: bool = False
 
@@ -289,7 +289,9 @@ class AppConfig:
             log_level = LogLevel.INFO
 
         return cls(
-            host=os.getenv("SERVER_HOST", "0.0.0.0"),
+            host=os.getenv(
+                "SERVER_HOST", "0.0.0.0"
+            ),  # nosec B104: Binding to all interfaces is intentional for deployment
             port=int(os.getenv("SERVER_PORT", "7860")),
             debug=os.getenv("DEBUG", "false").lower() == "true",
             enable_api=os.getenv("ENABLE_API", "false").lower() == "true",

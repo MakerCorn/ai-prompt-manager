@@ -40,7 +40,10 @@ class TestPromptOptimizer:
         """Create PromptOptimizer with PromptPerfect service"""
         with patch.dict(
             os.environ,
-            {"PROMPT_OPTIMIZER": "promptperfect", "PROMPTPERFECT_API_KEY": "test_api_key"},
+            {
+                "PROMPT_OPTIMIZER": "promptperfect",
+                "PROMPTPERFECT_API_KEY": "test_api_key",
+            },
             clear=True,
         ):
             return PromptOptimizer()
@@ -138,7 +141,9 @@ class TestPromptOptimizer:
             # Should fallback to builtin
             assert optimizer.service == "builtin"
 
-    def test_optimizer_initialization_promptperfect_with_key(self, optimizer_promptperfect):
+    def test_optimizer_initialization_promptperfect_with_key(
+        self, optimizer_promptperfect
+    ):
         """Test PromptOptimizer initialization with PromptPerfect service and API key"""
         assert optimizer_promptperfect.service == "promptperfect"
         assert optimizer_promptperfect.promptperfect_api_key == "test_api_key"
@@ -177,11 +182,15 @@ class TestPromptOptimizer:
         assert status["api_key_configured"] is True
         assert "langwatch" in status["services_available"]
         assert status["configuration"]["langwatch"]["api_key"].startswith("test_api")
-        assert "***" in status["configuration"]["langwatch"]["api_key"]  # Should be masked
+        assert (
+            "***" in status["configuration"]["langwatch"]["api_key"]
+        )  # Should be masked
 
     def test_get_status_service_fallback(self):
         """Test get_status when service falls back to builtin"""
-        with patch.dict(os.environ, {"PROMPT_OPTIMIZER": "invalid_service"}, clear=True):
+        with patch.dict(
+            os.environ, {"PROMPT_OPTIMIZER": "invalid_service"}, clear=True
+        ):
             optimizer = PromptOptimizer()
             status = optimizer.get_status()
 
@@ -196,7 +205,9 @@ class TestPromptOptimizer:
         assert result.success is True
         assert result.error_message is None
         assert result.original_prompt == sample_prompt
-        assert result.optimized_prompt is not None  # May or may not be different from original
+        assert (
+            result.optimized_prompt is not None
+        )  # May or may not be different from original
         assert 0 <= result.optimization_score <= 100
         assert isinstance(result.suggestions, list)
         assert len(result.suggestions) > 0
@@ -210,27 +221,42 @@ class TestPromptOptimizer:
         result = optimizer_builtin.optimize_prompt(sample_prompt, context=context)
 
         assert result.success is True
-        assert result.optimized_prompt is not None  # May or may not be different from original
+        assert (
+            result.optimized_prompt is not None
+        )  # May or may not be different from original
         # Context should influence optimization
-        assert "creative" in result.reasoning.lower() or "writing" in result.reasoning.lower()
+        assert (
+            "creative" in result.reasoning.lower()
+            or "writing" in result.reasoning.lower()
+        )
 
     def test_optimize_prompt_with_target_model(self, optimizer_builtin, sample_prompt):
         """Test prompt optimization with specific target model"""
-        result = optimizer_builtin.optimize_prompt(sample_prompt, target_model="claude-3")
+        result = optimizer_builtin.optimize_prompt(
+            sample_prompt, target_model="claude-3"
+        )
 
         assert result.success is True
-        assert result.optimized_prompt is not None  # May or may not be different from original
+        assert (
+            result.optimized_prompt is not None
+        )  # May or may not be different from original
 
     def test_optimize_prompt_with_custom_goals(self, optimizer_builtin, sample_prompt):
         """Test prompt optimization with custom goals"""
         goals = ["clarity", "specificity"]
-        result = optimizer_builtin.optimize_prompt(sample_prompt, optimization_goals=goals)
+        result = optimizer_builtin.optimize_prompt(
+            sample_prompt, optimization_goals=goals
+        )
 
         assert result.success is True
-        assert result.optimized_prompt is not None  # May or may not be different from original
+        assert (
+            result.optimized_prompt is not None
+        )  # May or may not be different from original
         # Should reflect goals in suggestions or reasoning
-        assert any("clear" in suggestion.lower() for suggestion in result.suggestions) or \
-               "clear" in result.reasoning.lower()
+        assert (
+            any("clear" in suggestion.lower() for suggestion in result.suggestions)
+            or "clear" in result.reasoning.lower()
+        )
 
     def test_optimize_prompt_empty_input(self, optimizer_builtin):
         """Test prompt optimization with empty input"""
@@ -238,7 +264,10 @@ class TestPromptOptimizer:
 
         assert result.success is False
         assert result.error_message is not None
-        assert "empty" in result.error_message.lower() or "invalid" in result.error_message.lower()
+        assert (
+            "empty" in result.error_message.lower()
+            or "invalid" in result.error_message.lower()
+        )
 
     def test_optimize_prompt_whitespace_only(self, optimizer_builtin):
         """Test prompt optimization with whitespace-only input"""
@@ -276,7 +305,7 @@ class TestPromptOptimizer:
     def test_optimization_different_services(self, sample_prompt):
         """Test that different services produce different optimizations"""
         results = {}
-        
+
         # Test builtin
         with patch.dict(os.environ, {"PROMPT_OPTIMIZER": "builtin"}, clear=True):
             optimizer = PromptOptimizer()
@@ -307,6 +336,7 @@ class TestPromptOptimizer:
         # Different services might produce different results
         optimized_prompts = [result.optimized_prompt for result in results.values()]
         # At least some variation expected (though mocked services might be similar)
+        assert len(optimized_prompts) > 0, "Should have optimized prompts"
 
     def test_builtin_optimization_rules(self, optimizer_builtin):
         """Test specific builtin optimization rules"""
@@ -348,9 +378,18 @@ class TestPromptOptimizer:
             assert isinstance(suggestion, str)
             assert len(suggestion) > 0
             # Suggestions should be actionable advice
-            assert any(word in suggestion.lower() for word in [
-                "specific", "clear", "detail", "structure", "improve", "add", "consider"
-            ])
+            assert any(
+                word in suggestion.lower()
+                for word in [
+                    "specific",
+                    "clear",
+                    "detail",
+                    "structure",
+                    "improve",
+                    "add",
+                    "consider",
+                ]
+            )
 
     def test_reasoning_generation(self, optimizer_builtin, sample_prompt):
         """Test that optimization reasoning is meaningful"""
@@ -359,9 +398,17 @@ class TestPromptOptimizer:
         assert isinstance(result.reasoning, str)
         assert len(result.reasoning) > 0
         # Reasoning should explain what was done
-        assert any(word in result.reasoning.lower() for word in [
-            "improved", "added", "enhanced", "structured", "clarified", "optimized"
-        ])
+        assert any(
+            word in result.reasoning.lower()
+            for word in [
+                "improved",
+                "added",
+                "enhanced",
+                "structured",
+                "clarified",
+                "optimized",
+            ]
+        )
 
     def test_optimization_goals_influence(self, optimizer_builtin, sample_prompt):
         """Test that optimization goals influence the results"""
@@ -385,12 +432,19 @@ class TestPromptOptimizer:
         # At minimum, reasoning should reflect the goals
         assert "clear" in clarity_result.reasoning.lower()
         assert "specific" in specificity_result.reasoning.lower()
-        assert "concise" in conciseness_result.reasoning.lower() or "brief" in conciseness_result.reasoning.lower()
+        assert (
+            "concise" in conciseness_result.reasoning.lower()
+            or "brief" in conciseness_result.reasoning.lower()
+        )
 
     def test_error_handling_service_failure(self, optimizer_builtin):
         """Test error handling when optimization service fails"""
         # Mock internal method to raise exception
-        with patch.object(optimizer_builtin, '_apply_builtin_rules', side_effect=Exception("Service error")):
+        with patch.object(
+            optimizer_builtin,
+            "_apply_builtin_rules",
+            side_effect=Exception("Service error"),
+        ):
             result = optimizer_builtin.optimize_prompt("Test prompt")
 
             assert result.success is False
@@ -399,7 +453,9 @@ class TestPromptOptimizer:
 
     def test_edge_cases_special_characters(self, optimizer_builtin):
         """Test optimization with special characters"""
-        special_prompt = "Write about: cats & dogs, their #1 traits! (be creative) @user"
+        special_prompt = (
+            "Write about: cats & dogs, their #1 traits! (be creative) @user"
+        )
         result = optimizer_builtin.optimize_prompt(special_prompt)
 
         assert result.success is True
@@ -473,10 +529,7 @@ class TestPromptOptimizer:
     def test_create_optimization_context(self, optimizer_builtin):
         """Test optimization context creation"""
         context = optimizer_builtin._create_optimization_context(
-            "Test prompt",
-            "Test context",
-            "gpt-4",
-            ["clarity", "specificity"]
+            "Test prompt", "Test context", "gpt-4", ["clarity", "specificity"]
         )
 
         assert isinstance(context, str)
@@ -489,39 +542,45 @@ class TestPromptOptimizer:
     def test_calculate_optimization_score_edge_cases(self, optimizer_builtin):
         """Test optimization score calculation edge cases"""
         # Same prompt (no optimization)
-        score1 = optimizer_builtin._calculate_optimization_score("Test prompt", "Test prompt")
+        score1 = optimizer_builtin._calculate_optimization_score(
+            "Test prompt", "Test prompt"
+        )
         assert score1 == 0
 
         # Much longer optimized prompt
         score2 = optimizer_builtin._calculate_optimization_score(
             "Test",
-            "This is a detailed, specific, and well-structured test prompt that provides clear instructions"
+            "This is a detailed, specific, and well-structured test prompt that provides clear instructions",
         )
         assert score2 > 50
 
         # Shorter optimized prompt (conciseness)
         score3 = optimizer_builtin._calculate_optimization_score(
             "This is a very long and verbose prompt that could be made much shorter",
-            "Brief, clear prompt"
+            "Brief, clear prompt",
         )
         assert score3 > 0
 
     def test_all_optimization_rules_applied(self, optimizer_builtin):
         """Test that optimization rules are being applied"""
         # Create a prompt that triggers multiple rules
-        poor_prompt = "do something with the thing and make it good please help me write stuff"
-        
+        poor_prompt = (
+            "do something with the thing and make it good please help me write stuff"
+        )
+
         result = optimizer_builtin.optimize_prompt(poor_prompt)
-        
+
         assert result.success is True
         assert len(result.optimized_prompt) > len(poor_prompt)
         assert result.optimization_score > 30  # Should show significant improvement
-        
+
         # Check that vague terms were replaced
         optimized_lower = result.optimized_prompt.lower()
-        assert "something" not in optimized_lower or \
-               "specific" in optimized_lower or \
-               "detailed" in optimized_lower
+        assert (
+            "something" not in optimized_lower
+            or "specific" in optimized_lower
+            or "detailed" in optimized_lower
+        )
 
     def test_concurrent_optimization_safety(self, optimizer_builtin, sample_prompt):
         """Test thread safety of optimization operations"""
@@ -539,9 +598,9 @@ class TestPromptOptimizer:
         """Test memory efficiency with large prompts"""
         # Create a very large prompt
         large_prompt = "Write a detailed story about cats. " * 1000
-        
+
         result = optimizer_builtin.optimize_prompt(large_prompt)
-        
+
         # Should handle large prompts without memory issues
         assert result.success is True
         assert isinstance(result.optimized_prompt, str)

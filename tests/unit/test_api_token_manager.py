@@ -72,7 +72,7 @@ class TestAPITokenManager:
         user_id = str(uuid.uuid4())
         tenant_id = str(uuid.uuid4())
         now = datetime.now()
-        
+
         api_token = APIToken(
             id=token_id,
             user_id=user_id,
@@ -95,7 +95,9 @@ class TestAPITokenManager:
 
     def test_initialization_sqlite(self, temp_db):
         """Test APITokenManager initialization with SQLite"""
-        with patch.dict(os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True):
+        with patch.dict(
+            os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True
+        ):
             manager = APITokenManager(db_path=temp_db)
             assert manager.db_type == "sqlite"
             assert manager.db_path == temp_db
@@ -103,13 +105,18 @@ class TestAPITokenManager:
     def test_initialization_postgres_success(self, postgres_token_manager):
         """Test APITokenManager initialization with PostgreSQL"""
         assert postgres_token_manager.db_type == "postgres"
-        assert postgres_token_manager.dsn == "postgresql://test:test@localhost:5432/test"
+        assert (
+            postgres_token_manager.dsn == "postgresql://test:test@localhost:5432/test"
+        )
 
     def test_initialization_postgres_missing_psycopg2(self):
         """Test APITokenManager initialization fails when psycopg2 not available"""
         with patch.dict(
             os.environ,
-            {"DB_TYPE": "postgres", "POSTGRES_DSN": "postgresql://test:test@localhost:5432/test"},
+            {
+                "DB_TYPE": "postgres",
+                "POSTGRES_DSN": "postgresql://test:test@localhost:5432/test",
+            },
             clear=True,
         ):
             with patch("api_token_manager.POSTGRES_AVAILABLE", False):
@@ -120,7 +127,9 @@ class TestAPITokenManager:
         """Test APITokenManager initialization fails when POSTGRES_DSN not set"""
         with patch.dict(os.environ, {"DB_TYPE": "postgres"}, clear=True):
             with patch("api_token_manager.POSTGRES_AVAILABLE", True):
-                with pytest.raises(ValueError, match="POSTGRES_DSN environment variable"):
+                with pytest.raises(
+                    ValueError, match="POSTGRES_DSN environment variable"
+                ):
                     APITokenManager()
 
     def test_get_conn_sqlite(self, token_manager_sqlite):
@@ -136,15 +145,25 @@ class TestAPITokenManager:
         cursor = conn.cursor()
 
         # Check api_tokens table exists
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='api_tokens'")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='api_tokens'"
+        )
         assert cursor.fetchone() is not None
 
         # Check table structure
         cursor.execute("PRAGMA table_info(api_tokens)")
         columns = [column[1] for column in cursor.fetchall()]
         expected_columns = [
-            "id", "user_id", "tenant_id", "name", "token_prefix", 
-            "token_hash", "expires_at", "last_used", "created_at", "is_active"
+            "id",
+            "user_id",
+            "tenant_id",
+            "name",
+            "token_prefix",
+            "token_hash",
+            "expires_at",
+            "last_used",
+            "created_at",
+            "is_active",
         ]
         for col in expected_columns:
             assert col in columns
@@ -153,16 +172,18 @@ class TestAPITokenManager:
 
     def test_generate_secure_token(self, token_manager_sqlite):
         """Test secure token generation"""
-        full_token, token_prefix, token_hash = token_manager_sqlite.generate_secure_token()
+        full_token, token_prefix, token_hash = (
+            token_manager_sqlite.generate_secure_token()
+        )
 
         # Check token format
         assert full_token.startswith("apm_")
         assert len(full_token) == 36  # apm_ + 32 characters
-        
+
         # Check prefix
         assert token_prefix == full_token[:12]  # First 8 chars after apm_
         assert token_prefix.startswith("apm_")
-        
+
         # Check hash
         expected_hash = hashlib.sha256(full_token.encode()).hexdigest()
         assert token_hash == expected_hash
@@ -203,7 +224,9 @@ class TestAPITokenManager:
         assert token_row[9] == 1  # is_active column (SQLite boolean as integer)
         conn.close()
 
-    def test_create_api_token_with_expiration(self, token_manager_sqlite, sample_user_data):
+    def test_create_api_token_with_expiration(
+        self, token_manager_sqlite, sample_user_data
+    ):
         """Test API token creation with expiration"""
         expires_days = 30
         success, message, token = token_manager_sqlite.create_api_token(
@@ -227,7 +250,9 @@ class TestAPITokenManager:
         assert expires_at is not None
         conn.close()
 
-    def test_create_api_token_duplicate_name(self, token_manager_sqlite, sample_user_data):
+    def test_create_api_token_duplicate_name(
+        self, token_manager_sqlite, sample_user_data
+    ):
         """Test API token creation with duplicate name for same user"""
         # Create first token
         token_manager_sqlite.create_api_token(
@@ -247,7 +272,9 @@ class TestAPITokenManager:
         assert "already exists" in message.lower()
         assert token is None
 
-    def test_create_api_token_same_name_different_users(self, token_manager_sqlite, sample_user_data):
+    def test_create_api_token_same_name_different_users(
+        self, token_manager_sqlite, sample_user_data
+    ):
         """Test API token creation with same name for different users"""
         user1_id = sample_user_data["user_id"]
         user2_id = str(uuid.uuid4())
@@ -275,7 +302,10 @@ class TestAPITokenManager:
         )
 
         assert success is False
-        assert "name is required" in message.lower() or "name cannot be empty" in message.lower()
+        assert (
+            "name is required" in message.lower()
+            or "name cannot be empty" in message.lower()
+        )
         assert token is None
 
     def test_validate_api_token_success(self, token_manager_sqlite, sample_user_data):
@@ -288,7 +318,9 @@ class TestAPITokenManager:
         )
 
         # Validate token
-        is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(full_token)
+        is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(
+            full_token
+        )
 
         assert is_valid is True
         assert user_id == sample_user_data["user_id"]
@@ -316,7 +348,9 @@ class TestAPITokenManager:
         ]
 
         for invalid_token in invalid_tokens:
-            is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(invalid_token)
+            is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(
+                invalid_token
+            )
             assert is_valid is False
             assert user_id is None
             assert tenant_id is None
@@ -325,7 +359,9 @@ class TestAPITokenManager:
         """Test API token validation with non-existent token"""
         # Generate valid format but non-existent token
         fake_token = "apm_" + "a" * 32
-        is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(fake_token)
+        is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(
+            fake_token
+        )
 
         assert is_valid is False
         assert user_id is None
@@ -353,7 +389,9 @@ class TestAPITokenManager:
         conn.close()
 
         # Validate expired token
-        is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(full_token)
+        is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(
+            full_token
+        )
 
         assert is_valid is False
         assert user_id is None
@@ -379,7 +417,9 @@ class TestAPITokenManager:
         conn.close()
 
         # Validate inactive token
-        is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(full_token)
+        is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(
+            full_token
+        )
 
         assert is_valid is False
         assert user_id is None
@@ -401,7 +441,7 @@ class TestAPITokenManager:
 
         assert len(tokens) == 3
         assert all(isinstance(token, APIToken) for token in tokens)
-        
+
         # Check that all tokens belong to the user
         for token in tokens:
             assert token.user_id == sample_user_data["user_id"]
@@ -462,7 +502,7 @@ class TestAPITokenManager:
             sample_user_data["tenant_id"],
             "Permanent Token",
         )
-        
+
         token_manager_sqlite.create_api_token(
             sample_user_data["user_id"],
             sample_user_data["tenant_id"],
@@ -483,8 +523,8 @@ class TestAPITokenManager:
 
         assert stats["total_active"] == 3
         assert stats["never_expire"] == 2  # Permanent and Used tokens
-        assert stats["will_expire"] == 1   # Expiring token
-        assert stats["used_tokens"] == 1   # Used token
+        assert stats["will_expire"] == 1  # Expiring token
+        assert stats["used_tokens"] == 1  # Used token
 
     def test_get_token_stats_empty(self, token_manager_sqlite):
         """Test getting token statistics for user with no tokens"""
@@ -510,7 +550,9 @@ class TestAPITokenManager:
         token_id = tokens[0].id
 
         # Revoke token
-        success, message = token_manager_sqlite.revoke_token(sample_user_data["user_id"], token_id)
+        success, message = token_manager_sqlite.revoke_token(
+            sample_user_data["user_id"], token_id
+        )
 
         assert success is True
         assert "revoked" in message.lower()
@@ -522,7 +564,9 @@ class TestAPITokenManager:
     def test_revoke_token_not_found(self, token_manager_sqlite, sample_user_data):
         """Test revoking non-existent token"""
         fake_token_id = str(uuid.uuid4())
-        success, message = token_manager_sqlite.revoke_token(sample_user_data["user_id"], fake_token_id)
+        success, message = token_manager_sqlite.revoke_token(
+            sample_user_data["user_id"], fake_token_id
+        )
 
         assert success is False
         assert "not found" in message.lower()
@@ -542,7 +586,9 @@ class TestAPITokenManager:
 
         # Try to revoke with different user
         different_user_id = str(uuid.uuid4())
-        success, message = token_manager_sqlite.revoke_token(different_user_id, token_id)
+        success, message = token_manager_sqlite.revoke_token(
+            different_user_id, token_id
+        )
 
         assert success is False
         assert "not found" in message.lower()
@@ -559,7 +605,9 @@ class TestAPITokenManager:
             )
 
         # Revoke all tokens
-        success, message = token_manager_sqlite.revoke_all_tokens(sample_user_data["user_id"])
+        success, message = token_manager_sqlite.revoke_all_tokens(
+            sample_user_data["user_id"]
+        )
 
         assert success is True
         assert "3" in message  # Should mention number of tokens revoked
@@ -614,7 +662,9 @@ class TestAPITokenManager:
         assert len(tokens) == 1
         assert tokens[0].name == "Active Token"
 
-    def test_cleanup_expired_tokens_none_expired(self, token_manager_sqlite, sample_user_data):
+    def test_cleanup_expired_tokens_none_expired(
+        self, token_manager_sqlite, sample_user_data
+    ):
         """Test cleanup when no tokens are expired"""
         # Create active tokens
         token_manager_sqlite.create_api_token(
@@ -622,7 +672,7 @@ class TestAPITokenManager:
             sample_user_data["tenant_id"],
             "Token 1",
         )
-        
+
         token_manager_sqlite.create_api_token(
             sample_user_data["user_id"],
             sample_user_data["tenant_id"],
@@ -639,7 +689,9 @@ class TestAPITokenManager:
         tokens = token_manager_sqlite.get_user_tokens(sample_user_data["user_id"])
         assert len(tokens) == 2
 
-    def test_token_security_hash_verification(self, token_manager_sqlite, sample_user_data):
+    def test_token_security_hash_verification(
+        self, token_manager_sqlite, sample_user_data
+    ):
         """Test token security and hash verification"""
         # Create token
         _, _, full_token = token_manager_sqlite.create_api_token(
@@ -665,7 +717,9 @@ class TestAPITokenManager:
         # Verify original token is not stored
         conn = sqlite3.connect(token_manager_sqlite.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM api_tokens WHERE user_id = ?", (sample_user_data["user_id"],))
+        cursor.execute(
+            "SELECT * FROM api_tokens WHERE user_id = ?", (sample_user_data["user_id"],)
+        )
         row = cursor.fetchone()
         conn.close()
 
@@ -709,7 +763,9 @@ class TestAPITokenManager:
         tokens = token_manager_sqlite.get_user_tokens(sample_user_data["user_id"])
         assert tokens[0].name == "Token Name"
 
-    def test_error_handling_database_operations(self, token_manager_sqlite, sample_user_data):
+    def test_error_handling_database_operations(
+        self, token_manager_sqlite, sample_user_data
+    ):
         """Test error handling in database operations"""
         with patch.object(token_manager_sqlite, "get_conn") as mock_get_conn:
             mock_get_conn.side_effect = Exception("Database connection failed")
@@ -764,7 +820,9 @@ class TestAPITokenManager:
         assert isinstance(token.expires_at, datetime)
         assert token.expires_at > token.created_at
 
-    def test_concurrent_token_operations_safety(self, token_manager_sqlite, sample_user_data):
+    def test_concurrent_token_operations_safety(
+        self, token_manager_sqlite, sample_user_data
+    ):
         """Test thread safety of token operations"""
         # Simulate concurrent token creation
         success_count = 0
@@ -816,7 +874,9 @@ class TestAPITokenManager:
 
         # Validate all tokens
         for token in tokens:
-            is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(token)
+            is_valid, user_id, tenant_id = token_manager_sqlite.validate_api_token(
+                token
+            )
             assert is_valid is True
             assert user_id == sample_user_data["user_id"]
             assert tenant_id == sample_user_data["tenant_id"]

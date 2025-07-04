@@ -242,7 +242,7 @@ class TestAppConfig:
         """Test app config with default values."""
         config = AppConfig()
 
-        assert config.host == "0.0.0.0"
+        assert config.host == "0.0.0.0"  # nosec B104: Test assertion
         assert config.port == 7860
         assert config.debug is False
         assert config.enable_api is False

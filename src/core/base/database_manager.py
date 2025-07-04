@@ -107,6 +107,7 @@ class BaseDatabaseManager(ABC):
                 try:
                     conn.rollback()
                 except Exception:
+                    # nosec B110: Silent rollback failure is acceptable here
                     pass
             raise
         finally:
@@ -217,6 +218,7 @@ class BaseDatabaseManager(ABC):
                 try:
                     conn.rollback()
                 except Exception:
+                    # nosec B110: Silent rollback failure is acceptable here
                     pass
                 self.logger.error(f"Transaction failed, rolled back: {str(e)}")
                 raise DatabaseException(f"Transaction failed: {str(e)}")

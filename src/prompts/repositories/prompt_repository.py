@@ -220,7 +220,7 @@ class PromptRepository(TenantAwareRepository[Prompt]):
         where_clause = f"tenant_id = {'%s' if self.db_manager.config.db_type.value == 'postgres' else '?'}"
         where_clause += f" AND ({' OR '.join(conditions)})"
 
-        query = f"SELECT * FROM prompts WHERE {where_clause}"
+        query = f"SELECT * FROM prompts WHERE {where_clause}"  # nosec B608: where_clause is built from controlled parameters
         if limit:
             query += f" LIMIT {limit}"
 

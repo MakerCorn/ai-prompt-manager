@@ -193,7 +193,7 @@ poetry run python run.py
 | **🐳 Docker Dev** | `docker-compose up -d` | PostgreSQL + Redis + Full Stack | Development with persistence |
 | **🏭 Production** | `docker-compose -f docker-compose.prod.yml up -d` | Optimized + Health Checks + Redis | Scalable deployment |
 
-**✅ Testing Status**: 358 passing tests with comprehensive coverage across all deployment modes and architecture components.
+**✅ Testing Status**: 21 test files (11 unit + 10 integration) with comprehensive coverage across all deployment modes and architecture components.
 
 ### ✅ Verify Installation
 
@@ -2267,7 +2267,7 @@ print('✅ All components available in container')
 
 ### CI/CD Pipeline
 
-- **Automated Testing** - 358 passing tests with comprehensive coverage
+- **Automated Testing** - 21 test files with comprehensive unit and integration coverage
 - **Docker Publishing** - GitHub Container Registry with multi-platform support (linux/amd64, linux/arm64)
 - **Release Management** - Automated PyPI publishing and Docker image releases
 - **Security** - Sigstore/Cosign signing for supply chain security and container verification

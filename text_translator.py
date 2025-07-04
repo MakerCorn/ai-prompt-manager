@@ -70,7 +70,9 @@ class TextTranslator:
                     ](text, source_language)
                     if success:
                         return True, translated_text, ""
-                except Exception:
+                except (
+                    Exception
+                ):  # nosec B112: Continuing to try next translation service is intentional
                     continue
 
         return False, text, "All translation services failed"

@@ -5,12 +5,10 @@ Testing authentication, user management, tenant operations, and SSO functionalit
 
 import hashlib
 import os
-import secrets
 import sqlite3
 import tempfile
 import uuid
 from datetime import datetime, timedelta
-from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import jwt
@@ -126,7 +124,10 @@ class TestAuthManager:
         """Test AuthManager initialization fails when psycopg2 not available"""
         with patch.dict(
             os.environ,
-            {"DB_TYPE": "postgres", "POSTGRES_DSN": "postgresql://test:test@localhost:5432/test"},
+            {
+                "DB_TYPE": "postgres",
+                "POSTGRES_DSN": "postgresql://test:test@localhost:5432/test",
+            },
             clear=True,
         ):
             with patch("auth_manager.POSTGRES_AVAILABLE", False):
@@ -137,7 +138,9 @@ class TestAuthManager:
         """Test AuthManager initialization fails when POSTGRES_DSN not set"""
         with patch.dict(os.environ, {"DB_TYPE": "postgres"}, clear=True):
             with patch("auth_manager.POSTGRES_AVAILABLE", True):
-                with pytest.raises(ValueError, match="POSTGRES_DSN environment variable"):
+                with pytest.raises(
+                    ValueError, match="POSTGRES_DSN environment variable"
+                ):
                     AuthManager()
 
     def test_password_hashing(self, auth_manager):
@@ -166,15 +169,21 @@ class TestAuthManager:
         cursor = conn.cursor()
 
         # Check tenants table
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tenants'")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='tenants'"
+        )
         assert cursor.fetchone() is not None
 
         # Check users table
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+        )
         assert cursor.fetchone() is not None
 
         # Check user_sessions table
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='user_sessions'")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='user_sessions'"
+        )
         assert cursor.fetchone() is not None
 
         conn.close()
@@ -214,7 +223,10 @@ class TestAuthManager:
         # Verify tenant exists in database
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM tenants WHERE subdomain = ?", (sample_tenant_data["subdomain"],))
+        cursor.execute(
+            "SELECT * FROM tenants WHERE subdomain = ?",
+            (sample_tenant_data["subdomain"],),
+        )
         tenant = cursor.fetchone()
         assert tenant is not None
         assert tenant[1] == sample_tenant_data["name"]
@@ -224,11 +236,15 @@ class TestAuthManager:
         """Test tenant creation fails with duplicate subdomain"""
         # Create first tenant
         auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
 
         # Try to create duplicate
-        success, message = auth_manager.create_tenant("Another Company", sample_tenant_data["subdomain"], 100)
+        success, message = auth_manager.create_tenant(
+            "Another Company", sample_tenant_data["subdomain"], 100
+        )
 
         assert not success
         assert "already exists" in message
@@ -247,11 +263,15 @@ class TestAuthManager:
             assert not success
             assert "Error creating tenant" in message
 
-    def test_create_user_success(self, auth_manager, sample_tenant_data, sample_user_data):
+    def test_create_user_success(
+        self, auth_manager, sample_tenant_data, sample_user_data
+    ):
         """Test successful user creation"""
         # Create tenant first
         auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
 
         success, message = auth_manager.create_user(
@@ -269,18 +289,24 @@ class TestAuthManager:
         # Verify user exists and password is hashed
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE email = ?", (sample_user_data["email"],))
+        cursor.execute(
+            "SELECT * FROM users WHERE email = ?", (sample_user_data["email"],)
+        )
         user = cursor.fetchone()
         assert user is not None
         assert user[3] is not None  # password_hash
         assert ":" in user[3]  # hashed format
         conn.close()
 
-    def test_create_user_duplicate_email(self, auth_manager, sample_tenant_data, sample_user_data):
+    def test_create_user_duplicate_email(
+        self, auth_manager, sample_tenant_data, sample_user_data
+    ):
         """Test user creation fails with duplicate email"""
         # Create tenant first
         auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
 
         # Create first user
@@ -313,15 +339,21 @@ class TestAuthManager:
         # Update tenant ID in database
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("UPDATE tenants SET id = ? WHERE subdomain = 'limited'", (tenant_id,))
+        cursor.execute(
+            "UPDATE tenants SET id = ? WHERE subdomain = 'limited'", (tenant_id,)
+        )
         conn.commit()
 
         # Create first user
-        success1, _ = auth_manager.create_user(tenant_id, "user1@limited.com", "pass", "User", "One")
+        success1, _ = auth_manager.create_user(
+            tenant_id, "user1@limited.com", "pass", "User", "One"
+        )
         assert success1
 
         # Try to create second user (should fail)
-        success2, message = auth_manager.create_user(tenant_id, "user2@limited.com", "pass", "User", "Two")
+        success2, message = auth_manager.create_user(
+            tenant_id, "user2@limited.com", "pass", "User", "Two"
+        )
 
         assert not success2
         assert "maximum user limit" in message
@@ -332,7 +364,9 @@ class TestAuthManager:
         """Test creating SSO user without password"""
         # Create tenant first
         auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
 
         success, message = auth_manager.create_user(
@@ -351,25 +385,33 @@ class TestAuthManager:
         # Verify user has SSO ID but no password hash
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT password_hash, sso_id FROM users WHERE email = 'sso@testco.com'")
+        cursor.execute(
+            "SELECT password_hash, sso_id FROM users WHERE email = 'sso@testco.com'"
+        )
         user_data = cursor.fetchone()
         assert user_data[0] is None  # No password hash
         assert user_data[1] == "sso_external_id_123"  # Has SSO ID
         conn.close()
 
-    def test_authenticate_user_success(self, auth_manager, sample_tenant_data, sample_user_data):
+    def test_authenticate_user_success(
+        self, auth_manager, sample_tenant_data, sample_user_data
+    ):
         """Test successful user authentication"""
         # Create tenant and user
         tenant_success, tenant_message = auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
         assert tenant_success, f"Failed to create tenant: {tenant_message}"
-        
+
         # Get the tenant ID after creation by finding it in all tenants
         tenants = auth_manager.get_all_tenants()
-        tenant = next((t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None)
+        tenant = next(
+            (t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None
+        )
         assert tenant is not None, "Tenant should exist after creation"
-        
+
         user_success, user_message = auth_manager.create_user(
             tenant.id,  # Use the tenant ID from the retrieved tenant
             sample_user_data["email"],
@@ -393,19 +435,25 @@ class TestAuthManager:
         # Check last_login was updated
         assert user.last_login is not None
 
-    def test_authenticate_user_with_subdomain(self, auth_manager, sample_tenant_data, sample_user_data):
+    def test_authenticate_user_with_subdomain(
+        self, auth_manager, sample_tenant_data, sample_user_data
+    ):
         """Test user authentication with tenant subdomain filtering"""
         # Create tenant and user
         tenant_success, tenant_message = auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
         assert tenant_success, f"Failed to create tenant: {tenant_message}"
-        
+
         # Get the tenant ID after creation
         tenants = auth_manager.get_all_tenants()
-        tenant = next((t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None)
+        tenant = next(
+            (t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None
+        )
         assert tenant is not None, "Tenant should exist after creation"
-        
+
         user_success, user_message = auth_manager.create_user(
             tenant.id,
             sample_user_data["email"],
@@ -417,7 +465,9 @@ class TestAuthManager:
 
         # Authenticate with correct subdomain
         success, user, message = auth_manager.authenticate_user(
-            sample_user_data["email"], sample_user_data["password"], sample_tenant_data["subdomain"]
+            sample_user_data["email"],
+            sample_user_data["password"],
+            sample_tenant_data["subdomain"],
         )
         assert user_success, f"Failed to create user: {user_message}"
 
@@ -432,13 +482,26 @@ class TestAuthManager:
         assert not success
         assert user is None
 
-    def test_authenticate_user_invalid_credentials(self, auth_manager, sample_tenant_data, sample_user_data):
+    def test_authenticate_user_invalid_credentials(
+        self, auth_manager, sample_tenant_data, sample_user_data
+    ):
         """Test authentication with invalid credentials"""
         # Create tenant and user
-        auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+        tenant_success, tenant_message = auth_manager.create_tenant(
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
-                user_success, user_message = auth_manager.create_user(
+        assert tenant_success, f"Failed to create tenant: {tenant_message}"
+
+        # Get the tenant ID after creation
+        tenants = auth_manager.get_all_tenants()
+        tenant = next(
+            (t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None
+        )
+        assert tenant is not None, "Tenant should exist after creation"
+
+        user_success, user_message = auth_manager.create_user(
             tenant.id,
             sample_user_data["email"],
             sample_user_data["password"],
@@ -448,31 +511,41 @@ class TestAuthManager:
         assert user_success, f"Failed to create user: {user_message}"
 
         # Wrong email
-        success, user, message = auth_manager.authenticate_user("wrong@email.com", sample_user_data["password"])
+        success, user, message = auth_manager.authenticate_user(
+            "wrong@email.com", sample_user_data["password"]
+        )
         assert not success
         assert user is None
         assert "Invalid email or password" in message
 
         # Wrong password
-        success, user, message = auth_manager.authenticate_user(sample_user_data["email"], "wrong_password")
+        success, user, message = auth_manager.authenticate_user(
+            sample_user_data["email"], "wrong_password"
+        )
         assert not success
         assert user is None
         assert "Invalid email or password" in message
 
-    def test_authenticate_user_inactive_user(self, auth_manager, sample_tenant_data, sample_user_data):
+    def test_authenticate_user_inactive_user(
+        self, auth_manager, sample_tenant_data, sample_user_data
+    ):
         """Test authentication fails for inactive user"""
         # Create tenant and user
         tenant_success, tenant_message = auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
         assert tenant_success, f"Failed to create tenant: {tenant_message}"
-        
+
         # Get the tenant ID after creation
         tenants = auth_manager.get_all_tenants()
-        tenant = next((t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None)
+        tenant = next(
+            (t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None
+        )
         assert tenant is not None, "Tenant should exist after creation"
-        
-                user_success, user_message = auth_manager.create_user(
+
+        user_success, user_message = auth_manager.create_user(
             tenant.id,
             sample_user_data["email"],
             sample_user_data["password"],
@@ -484,7 +557,10 @@ class TestAuthManager:
         # Deactivate user
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET is_active = 0 WHERE email = ?", (sample_user_data["email"],))
+        cursor.execute(
+            "UPDATE users SET is_active = 0 WHERE email = ?",
+            (sample_user_data["email"],),
+        )
         conn.commit()
         conn.close()
 
@@ -499,16 +575,20 @@ class TestAuthManager:
         """Test session creation and JWT token generation"""
         # Create tenant and user
         tenant_success, tenant_message = auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
         assert tenant_success, f"Failed to create tenant: {tenant_message}"
-        
+
         # Get the tenant ID after creation
         tenants = auth_manager.get_all_tenants()
-        tenant = next((t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None)
+        tenant = next(
+            (t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None
+        )
         assert tenant is not None, "Tenant should exist after creation"
-        
-                user_success, user_message = auth_manager.create_user(
+
+        user_success, user_message = auth_manager.create_user(
             tenant.id,
             sample_user_data["email"],
             sample_user_data["password"],
@@ -520,7 +600,9 @@ class TestAuthManager:
         # Get user ID
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE email = ?", (sample_user_data["email"],))
+        cursor.execute(
+            "SELECT id FROM users WHERE email = ?", (sample_user_data["email"],)
+        )
         user_id = cursor.fetchone()[0]
         conn.close()
 
@@ -547,20 +629,26 @@ class TestAuthManager:
         assert session[5] == "Mozilla/5.0"  # user_agent
         conn.close()
 
-    def test_validate_session_success(self, auth_manager, sample_tenant_data, sample_user_data):
+    def test_validate_session_success(
+        self, auth_manager, sample_tenant_data, sample_user_data
+    ):
         """Test successful session validation"""
         # Create tenant and user
         tenant_success, tenant_message = auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
         assert tenant_success, f"Failed to create tenant: {tenant_message}"
-        
+
         # Get the tenant ID after creation
         tenants = auth_manager.get_all_tenants()
-        tenant = next((t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None)
+        tenant = next(
+            (t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None
+        )
         assert tenant is not None, "Tenant should exist after creation"
-        
-                user_success, user_message = auth_manager.create_user(
+
+        user_success, user_message = auth_manager.create_user(
             tenant.id,
             sample_user_data["email"],
             sample_user_data["password"],
@@ -572,7 +660,9 @@ class TestAuthManager:
         # Get user ID
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE email = ?", (sample_user_data["email"],))
+        cursor.execute(
+            "SELECT id FROM users WHERE email = ?", (sample_user_data["email"],)
+        )
         user_id = cursor.fetchone()[0]
         conn.close()
 
@@ -594,7 +684,11 @@ class TestAuthManager:
         assert user is None
 
         # Valid JWT but wrong secret
-        fake_payload = {"session_id": "123", "user_id": "456", "exp": (datetime.now() + timedelta(hours=1)).timestamp()}
+        fake_payload = {
+            "session_id": "123",
+            "user_id": "456",
+            "exp": (datetime.now() + timedelta(hours=1)).timestamp(),
+        }
         fake_token = jwt.encode(fake_payload, "wrong_secret", algorithm="HS256")
         valid, user = auth_manager.validate_session(fake_token)
         assert not valid
@@ -608,7 +702,9 @@ class TestAuthManager:
             "user_id": str(uuid.uuid4()),
             "exp": (datetime.now() - timedelta(hours=1)).timestamp(),  # Expired
         }
-        expired_token = jwt.encode(expired_payload, auth_manager.secret_key, algorithm="HS256")
+        expired_token = jwt.encode(
+            expired_payload, auth_manager.secret_key, algorithm="HS256"
+        )
 
         valid, user = auth_manager.validate_session(expired_token)
         assert not valid
@@ -622,26 +718,34 @@ class TestAuthManager:
             "user_id": str(uuid.uuid4()),
             "exp": (datetime.now() + timedelta(hours=1)).timestamp(),
         }
-        fake_token = jwt.encode(fake_payload, auth_manager.secret_key, algorithm="HS256")
+        fake_token = jwt.encode(
+            fake_payload, auth_manager.secret_key, algorithm="HS256"
+        )
 
         valid, user = auth_manager.validate_session(fake_token)
         assert not valid
         assert user is None
 
-    def test_logout_user_success(self, auth_manager, sample_tenant_data, sample_user_data):
+    def test_logout_user_success(
+        self, auth_manager, sample_tenant_data, sample_user_data
+    ):
         """Test successful user logout"""
         # Create tenant and user
         tenant_success, tenant_message = auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
         assert tenant_success, f"Failed to create tenant: {tenant_message}"
-        
+
         # Get the tenant ID after creation
         tenants = auth_manager.get_all_tenants()
-        tenant = next((t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None)
+        tenant = next(
+            (t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None
+        )
         assert tenant is not None, "Tenant should exist after creation"
-        
-                user_success, user_message = auth_manager.create_user(
+
+        user_success, user_message = auth_manager.create_user(
             tenant.id,
             sample_user_data["email"],
             sample_user_data["password"],
@@ -653,7 +757,9 @@ class TestAuthManager:
         # Get user ID and create session
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE email = ?", (sample_user_data["email"],))
+        cursor.execute(
+            "SELECT id FROM users WHERE email = ?", (sample_user_data["email"],)
+        )
         user_id = cursor.fetchone()[0]
         conn.close()
 
@@ -720,11 +826,15 @@ class TestAuthManager:
             auth_manager.entra_id_enabled = True
             auth_manager.entra_client_id = "entra_client_id"
             auth_manager.entra_tenant_id = "tenant_id_123"
-            auth_manager.entra_redirect_uri = "http://localhost:7860/auth/entra-callback"
+            auth_manager.entra_redirect_uri = (
+                "http://localhost:7860/auth/entra-callback"
+            )
 
             url = auth_manager.get_entra_id_login_url("company")
 
-            assert url.startswith("https://login.microsoftonline.com/tenant_id_123/oauth2/v2.0/authorize")
+            assert url.startswith(
+                "https://login.microsoftonline.com/tenant_id_123/oauth2/v2.0/authorize"
+            )
             assert "client_id=entra_client_id" in url
             assert "company" in url  # subdomain in state
 
@@ -736,7 +846,9 @@ class TestAuthManager:
 
     @patch("auth_manager.requests.post")
     @patch("auth_manager.requests.get")
-    def test_handle_sso_callback_success(self, mock_get, mock_post, auth_manager, sample_tenant_data):
+    def test_handle_sso_callback_success(
+        self, mock_get, mock_post, auth_manager, sample_tenant_data
+    ):
         """Test successful SSO callback handling"""
         # Setup SSO configuration
         auth_manager.sso_enabled = True
@@ -747,7 +859,9 @@ class TestAuthManager:
 
         # Create tenant
         auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
 
         # Mock token exchange response
@@ -764,7 +878,9 @@ class TestAuthManager:
         mock_get.return_value.raise_for_status.return_value = None
 
         # Handle callback
-        success, user, message = auth_manager.handle_sso_callback("auth_code_123", f"state:{sample_tenant_data['subdomain']}")
+        success, user, message = auth_manager.handle_sso_callback(
+            "auth_code_123", f"state:{sample_tenant_data['subdomain']}"
+        )
 
         assert success
         assert user is not None
@@ -783,7 +899,9 @@ class TestAuthManager:
         assert "not enabled" in message
 
     @patch("auth_manager.requests.post")
-    def test_handle_sso_callback_token_error(self, mock_post, auth_manager, sample_tenant_data):
+    def test_handle_sso_callback_token_error(
+        self, mock_post, auth_manager, sample_tenant_data
+    ):
         """Test SSO callback with token exchange error"""
         auth_manager.sso_enabled = True
         auth_manager.sso_client_id = "test_client"
@@ -791,13 +909,19 @@ class TestAuthManager:
 
         # Create tenant
         auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
 
         # Mock token exchange failure
-        mock_post.return_value.raise_for_status.side_effect = requests.RequestException("Token error")
+        mock_post.return_value.raise_for_status.side_effect = requests.RequestException(
+            "Token error"
+        )
 
-        success, user, message = auth_manager.handle_sso_callback("code", f"state:{sample_tenant_data['subdomain']}")
+        success, user, message = auth_manager.handle_sso_callback(
+            "code", f"state:{sample_tenant_data['subdomain']}"
+        )
 
         assert not success
         assert user is None
@@ -806,7 +930,9 @@ class TestAuthManager:
     def test_get_all_tenants(self, auth_manager, sample_tenant_data):
         """Test retrieving all tenants"""
         # Create multiple tenants
-        auth_manager.create_tenant(sample_tenant_data["name"], sample_tenant_data["subdomain"], 50)
+        auth_manager.create_tenant(
+            sample_tenant_data["name"], sample_tenant_data["subdomain"], 50
+        )
         auth_manager.create_tenant("Company B", "companyb", 100)
 
         tenants = auth_manager.get_all_tenants()
@@ -821,12 +947,18 @@ class TestAuthManager:
         """Test retrieving users for a specific tenant"""
         # Create tenant
         auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
 
         # Create multiple users
-        auth_manager.create_user(sample_tenant_data["id"], "user1@testco.com", "pass", "User", "One")
-        auth_manager.create_user(sample_tenant_data["id"], "user2@testco.com", "pass", "User", "Two")
+        auth_manager.create_user(
+            sample_tenant_data["id"], "user1@testco.com", "pass", "User", "One"
+        )
+        auth_manager.create_user(
+            sample_tenant_data["id"], "user2@testco.com", "pass", "User", "Two"
+        )
 
         users = auth_manager.get_tenant_users(sample_tenant_data["id"])
 
@@ -862,7 +994,10 @@ class TestAuthManager:
             assert config["azure_ai"]["enabled"] is True
 
             assert "azure_openai" in config
-            assert config["azure_openai"]["endpoint"] == "https://test-openai.openai.azure.com"
+            assert (
+                config["azure_openai"]["endpoint"]
+                == "https://test-openai.openai.azure.com"
+            )
             assert config["azure_openai"]["api_key"] == "openai_key"
 
     @patch("auth_manager.requests.get")
@@ -966,25 +1101,33 @@ class TestAuthManager:
             mock_get_conn.side_effect = Exception("Database connection failed")
 
             # Test authentication error handling
-            success, user, message = auth_manager.authenticate_user("test@example.com", "password")
+            success, user, message = auth_manager.authenticate_user(
+                "test@example.com", "password"
+            )
             assert not success
             assert user is None
             assert "Authentication error" in message
 
-    def test_session_token_hash_consistency(self, auth_manager, sample_tenant_data, sample_user_data):
+    def test_session_token_hash_consistency(
+        self, auth_manager, sample_tenant_data, sample_user_data
+    ):
         """Test that session token hashes are consistent"""
         # Create tenant and user
         tenant_success, tenant_message = auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
         assert tenant_success, f"Failed to create tenant: {tenant_message}"
-        
+
         # Get the tenant ID after creation
         tenants = auth_manager.get_all_tenants()
-        tenant = next((t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None)
+        tenant = next(
+            (t for t in tenants if t.subdomain == sample_tenant_data["subdomain"]), None
+        )
         assert tenant is not None, "Tenant should exist after creation"
-        
-                user_success, user_message = auth_manager.create_user(
+
+        user_success, user_message = auth_manager.create_user(
             tenant.id,
             sample_user_data["email"],
             sample_user_data["password"],
@@ -996,7 +1139,9 @@ class TestAuthManager:
         # Get user ID
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE email = ?", (sample_user_data["email"],))
+        cursor.execute(
+            "SELECT id FROM users WHERE email = ?", (sample_user_data["email"],)
+        )
         user_id = cursor.fetchone()[0]
         conn.close()
 
@@ -1007,17 +1152,23 @@ class TestAuthManager:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         conn = sqlite3.connect(auth_manager.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT token_hash FROM user_sessions WHERE user_id = ?", (user_id,))
+        cursor.execute(
+            "SELECT token_hash FROM user_sessions WHERE user_id = ?", (user_id,)
+        )
         stored_hash = cursor.fetchone()[0]
         conn.close()
 
         assert token_hash == stored_hash
 
-    def test_concurrent_user_creation_prevention(self, auth_manager, sample_tenant_data):
+    def test_concurrent_user_creation_prevention(
+        self, auth_manager, sample_tenant_data
+    ):
         """Test that duplicate user creation is properly prevented"""
         # Create tenant
         auth_manager.create_tenant(
-            sample_tenant_data["name"], sample_tenant_data["subdomain"], sample_tenant_data["max_users"]
+            sample_tenant_data["name"],
+            sample_tenant_data["subdomain"],
+            sample_tenant_data["max_users"],
         )
 
         # Simulate concurrent user creation attempts

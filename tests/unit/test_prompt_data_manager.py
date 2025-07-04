@@ -7,8 +7,6 @@ import os
 import sqlite3
 import tempfile
 import uuid
-from datetime import datetime
-from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -46,7 +44,9 @@ class TestPromptDataManager:
             {"DB_TYPE": "sqlite", "DB_PATH": temp_db},
             clear=True,
         ):
-            return PromptDataManager(db_path=temp_db, tenant_id=tenant_id, user_id=user_id)
+            return PromptDataManager(
+                db_path=temp_db, tenant_id=tenant_id, user_id=user_id
+            )
 
     @pytest.fixture
     def data_manager_no_tenant(self, temp_db):
@@ -103,14 +103,20 @@ class TestPromptDataManager:
 
     def test_initialization_sqlite(self, temp_db, tenant_id, user_id):
         """Test PromptDataManager initialization with SQLite"""
-        with patch.dict(os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True):
-            manager = PromptDataManager(db_path=temp_db, tenant_id=tenant_id, user_id=user_id)
+        with patch.dict(
+            os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True
+        ):
+            manager = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant_id, user_id=user_id
+            )
             assert manager.db_type == "sqlite"
             assert manager.db_path == temp_db
             assert manager.tenant_id == tenant_id
             assert manager.user_id == user_id
 
-    def test_initialization_postgres_success(self, postgres_data_manager, tenant_id, user_id):
+    def test_initialization_postgres_success(
+        self, postgres_data_manager, tenant_id, user_id
+    ):
         """Test PromptDataManager initialization with PostgreSQL"""
         assert postgres_data_manager.db_type == "postgres"
         assert postgres_data_manager.dsn == "postgresql://test:test@localhost:5432/test"
@@ -122,7 +128,10 @@ class TestPromptDataManager:
         """Test PromptDataManager initialization fails when psycopg2 not available"""
         with patch.dict(
             os.environ,
-            {"DB_TYPE": "postgres", "POSTGRES_DSN": "postgresql://test:test@localhost:5432/test"},
+            {
+                "DB_TYPE": "postgres",
+                "POSTGRES_DSN": "postgresql://test:test@localhost:5432/test",
+            },
             clear=True,
         ):
             with patch("prompt_data_manager.POSTGRES_AVAILABLE", False):
@@ -133,7 +142,9 @@ class TestPromptDataManager:
         """Test PromptDataManager initialization fails when POSTGRES_DSN not set"""
         with patch.dict(os.environ, {"DB_TYPE": "postgres"}, clear=True):
             with patch("prompt_data_manager.POSTGRES_AVAILABLE", True):
-                with pytest.raises(ValueError, match="POSTGRES_DSN environment variable"):
+                with pytest.raises(
+                    ValueError, match="POSTGRES_DSN environment variable"
+                ):
                     PromptDataManager()
 
     def test_get_conn_sqlite(self, data_manager_sqlite):
@@ -157,11 +168,15 @@ class TestPromptDataManager:
         cursor = conn.cursor()
 
         # Check prompts table
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='prompts'")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='prompts'"
+        )
         assert cursor.fetchone() is not None
 
         # Check config table
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='config'")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='config'"
+        )
         assert cursor.fetchone() is not None
 
         # Check prompts table columns
@@ -215,7 +230,9 @@ class TestPromptDataManager:
         assert prompt[7] == sample_prompt_data["tags"]  # tags
         conn.close()
 
-    def test_add_prompt_missing_tenant_id(self, data_manager_no_tenant, sample_prompt_data):
+    def test_add_prompt_missing_tenant_id(
+        self, data_manager_no_tenant, sample_prompt_data
+    ):
         """Test prompt addition fails without tenant ID"""
         result = data_manager_no_tenant.add_prompt(**sample_prompt_data)
 
@@ -242,7 +259,9 @@ class TestPromptDataManager:
         )
         assert "error" in result.lower()
 
-    def test_add_prompt_duplicate_name_same_tenant(self, data_manager_sqlite, sample_prompt_data):
+    def test_add_prompt_duplicate_name_same_tenant(
+        self, data_manager_sqlite, sample_prompt_data
+    ):
         """Test prompt addition fails with duplicate name in same tenant"""
         # Add first prompt
         result1 = data_manager_sqlite.add_prompt(**sample_prompt_data)
@@ -261,10 +280,16 @@ class TestPromptDataManager:
         tenant1_id = str(uuid.uuid4())
         tenant2_id = str(uuid.uuid4())
 
-        with patch.dict(os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True):
+        with patch.dict(
+            os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True
+        ):
             # Create managers for different tenants
-            manager1 = PromptDataManager(db_path=temp_db, tenant_id=tenant1_id, user_id=str(uuid.uuid4()))
-            manager2 = PromptDataManager(db_path=temp_db, tenant_id=tenant2_id, user_id=str(uuid.uuid4()))
+            manager1 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant1_id, user_id=str(uuid.uuid4())
+            )
+            manager2 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant2_id, user_id=str(uuid.uuid4())
+            )
 
             # Add same prompt name to different tenants
             result1 = manager1.add_prompt(**sample_prompt_data)
@@ -273,7 +298,9 @@ class TestPromptDataManager:
             assert "successfully" in result1
             assert "successfully" in result2
 
-    def test_add_enhancement_prompt(self, data_manager_sqlite, sample_enhancement_prompt_data):
+    def test_add_enhancement_prompt(
+        self, data_manager_sqlite, sample_enhancement_prompt_data
+    ):
         """Test adding enhancement prompt"""
         result = data_manager_sqlite.add_prompt(**sample_enhancement_prompt_data)
 
@@ -342,7 +369,7 @@ class TestPromptDataManager:
         """Test updating prompt with conflicting name"""
         # Add two prompts
         data_manager_sqlite.add_prompt(**sample_prompt_data)
-        
+
         second_prompt = sample_prompt_data.copy()
         second_prompt["name"] = "second-prompt"
         second_prompt["title"] = "Second Prompt"
@@ -391,9 +418,15 @@ class TestPromptDataManager:
         tenant1_id = str(uuid.uuid4())
         tenant2_id = str(uuid.uuid4())
 
-        with patch.dict(os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True):
-            manager1 = PromptDataManager(db_path=temp_db, tenant_id=tenant1_id, user_id=str(uuid.uuid4()))
-            manager2 = PromptDataManager(db_path=temp_db, tenant_id=tenant2_id, user_id=str(uuid.uuid4()))
+        with patch.dict(
+            os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True
+        ):
+            manager1 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant1_id, user_id=str(uuid.uuid4())
+            )
+            manager2 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant2_id, user_id=str(uuid.uuid4())
+            )
 
             # Add prompt to tenant1
             manager1.add_prompt(**sample_prompt_data)
@@ -406,7 +439,9 @@ class TestPromptDataManager:
             prompts = manager1.get_all_prompts()
             assert len(prompts) == 1
 
-    def test_get_all_prompts(self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data):
+    def test_get_all_prompts(
+        self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data
+    ):
         """Test retrieving all prompts"""
         # Add multiple prompts
         data_manager_sqlite.add_prompt(**sample_prompt_data)
@@ -422,11 +457,23 @@ class TestPromptDataManager:
 
         # Check prompt structure
         prompt = prompts[0]
-        expected_fields = ["id", "name", "title", "content", "category", "tags", "is_enhancement_prompt", "created_at", "updated_at"]
+        expected_fields = [
+            "id",
+            "name",
+            "title",
+            "content",
+            "category",
+            "tags",
+            "is_enhancement_prompt",
+            "created_at",
+            "updated_at",
+        ]
         for field in expected_fields:
             assert field in prompt
 
-    def test_get_all_prompts_exclude_enhancement(self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data):
+    def test_get_all_prompts_exclude_enhancement(
+        self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data
+    ):
         """Test retrieving all prompts excluding enhancement prompts"""
         # Add multiple prompts
         data_manager_sqlite.add_prompt(**sample_prompt_data)
@@ -444,9 +491,15 @@ class TestPromptDataManager:
         tenant1_id = str(uuid.uuid4())
         tenant2_id = str(uuid.uuid4())
 
-        with patch.dict(os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True):
-            manager1 = PromptDataManager(db_path=temp_db, tenant_id=tenant1_id, user_id=str(uuid.uuid4()))
-            manager2 = PromptDataManager(db_path=temp_db, tenant_id=tenant2_id, user_id=str(uuid.uuid4()))
+        with patch.dict(
+            os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True
+        ):
+            manager1 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant1_id, user_id=str(uuid.uuid4())
+            )
+            manager2 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant2_id, user_id=str(uuid.uuid4())
+            )
 
             # Add prompt to tenant1
             manager1.add_prompt(**sample_prompt_data)
@@ -458,7 +511,9 @@ class TestPromptDataManager:
             assert len(prompts1) == 1
             assert len(prompts2) == 0
 
-    def test_get_enhancement_prompts(self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data):
+    def test_get_enhancement_prompts(
+        self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data
+    ):
         """Test retrieving only enhancement prompts"""
         # Add multiple prompts
         data_manager_sqlite.add_prompt(**sample_prompt_data)
@@ -494,9 +549,15 @@ class TestPromptDataManager:
         tenant1_id = str(uuid.uuid4())
         tenant2_id = str(uuid.uuid4())
 
-        with patch.dict(os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True):
-            manager1 = PromptDataManager(db_path=temp_db, tenant_id=tenant1_id, user_id=str(uuid.uuid4()))
-            manager2 = PromptDataManager(db_path=temp_db, tenant_id=tenant2_id, user_id=str(uuid.uuid4()))
+        with patch.dict(
+            os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True
+        ):
+            manager1 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant1_id, user_id=str(uuid.uuid4())
+            )
+            manager2 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant2_id, user_id=str(uuid.uuid4())
+            )
 
             # Add prompt to tenant1
             manager1.add_prompt(**sample_prompt_data)
@@ -508,7 +569,9 @@ class TestPromptDataManager:
             assert prompt1 is not None
             assert prompt2 is None
 
-    def test_search_prompts_content_match(self, data_manager_sqlite, sample_prompt_data):
+    def test_search_prompts_content_match(
+        self, data_manager_sqlite, sample_prompt_data
+    ):
         """Test searching prompts by content"""
         data_manager_sqlite.add_prompt(**sample_prompt_data)
 
@@ -533,7 +596,9 @@ class TestPromptDataManager:
         results = data_manager_sqlite.search_prompts("automation")
         assert len(results) == 1
 
-    def test_search_prompts_case_insensitive(self, data_manager_sqlite, sample_prompt_data):
+    def test_search_prompts_case_insensitive(
+        self, data_manager_sqlite, sample_prompt_data
+    ):
         """Test case-insensitive search"""
         data_manager_sqlite.add_prompt(**sample_prompt_data)
 
@@ -555,7 +620,9 @@ class TestPromptDataManager:
         results = data_manager_sqlite.search_prompts("nonexistent keyword")
         assert len(results) == 0
 
-    def test_search_prompts_exclude_enhancement(self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data):
+    def test_search_prompts_exclude_enhancement(
+        self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data
+    ):
         """Test search excluding enhancement prompts"""
         data_manager_sqlite.add_prompt(**sample_prompt_data)
         data_manager_sqlite.add_prompt(**sample_enhancement_prompt_data)
@@ -565,7 +632,9 @@ class TestPromptDataManager:
         assert len(results_all) == 2
 
         # Search excluding enhancements
-        results_filtered = data_manager_sqlite.search_prompts("prompt", include_enhancement_prompts=False)
+        results_filtered = data_manager_sqlite.search_prompts(
+            "prompt", include_enhancement_prompts=False
+        )
         assert len(results_filtered) == 1
         assert not results_filtered[0]["is_enhancement_prompt"]
 
@@ -601,13 +670,17 @@ class TestPromptDataManager:
         all_prompts_none = data_manager_sqlite.get_prompts_by_category(None)
         assert len(all_prompts_none) == 1
 
-    def test_get_prompts_by_category_exclude_enhancement(self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data):
+    def test_get_prompts_by_category_exclude_enhancement(
+        self, data_manager_sqlite, sample_prompt_data, sample_enhancement_prompt_data
+    ):
         """Test get_prompts_by_category excluding enhancement prompts"""
         data_manager_sqlite.add_prompt(**sample_prompt_data)
         data_manager_sqlite.add_prompt(**sample_enhancement_prompt_data)
 
         # Get all prompts excluding enhancements
-        prompts = data_manager_sqlite.get_prompts_by_category("All", include_enhancement_prompts=False)
+        prompts = data_manager_sqlite.get_prompts_by_category(
+            "All", include_enhancement_prompts=False
+        )
         assert len(prompts) == 1
         assert not prompts[0]["is_enhancement_prompt"]
 
@@ -678,10 +751,18 @@ class TestPromptDataManager:
         user1_id = str(uuid.uuid4())
         user2_id = str(uuid.uuid4())
 
-        with patch.dict(os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True):
-            manager1 = PromptDataManager(db_path=temp_db, tenant_id=tenant1_id, user_id=user1_id)
-            manager2 = PromptDataManager(db_path=temp_db, tenant_id=tenant2_id, user_id=user2_id)
-            manager3 = PromptDataManager(db_path=temp_db, tenant_id=tenant1_id, user_id=user2_id)
+        with patch.dict(
+            os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True
+        ):
+            manager1 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant1_id, user_id=user1_id
+            )
+            manager2 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant2_id, user_id=user2_id
+            )
+            manager3 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant1_id, user_id=user2_id
+            )
 
             # Save same key with different values
             manager1.save_config("shared_key", "value1")
@@ -714,9 +795,15 @@ class TestPromptDataManager:
         user1_id = str(uuid.uuid4())
         user2_id = str(uuid.uuid4())
 
-        with patch.dict(os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True):
-            manager1 = PromptDataManager(db_path=temp_db, tenant_id=tenant1_id, user_id=user1_id)
-            manager2 = PromptDataManager(db_path=temp_db, tenant_id=tenant2_id, user_id=user2_id)
+        with patch.dict(
+            os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True
+        ):
+            manager1 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant1_id, user_id=user1_id
+            )
+            manager2 = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant2_id, user_id=user2_id
+            )
 
             # Save config for manager1
             manager1.save_config("test_key", "value1")
@@ -775,8 +862,14 @@ class TestPromptDataManager:
         conn.close()
 
         # Initialize PromptDataManager (should run migrations)
-        with patch.dict(os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True):
-            manager = PromptDataManager(db_path=temp_db, tenant_id=tenant_id, user_id=user_id)
+        with patch.dict(
+            os.environ, {"DB_TYPE": "sqlite", "DB_PATH": temp_db}, clear=True
+        ):
+            manager = PromptDataManager(
+                db_path=temp_db, tenant_id=tenant_id, user_id=user_id
+            )
+            # Manager instance created for migration testing
+            assert manager is not None
 
         # Verify new columns were added
         conn = sqlite3.connect(temp_db)
@@ -799,9 +892,27 @@ class TestPromptDataManager:
         """Test that prompts are returned in correct order"""
         # Add prompts in different categories and names
         prompts_data = [
-            {"name": "z-prompt", "title": "Z Prompt", "content": "Content", "category": "B-Category", "tags": ""},
-            {"name": "a-prompt", "title": "A Prompt", "content": "Content", "category": "A-Category", "tags": ""},
-            {"name": "m-prompt", "title": "M Prompt", "content": "Content", "category": "A-Category", "tags": ""},
+            {
+                "name": "z-prompt",
+                "title": "Z Prompt",
+                "content": "Content",
+                "category": "B-Category",
+                "tags": "",
+            },
+            {
+                "name": "a-prompt",
+                "title": "A Prompt",
+                "content": "Content",
+                "category": "A-Category",
+                "tags": "",
+            },
+            {
+                "name": "m-prompt",
+                "title": "M Prompt",
+                "content": "Content",
+                "category": "A-Category",
+                "tags": "",
+            },
         ]
 
         for prompt_data in prompts_data:
@@ -809,7 +920,7 @@ class TestPromptDataManager:
 
         # Get all prompts (should be ordered by category, then name)
         prompts = data_manager_sqlite.get_all_prompts()
-        
+
         # Should be ordered by category first, then by name within category
         expected_order = ["a-prompt", "m-prompt", "z-prompt"]
         actual_order = [p["name"] for p in prompts]
@@ -826,7 +937,7 @@ class TestPromptDataManager:
             category="Test",
             tags="",
         )
-        
+
         # Should succeed (name is parameterized)
         assert "successfully" in result
 
@@ -865,7 +976,7 @@ class TestPromptDataManager:
     def test_large_content_handling(self, data_manager_sqlite):
         """Test handling of large content"""
         large_content = "x" * 10000  # 10KB content
-        
+
         large_prompt = {
             "name": "large-content",
             "title": "Large Content Test",
@@ -884,7 +995,9 @@ class TestPromptDataManager:
         assert len(prompt["content"]) == 10000
         assert prompt["content"] == large_content
 
-    def test_concurrent_operations_safety(self, data_manager_sqlite, sample_prompt_data):
+    def test_concurrent_operations_safety(
+        self, data_manager_sqlite, sample_prompt_data
+    ):
         """Test thread safety of operations (basic check)"""
         # Add a prompt
         data_manager_sqlite.add_prompt(**sample_prompt_data)

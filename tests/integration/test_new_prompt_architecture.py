@@ -12,7 +12,8 @@ import sys
 import tempfile
 
 from src.core.base.database_manager import DatabaseManager  # noqa: E402
-from src.core.config.settings import DatabaseConfig, DatabaseType  # noqa: E402
+from src.core.config.settings import DatabaseConfig  # noqa: E402
+from src.core.config.settings import DatabaseType
 from src.prompts.services.prompt_service import PromptService  # noqa: E402
 
 # Setup logging

@@ -56,6 +56,7 @@ class PasswordHandler:
         if self.algorithm == "argon2" and ARGON2_AVAILABLE:
             try:
                 from argon2 import PasswordHasher
+
                 self.argon2_hasher = PasswordHasher()
             except ImportError:
                 # Fallback if argon2 is not actually available

@@ -13,7 +13,7 @@ def test_imports():
     print("🔍 Testing imports...")
 
     try:
-        from auth_manager import AuthManager, Tenant, User  # noqa: F401
+        from auth_manager import AuthManager  # noqa: F401
 
         print("  ✅ auth_manager imported successfully")
 

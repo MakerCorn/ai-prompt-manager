@@ -22,6 +22,20 @@ packages = [
     { include = "src" }
 ]
 
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests", 
+    "e2e: End-to-end tests",
+    "slow: Tests that take a long time to run",
+]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
 [tool.poetry.dependencies]
 python = "^3.12"
 
@@ -62,7 +76,16 @@ pytest-asyncio = "^0.21.0"
 flake8 = {version = "^6.0.0", optional = true}
 mypy = {version = "^1.0.0", optional = true}
 black = {version = "^23.0.0", optional = true}
+isort = "^6.0.1"
+bandit = "^1.8.5"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.0.0"
 pytest-asyncio = "^0.21.0"
+
+[tool.poetry.group.e2e.dependencies]
+selenium = "^4.15.0"
+playwright = "^1.40.0"
+requests = "^2.31.0"
+pytest-xdist = "^3.3.0"
+pytest-html = "^4.1.0"

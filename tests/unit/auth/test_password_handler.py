@@ -5,7 +5,7 @@ This module tests password hashing, verification, and security features
 of the modernized password handling system.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -142,10 +142,10 @@ class TestPasswordHandler:
         # Since argon2 is not available in the test environment,
         # this test verifies the fallback behavior
         handler = PasswordHandler(algorithm="argon2")
-        
+
         # Handler should fallback to available algorithm (pbkdf2 or bcrypt)
         assert handler.algorithm in ["pbkdf2", "bcrypt"]
-        
+
         password = "test_password"
         hashed, salt_or_metadata = handler.hash_password(password)
 
@@ -160,15 +160,15 @@ class TestPasswordHandler:
         # Since argon2 is not available in the test environment,
         # this test verifies the fallback behavior
         handler = PasswordHandler(algorithm="argon2")
-        
+
         # Handler should fallback to available algorithm (pbkdf2 or bcrypt)
         assert handler.algorithm in ["pbkdf2", "bcrypt"]
-        
+
         # Verification should still work with fallback algorithm
         password = "test_password"
         hashed, salt_or_metadata = handler.hash_password(password)
         result = handler.verify_password(password, hashed, salt_or_metadata)
-        
+
         assert result is True
 
     def test_detect_algorithm_argon2(self):
@@ -199,7 +199,7 @@ class TestPasswordHandler:
         """Test needs rehash when using different algorithm."""
         # Create handler with pbkdf2 then check if bcrypt hash needs rehashing
         handler_pbkdf2 = PasswordHandler(algorithm="pbkdf2")
-        
+
         # bcrypt hash should need rehash to pbkdf2 algorithm
         needs_rehash = handler_pbkdf2.needs_rehash("$2b$12$hash", "bcrypt")
         assert needs_rehash is True

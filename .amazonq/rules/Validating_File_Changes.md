@@ -3,14 +3,22 @@
 ## Testing Code
 
 - When running tests, use the test environment settings unless different from the deployment pipeline
+- Address deprecated library issues.
 
 ## When making code changes for Python Code or Python Projects
 
-- Run black to format all Python files
-- Run isort to format import statements
-- Run flake8 to check for linting issues
-- Run mypy on Python code to check for coding errors
-- Run bandit to check for security issues
+- Run black to format all Python files.
+- Run isort to format import statements for Python code.
+- Run flake8 to check for linting issues for Python code.
+- Run mypy on Python code to check for coding errors.
+- Run bandit to check for security issues for Python code.
+
+## When making code changes for TypeScript Code
+
+- Run eslint and fix all errors and warnings after all TypeScript code additions and modifcations.
+- Run type-check for TypeScript code additions and modifications.
+- Run a security check for TypeScript on all code after changes.
+- run "tsc --noEmit" after modifying typescript code.
 
 ## Markdown Linting Rules
 

@@ -89,6 +89,20 @@ class APIManager:
 
         self.setup_routes()
 
+    def get_router(self):
+        """Get a router with all API routes for integration with other FastAPI apps"""
+        from fastapi import APIRouter
+
+        router = APIRouter()
+
+        # Copy all routes from the main app to the router
+        for route in self.app.routes:
+            if hasattr(route, "path") and route.path.startswith("/api/"):
+                # Add the route to the router
+                router.routes.append(route)
+
+        return router
+
     async def get_current_user(
         self, credentials: HTTPAuthorizationCredentials = Depends(security)
     ) -> UserInfo:

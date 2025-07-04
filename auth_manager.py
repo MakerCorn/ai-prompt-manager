@@ -932,7 +932,7 @@ class AuthManager:
                 success, message = self.create_user(
                     tenant_id=tenant_id,
                     email=email,
-                    password="",  # No password for SSO users
+                    password="",  # nosec B106: No password for SSO users is intentional
                     first_name=first_name,
                     last_name=last_name,
                     role="user",
@@ -1224,7 +1224,7 @@ class AuthManager:
                 success, message = self.create_user(
                     tenant_id=tenant_id,
                     email=email,
-                    password="",  # No password for Entra ID users
+                    password="",  # nosec B106: No password for Entra ID users is intentional
                     first_name=first_name,
                     last_name=last_name,
                     role="user",
