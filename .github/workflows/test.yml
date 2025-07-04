@@ -472,13 +472,13 @@ jobs:
       - name: Check imports
         run: |
           poetry run python -c "
-          import prompt_manager
           import prompt_data_manager
           import auth_manager
           import api_token_manager
           import api_endpoints
           import langwatch_optimizer
-          print('✅ All legacy imports successful')
+          from run import main
+          print('✅ All core imports successful')
           "
           
           # Test new architecture imports

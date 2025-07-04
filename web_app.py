@@ -55,10 +55,28 @@ class WebApp:
         # Set up templates and static files
         self.templates = Jinja2Templates(directory="web_templates")
 
-        # Mount static files
-        self.app.mount(
-            "/static", StaticFiles(directory="web_templates/static"), name="static"
-        )
+        # Mount static files (only if directory exists and is accessible)
+        static_dir = "web_templates/static"
+        if os.path.exists(static_dir) and os.path.isdir(static_dir):
+            try:
+                self.app.mount(
+                    "/static", StaticFiles(directory=static_dir), name="static"
+                )
+            except RuntimeError:
+                # Static directory exists but might be empty or inaccessible
+                # Create a placeholder to make StaticFiles work
+                os.makedirs(f"{static_dir}/css", exist_ok=True)
+                os.makedirs(f"{static_dir}/js", exist_ok=True)
+                
+                # Create minimal placeholder files
+                with open(f"{static_dir}/css/.gitkeep", "w") as f:
+                    f.write("# Placeholder for CSS files\n")
+                with open(f"{static_dir}/js/.gitkeep", "w") as f:
+                    f.write("# Placeholder for JS files\n")
+                
+                self.app.mount(
+                    "/static", StaticFiles(directory=static_dir), name="static"
+                )
 
         # Set up routes
         self._setup_routes()
