@@ -27,6 +27,7 @@ def start_server_background():
         # Use different ports to avoid conflicts
         import random
         test_port = random.randint(8000, 8999)
+        # API runs on separate port (port + 1)
         api_port = test_port + 1
         
         cmd = [
@@ -73,7 +74,7 @@ def start_server_background():
             time.sleep(1)
             startup_time += 1
 
-            # Try a quick health check on API port
+            # Try a quick health check on separate API port
             if startup_time > 5:  # Give it at least 5 seconds
                 try:
                     import requests
@@ -100,6 +101,7 @@ def start_server_background():
 def test_api_endpoints(base_port, api_port):
     """Test API endpoints"""
     base_url = f"http://127.0.0.1:{base_port}"
+    # API is on separate port
     api_url = f"http://127.0.0.1:{api_port}"
 
     print("🧪 Testing API Integration...")
@@ -171,49 +173,37 @@ def test_api_endpoints(base_port, api_port):
         print(f"❌ Mode detection error: {e}")
         return False
 
-    # Test 3: API integration status  
-    print("\n3. Testing API integration status...")
+    # Test 3: API health check
+    print("\n3. Testing API health endpoint...")
     try:
-        # Try to access API health endpoint on separate port
-        response = requests.get(f"{api_url}/health", timeout=3)
+        response = requests.get(f"{api_url}/health", timeout=5)
         if response.status_code == 200:
-            print("✅ API health endpoint is accessible")
+            print("✅ API health check passed")
             data = response.json()
             print(f"   Status: {data.get('status', 'unknown')}")
             print(f"   Timestamp: {data.get('timestamp', 'N/A')}")
-            
-            # Test additional endpoints
-            print("\n4. Testing additional API endpoints...")
-            
-            # Test info endpoint
-            try:
-                info_response = requests.get(f"{api_url}/info", timeout=3)
-                if info_response.status_code == 200:
-                    info_data = info_response.json()
-                    print("✅ API info endpoint accessible")
-                    print(f"   Service: {info_data.get('service', 'N/A')}")
-                    print(f"   Version: {info_data.get('version', 'N/A')}")
-            except Exception as e:
-                print(f"⚠️ Info endpoint error: {e}")
-                
-            # Test docs endpoint
-            try:
-                docs_response = requests.get(f"{api_url}/docs", timeout=3)
-                if docs_response.status_code == 200:
-                    print("✅ API documentation accessible")
-                else:
-                    print(f"⚠️ API docs returned: {docs_response.status_code}")
-            except Exception as e:
-                print(f"⚠️ Docs endpoint error: {e}")
-                
-        elif response.status_code == 404:
-            print("⚠️  API endpoints not available (404)")
-            print("   Check that API server started correctly")
         else:
-            print(f"ℹ️  API returned status: {response.status_code}")
+            print(f"❌ API health check failed: {response.status_code}")
+            return False
     except Exception as e:
-        print(f"⚠️ API not accessible: {type(e).__name__}")
-        print("   API server may not have started correctly")
+        print(f"❌ API health check error: {e}")
+        return False
+
+    # Test 4: API info endpoint
+    print("\n4. Testing API info endpoint...")
+    try:
+        response = requests.get(f"{api_url}/info", timeout=5)
+        if response.status_code == 200:
+            print("✅ API info endpoint accessible")
+            data = response.json()
+            print(f"   Service: {data.get('service', 'N/A')}")
+            print(f"   Version: {data.get('version', 'N/A')}")
+        else:
+            print(f"❌ API info failed: {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"❌ API info error: {e}")
+        return False
 
     print("\n" + "=" * 50)
     print("✅ Basic server integration test completed!")

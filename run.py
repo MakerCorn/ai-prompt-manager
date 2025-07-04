@@ -241,23 +241,36 @@ def main():
         print(f"❌ Failed to initialize application: {e}")
         sys.exit(1)
 
-    # Handle API integration if enabled  
+    # Handle API integration if enabled (dual-server architecture)
     if config["enable_api"]:
         try:
-            print("🔌 Integrating API endpoints into Gradio app...")
+            print("🔌 Starting separate API server...")
             
             from datetime import datetime
-            from fastapi import APIRouter
+            from fastapi import FastAPI
+            import threading
+            
+            # Check if uvicorn is available
+            try:
+                import uvicorn
+            except ImportError:
+                print("❌ uvicorn is required for API server")
+                print("   Install with: pip install uvicorn")
+                return
 
-            # Create API router for endpoints
-            api_router = APIRouter()
+            # Create separate FastAPI app for API
+            api_app = FastAPI(
+                title="AI Prompt Manager API",
+                description="REST API for AI Prompt Manager",
+                version="1.0.0"
+            )
 
             # Add API endpoints
-            @api_router.get("/health")
+            @api_app.get("/health")
             async def health_check():
                 return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
-            @api_router.get("/info")
+            @api_app.get("/info")
             async def api_info():
                 return {
                     "service": "ai-prompt-manager", 
@@ -265,25 +278,63 @@ def main():
                     "api_version": "v1",
                 }
 
-            @api_router.get("/test")
-            async def test_endpoint():
-                return {"message": "API integration working", "service": "ai-prompt-manager"}
-
-            # Get the underlying FastAPI app from Gradio
-            fastapi_app = app.app
-
-            # Include the API router with /api prefix
-            fastapi_app.include_router(api_router, prefix="/api")
+            # Start API server on port+1 in separate thread
+            api_port = config["port"] + 1
             
-            print("✅ API endpoints integrated successfully")
-            print(f"📖 Health check: http://{config['host']}:{config['port']}/api/health")
-            print(f"📖 API info: http://{config['host']}:{config['port']}/api/info")
-            print(f"📖 Test endpoint: http://{config['host']}:{config['port']}/api/test")
+            def start_api_server():
+                try:
+                    print(f"🔄 Starting API server thread on {config['host']}:{api_port}")
+                    # Use uvicorn with proper configuration for threading
+                    config_obj = uvicorn.Config(
+                        api_app,
+                        host=config["host"],
+                        port=api_port,
+                        log_level="error",
+                        access_log=False,
+                        loop="asyncio"
+                    )
+                    server = uvicorn.Server(config_obj)
+                    server.run()
+                except Exception as e:
+                    print(f"❌ API server thread failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+            
+            # Test port availability before starting
+            import socket
+            try:
+                test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                test_socket.bind((config["host"], api_port))
+                test_socket.close()
+                print(f"✅ Port {api_port} is available")
+            except Exception as e:
+                print(f"❌ Port {api_port} is not available: {e}")
+                return
+            
+            api_thread = threading.Thread(target=start_api_server, daemon=True)
+            api_thread.start()
+            
+            # Give the thread more time to start
+            import time
+            time.sleep(2)
+            
+            # Test if API server is actually responding
+            try:
+                import requests
+                response = requests.get(f"http://{config['host']}:{api_port}/health", timeout=1)
+                if response.status_code == 200:
+                    print(f"✅ API server is responding on port {api_port}")
+                else:
+                    print(f"⚠️  API server started but health check failed: {response.status_code}")
+            except Exception as e:
+                print(f"⚠️  API server may not be fully started yet: {e}")
+            
+            print(f"✅ API server thread started on port {api_port}")
+            print(f"📖 API Health: http://{config['host']}:{api_port}/health")
+            print(f"📖 API Info: http://{config['host']}:{api_port}/info")
 
-        except ImportError as e:
-            print(f"⚠️  API integration failed (missing dependencies): {e}")
         except Exception as e:
-            print(f"⚠️  API integration error: {e}")
+            print(f"⚠️  API setup error: {e}")
             import traceback
             traceback.print_exc()
 
