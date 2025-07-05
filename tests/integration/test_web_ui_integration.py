@@ -251,13 +251,40 @@ class WebUIIntegrationTest(unittest.TestCase):
             f"{self.base_url}/prompts/new", data=prompt_data, allow_redirects=False
         )
 
+        # Get the prompts list to find the ID of the created prompt
+        prompts_response = self.session.get(f"{self.base_url}/prompts")
+        self.assertEqual(prompts_response.status_code, 200)
+
+        # Extract prompt ID from the response (look for edit link near our prompt)
+        import re
+        # Find the section containing our prompt name and look for the edit link
+        prompt_section_match = re.search(
+            r'Management Test Prompt.*?/prompts/(\d+)/edit',
+            prompts_response.text,
+            re.DOTALL
+        )
+        self.assertIsNotNone(
+            prompt_section_match, "Could not find edit link for Management Test Prompt"
+        )
+        prompt_id = prompt_section_match.group(1)
+
+        # Also verify the prompt appears in the list
+        self.assertIn(
+            "Management Test Prompt", prompts_response.text,
+            "Created prompt should appear in list"
+        )
+
         # Test edit page access
         response = self.session.get(
-            f"{self.base_url}/prompts/Management Test Prompt/edit"
+            f"{self.base_url}/prompts/{prompt_id}/edit"
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn("Edit Prompt", response.text)
-        self.assertIn("Original content", response.text)
+        # Check that the content appears in the textarea
+        self.assertTrue(
+            "Original content" in response.text,
+            "Original content should be present in the edit form"
+        )
 
         # Test prompt update
         updated_data = {
@@ -269,7 +296,7 @@ class WebUIIntegrationTest(unittest.TestCase):
         }
 
         response = self.session.post(
-            f"{self.base_url}/prompts/Management Test Prompt/edit",
+            f"{self.base_url}/prompts/{prompt_id}/edit",
             data=updated_data,
             allow_redirects=False,
         )
@@ -428,8 +455,8 @@ class WebUIIntegrationTest(unittest.TestCase):
         """Test error handling"""
         self.assertTrue(self.login_admin())
 
-        # Test 404 for non-existent prompt
-        response = self.session.get(f"{self.base_url}/prompts/NonExistentPrompt/edit")
+        # Test 404 for non-existent prompt (using a non-existent ID)
+        response = self.session.get(f"{self.base_url}/prompts/99999/edit")
         self.assertEqual(response.status_code, 404)
 
         # Test unauthorized access
