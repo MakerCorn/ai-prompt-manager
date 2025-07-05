@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.5.0] - 2025-07-05
+## [0.5.2] - 2025-07-05
 
 ### 🎭 Web UI E2E Testing & Code Quality Improvements
 
