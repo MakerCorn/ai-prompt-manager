@@ -84,18 +84,18 @@ graph LR
 
 ## 🌟 Modern Web Interface
 
-**Instruere now features a completely redesigned modern web interface** that replaces the legacy Gradio UI with a responsive, enterprise-ready web application:
+**Instruere features a completely redesigned modern web interface** - a responsive, enterprise-ready web application built from the ground up:
 
 ### ✨ What's New
 
-| Feature | Modern Web UI | Legacy Gradio |
-|---------|---------------|----------------|
+| Feature | Modern Web UI | Previous Version |
+|---------|---------------|-----------------|
 | **🎨 Design** | Responsive Tailwind CSS, mobile-optimized | Fixed desktop layout |
-| **⚡ Performance** | FastAPI + HTMX real-time updates | Page refreshes |
+| **⚡ Performance** | FastAPI + HTMX real-time updates | Page refreshes required |
 | **🔐 Security** | Session-based auth, CSRF protection | Basic authentication |
 | **🌐 I18n** | 10 languages, dynamic switching | English only |
 | **📱 Mobile** | Full mobile support | Desktop only |
-| **🔧 API** | Integrated REST API | Separate API server |
+| **🔧 API** | Integrated REST API | External API server |
 | **🎯 UX** | Modern components, drag-drop | Basic forms |
 
 ### 🚀 Key Advantages
@@ -108,18 +108,7 @@ graph LR
 - **🔌 API Integration**: Built-in REST API for developer access
 - **♿ Accessibility**: Screen reader support, keyboard navigation, ARIA labels
 
-### 🔄 Migration from Gradio
-
-**The modern web UI is now the default!** The legacy Gradio interface is available as an optional extra:
-
-```bash
-# Default - Modern Web Interface
-python run.py                    # 🆕 Modern Web UI
-
-# Legacy - Gradio Interface (optional)
-poetry install --extras gradio   # Install Gradio dependency
-python run.py --gradio          # 🎗️ Legacy Gradio UI
-```
+**The modern web UI is now the default and only interface!** Experience a complete enterprise-ready web application with all the benefits listed above.
 
 ## 🏗️ System Architecture
 
@@ -229,7 +218,6 @@ poetry run python run.py
 | **🧪 Development** | `poetry run python run.py --single-user` | Modern Web UI | SQLite, Single User | Personal use, testing |
 | **🏢 Multi-Tenant** | `poetry run python run.py` | Modern Web UI | SQLite, Multi-tenant, Auth | Teams, organizations |
 | **🔌 With API** | `poetry run python run.py --with-api` | Web UI + API | API + UI, Multi-tenant | Developer integration |
-| **🎗️ Legacy Gradio** | `poetry install --extras gradio && python run.py --gradio` | Gradio UI | Legacy interface | Gradio compatibility |
 | **🐳 Docker Dev** | `docker-compose up -d` | Modern Web UI | PostgreSQL + Redis + Full Stack | Development with persistence |
 | **🏭 Production** | `docker-compose -f docker-compose.prod.yml up -d` | Modern Web UI | Optimized + Health Checks + Redis | Scalable deployment |
 
@@ -1485,15 +1473,15 @@ The Prompt Builder is fully localized in all 10 supported languages:
 
 ## 🔑 API Access
 
-**Dual-Server Architecture:** The API system uses a dedicated FastAPI server running alongside the Gradio interface for optimal performance and separation of concerns.
+**Dual-Server Architecture:** The API system uses a dedicated FastAPI server running alongside the main web interface for optimal performance and separation of concerns.
 
 ### 🏗️ Architecture Overview
 
 ```mermaid
 graph LR
     A[🌐 Client Request] --> B{Port Router}
-    B -->|:7860| C[📱 Gradio UI Server]
-    B -->|:7861| D[🔌 FastAPI Server]
+    B -->|:7860| C[📱 Web UI Server]
+    B -->|:7861| D[🔌 FastAPI API Server]
     
     C --> E[Web Interface]
     D --> F[REST API Endpoints]
@@ -1515,7 +1503,7 @@ python run.py --with-api --port 7860
 ```
 
 This starts two servers:
-- **🖥️ UI Server**: `http://localhost:7860` (Gradio interface)
+- **🖥️ Web UI Server**: `http://localhost:7860` (Modern web interface)
 - **🔌 API Server**: `http://localhost:7861` (FastAPI endpoints)
 
 ### 📍 API Endpoints
@@ -1701,7 +1689,7 @@ DEBUG=false                   # Enable debug mode (default: false)
 | `AZURE_OPENAI_KEY` | Azure OpenAI key | - | - |
 | `AZURE_OPENAI_VERSION` | Azure OpenAI API version | `2024-02-15-preview` | - |
 | `DEBUG` | Enable debug logging | `false` | `--debug` |
-| `GRADIO_SHARE` | Enable public sharing | `false` | `--share` |
+| `PUBLIC_SHARE` | Enable public sharing | `false` | `--share` |
 
 ### Database Options
 
@@ -2313,7 +2301,7 @@ from src.auth.models.user import User
 print('✅ New architecture components working!')
 "
 
-# 🔧 Legacy Integration Tests
+# 🔧 Integration Tests
 python tests/integration/test_mt_install.py                    # Multi-tenant setup and UI creation
 python tests/integration/test_standalone_api.py               # API integration
 python tests/integration/test_langwatch_integration.py        # Prompt optimization features
@@ -2327,7 +2315,7 @@ from auth_manager import AuthManager
 # Test database initialization  
 auth = AuthManager('test.db')
 data = PromptDataManager('test.db', tenant_id='test', user_id='test')
-print('✅ Legacy components working correctly!')
+print('✅ Core components working correctly!')
 
 # Cleanup
 import os

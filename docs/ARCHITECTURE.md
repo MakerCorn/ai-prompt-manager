@@ -77,7 +77,7 @@ ai-prompt-manager/
 │   ├── unit/                              # Unit tests
 │   ├── integration/                       # Integration tests
 │   └── fixtures/                          # Test fixtures
-├── *.py                                   # Legacy components (being migrated)
+├── *.py                                   # Core application components
 └── docs/                                  # Documentation
 ```
 
@@ -86,7 +86,7 @@ ai-prompt-manager/
 ```mermaid
 graph TB
     subgraph "🎨 Presentation Layer"
-        GRADIO[🎨 Gradio UI]
+        WEBUI[🎨 Modern Web UI]
         API[🔌 REST API]
         CLI[⌨️ CLI Interface]
     end
@@ -124,8 +124,8 @@ graph TB
     end
 
     %% Connections
-    GRADIO --> PROMPT_SVC
-    GRADIO --> AUTH_SVC
+    WEBUI --> PROMPT_SVC
+    WEBUI --> AUTH_SVC
     API --> PROMPT_SVC
     API --> AUTH_SVC
     CLI --> PROMPT_SVC
@@ -156,7 +156,7 @@ graph TB
     classDef database fill:#ffebee,stroke:#d32f2f,stroke-width:2px
     classDef external fill:#f1f8e9,stroke:#689f38,stroke-width:2px
 
-    class GRADIO,API,CLI presentation
+    class WEBUI,API,CLI presentation
     class PROMPT_SVC,AUTH_SVC,USER_SVC,CONFIG_SVC service
     class PROMPT_REPO,USER_REPO,TENANT_REPO,CONFIG_REPO repository
     class PROMPT_MODEL,USER_MODEL,TENANT_MODEL,CONFIG_MODEL model
@@ -234,7 +234,7 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant U as 👤 User
-    participant UI as 🎨 Gradio UI
+    participant UI as 🎨 Modern Web UI
     participant PS as 📝 PromptService
     participant PR as 📄 PromptRepository
     participant DB as 💾 Database
@@ -412,7 +412,7 @@ graph TB
 
 | **Component** | **Implementation** | **Modern Upgrade** |
 |---------------|-------------------|-------------------|
-| **Password Hashing** | PBKDF2 (legacy) → Argon2/bcrypt | Configurable algorithms with auto-migration |
+| **Password Hashing** | PBKDF2 → Argon2/bcrypt | Configurable algorithms with auto-migration |
 | **Session Management** | Basic JWT → Enhanced JWT | Token rotation, refresh tokens, secure storage |
 | **Input Validation** | Basic checks → Comprehensive validation | Type-safe validation with custom validators |
 | **Tenant Isolation** | Manual filtering → Automatic isolation | Repository-level tenant context enforcement |
@@ -568,8 +568,8 @@ graph TB
 graph TB
     subgraph "🐳 Docker Development Stack"
         subgraph "🚀 Application Container"
-            APP[🎨 AI Prompt Manager<br/>New + Legacy Architecture]
-            GRADIO[🖥️ Gradio UI :7860]
+            APP[🎨 AI Prompt Manager<br/>Modern Architecture]
+            WEBUI[🖥️ Modern Web UI :7860]
             API[🔌 FastAPI :8000]
         end
         
@@ -589,7 +589,7 @@ graph TB
         end
     end
 
-    INTERNET[🌍 Internet] --> GRADIO
+    INTERNET[🌍 Internet] --> WEBUI
     INTERNET --> API
     
     APP --> POSTGRES
@@ -605,7 +605,7 @@ graph TB
     classDef volume fill:#fff3e0,stroke:#f57c00,stroke-width:2px
 
     class APP,POSTGRES,REDIS container
-    class GRADIO,API,SQLITE service
+    class WEBUI,API,SQLITE service
     class DB_DATA,APP_LOGS,CONFIG_VOL volume
 ```
 
@@ -624,9 +624,9 @@ graph TB
     end
 
     subgraph "🚀 Application Tier (New Architecture)"
-        APP1[🎨 App Instance 1<br/>src/ + legacy/]
-        APP2[🎨 App Instance 2<br/>src/ + legacy/]
-        APP3[🎨 App Instance 3<br/>src/ + legacy/]
+        APP1[🎨 App Instance 1<br/>Modern Architecture]
+        APP2[🎨 App Instance 2<br/>Modern Architecture]
+        APP3[🎨 App Instance 3<br/>Modern Architecture]
     end
 
     subgraph "💾 Database Cluster"
@@ -787,7 +787,7 @@ graph TB
     end
 
     subgraph "🎨 UI Integration"
-        GRADIO_I18N[🎨 Gradio I18N Components]
+        UI_I18N[🎨 Web UI I18N Components]
         DYNAMIC_LABELS[🏷️ Dynamic Labels]
         ERROR_MESSAGES[❌ Localized Errors]
         HELP_TEXT[❓ Contextual Help]
@@ -807,7 +807,7 @@ graph TB
     TRANSLATOR_SVC --> DB_TRANSLATIONS
     TRANSLATOR_SVC --> REMOTE_API
     
-    I18N_SERVICE --> GRADIO_I18N
+    I18N_SERVICE --> UI_I18N
     I18N_SERVICE --> DYNAMIC_LABELS
     I18N_SERVICE --> ERROR_MESSAGES
     I18N_SERVICE --> HELP_TEXT
@@ -820,7 +820,7 @@ graph TB
     class URL_LANG,USER_PREF,BROWSER_LANG,TENANT_DEFAULT detection
     class I18N_SERVICE,LANG_MANAGER,TRANSLATOR_SVC,FALLBACK_SVC service
     class LANG_FILES,REDIS_CACHE,DB_TRANSLATIONS,REMOTE_API storage
-    class GRADIO_I18N,DYNAMIC_LABELS,ERROR_MESSAGES,HELP_TEXT ui
+    class UI_I18N,DYNAMIC_LABELS,ERROR_MESSAGES,HELP_TEXT ui
 ```
 
 ---
@@ -953,7 +953,7 @@ graph TB
 
 ### 📊 Performance Benefits of New Architecture
 
-| **Component** | **Legacy Performance** | **New Architecture Benefits** |
+| **Component** | **Previous Performance** | **New Architecture Benefits** |
 |---------------|------------------------|-------------------------------|
 | **Type Safety** | Runtime errors, debugging overhead | Compile-time validation, reduced errors |
 | **Database Operations** | Manual SQL, N+1 queries | Optimized repository patterns, batch operations |

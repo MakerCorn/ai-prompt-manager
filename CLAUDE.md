@@ -35,7 +35,7 @@ python tests/integration/test_web_interface_integration.py     # Web interface i
 python tests/integration/test_web_ui_integration.py            # Web UI functionality
 python tests/e2e/test_web_ui_e2e.py                          # End-to-end browser tests with Playwright
 
-# Testing - Legacy & Multi-tenant  
+# Testing - Multi-tenant & Architecture
 python tests/integration/test_mt_install.py                    # Multi-tenant setup
 python tests/integration/test_new_architecture_integration.py # New architecture
 python tests/integration/test_langwatch_integration.py        # AI optimization
@@ -115,7 +115,7 @@ web_templates/
 - **Modern Components**: Clean forms, navigation, and interactive elements
 - **Accessibility**: ARIA labels, keyboard navigation, screen reader support
 
-**Legacy Architecture (src/):**
+**Modular Architecture (src/):**
 ```
 src/
 ├── core/                          # Infrastructure layer (for future expansion)
@@ -289,8 +289,8 @@ print('✅ New architecture working')
 
 ## Development Guidelines
 
-### Working with Legacy Components
-When modifying legacy components (root-level .py files):
+### Working with Core Components  
+When modifying core components (root-level .py files):
 - Maintain backward compatibility with existing deployments
 - Follow existing patterns for tenant isolation
 - Ensure all database operations include tenant_id filtering
@@ -306,7 +306,7 @@ When working in `src/` directory:
 
 ### Database Operations
 - **Always include tenant_id** in queries for multi-tenant isolation
-- Use `PromptDataManager` for legacy operations
+- Use `PromptDataManager` for data operations
 - Use repository classes in `src/` for new architecture
 - Test with both SQLite (development) and PostgreSQL (production)
 
@@ -314,7 +314,7 @@ When working in `src/` directory:
 **Dual-Server Architecture**: The application uses a dual-server approach for API integration:
 
 #### Architecture Overview
-- **Gradio Server**: Runs on main port (handles UI)
+- **Web UI Server**: Runs on main port (handles UI)
 - **FastAPI Server**: Runs on main port + 1 (handles API requests)
 - **Threading**: API server runs in separate daemon thread
 - **Startup**: Both servers start from single `run.py --with-api` command
@@ -327,7 +327,7 @@ When working in `src/` directory:
 
 #### Development Workflow
 1. **Start with API**: `python run.py --with-api --port 7860`
-2. **Access UI**: http://localhost:7860 (Gradio interface)
+2. **Access UI**: http://localhost:7860 (Web interface)
 3. **Access API**: http://localhost:7861 (FastAPI server)
 4. **API Docs**: http://localhost:7861/docs (Swagger UI)
 5. **Test Integration**: `python tests/integration/test_api_integration.py`
@@ -340,7 +340,7 @@ async def your_function():
     return {"message": "Your response"}
 ```
 
-#### Legacy API Components
+#### Additional API Components
 - `api_endpoints.py` - Contains APIManager class for advanced features
 - `api_token_manager.py` - Authentication and token management
 - These can be integrated into the dual-server setup as needed
@@ -521,7 +521,7 @@ E2E_HEADLESS=false E2E_SLOW_MO=1000 python tests/e2e/test_web_ui_e2e.py
 **Critical Dependencies:**
 - **httpx**: Required for FastAPI TestClient - included in dev/test dependencies
 - **playwright**: Required for browser automation - install with `poetry install --with e2e`
-- **All imports updated**: No legacy `prompt_manager` references - use `run.main` and `web_app` instead
+- **All imports updated**: Use modern `run.main` and `web_app` components
 
 ### E2E Test Infrastructure
 - **Test Server**: Automatic app server startup on port 7862 for isolated testing
@@ -562,7 +562,7 @@ python run.py
 ```bash  
 python run.py --with-api
 # - Dual-server architecture activated
-# - Gradio UI: Main port (e.g., 7860)
+# - Web UI: Main port (e.g., 7860)
 # - FastAPI Server: Main port + 1 (e.g., 7861)
 # - API documentation at http://localhost:7861/docs
 # - Health check at http://localhost:7861/health

@@ -73,7 +73,7 @@ All 10 integration tests are executed individually:
 
 #### 3. **Component Testing**
 - New architecture component validation
-- Legacy component import testing
+- Core component import testing
 - Configuration system testing
 - Repository functionality validation
 
@@ -191,7 +191,7 @@ markers = [
 - Service layer functionality
 - Dependency injection
 - Configuration management
-- Legacy/modern architecture integration
+- Modern architecture integration
 
 ## 📊 Test Quality Metrics
 
