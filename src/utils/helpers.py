@@ -180,7 +180,7 @@ def format_timestamp(
         ISO formatted timestamp string
     """
     if dt is None:
-        dt = datetime.utcnow()
+        dt = datetime.now(timezone.utc)
 
     if include_timezone and dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
@@ -498,7 +498,7 @@ def rate_limit_key(identifier: str, window: str = "hour") -> str:
     Returns:
         Rate limiting key
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     if window == "minute":
         time_key = now.strftime("%Y%m%d%H%M")

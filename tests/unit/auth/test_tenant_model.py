@@ -5,7 +5,7 @@ This module tests the Tenant entity model including validation,
 business logic, metadata operations, and serialization.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -32,8 +32,8 @@ class TestTenantModel:
 
     def test_tenant_creation_with_all_fields(self):
         """Test creating a tenant with all fields."""
-        created_at = datetime.utcnow()
-        updated_at = datetime.utcnow()
+        created_at = datetime.now(timezone.utc)
+        updated_at = datetime.now(timezone.utc)
         settings = {"feature_flags": {"new_ui": True}}
         metadata = {"plan": "enterprise", "billing_id": "bill_123"}
 
@@ -63,7 +63,7 @@ class TestTenantModel:
         """Test that __post_init__ sets default timestamps."""
         with patch("src.auth.models.tenant.datetime") as mock_datetime:
             mock_now = datetime(2023, 1, 1, 12, 0, 0)
-            mock_datetime.utcnow.return_value = mock_now
+            mock_datetime.now.return_value = mock_now
 
             tenant = Tenant(name="Test Organization", subdomain="testorg")
 
@@ -328,8 +328,8 @@ class TestTenantModel:
 
     def test_from_dict_method_with_datetime_objects(self):
         """Test from_dict method with datetime objects."""
-        created_at = datetime.utcnow()
-        updated_at = datetime.utcnow()
+        created_at = datetime.now(timezone.utc)
+        updated_at = datetime.now(timezone.utc)
 
         tenant_data = {
             "name": "DateTime Tenant",

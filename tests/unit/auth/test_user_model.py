@@ -5,7 +5,7 @@ This module tests the User model functionality including validation,
 permissions, and data conversion methods.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -321,7 +321,7 @@ class TestUserModel:
 
     def test_from_dict_with_datetime_objects(self):
         """Test creating user from dictionary with datetime objects."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         user_data = {
             "tenant_id": "tenant-123",
             "email": "test@example.com",

@@ -7,7 +7,7 @@ implementing common CRUD operations and database interaction patterns.
 
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 from ..exceptions.base import DatabaseException
@@ -322,7 +322,7 @@ class BaseRepository(ABC, Generic[T]):
             Inserted entity with generated fields
         """
         # Add timestamp fields if they exist
-        current_time = datetime.utcnow()
+        current_time = datetime.now(timezone.utc)
         if "created_at" in entity_dict and entity_dict["created_at"] is None:
             entity_dict["created_at"] = current_time
         if "updated_at" in entity_dict:
@@ -391,7 +391,7 @@ class BaseRepository(ABC, Generic[T]):
 
         # Add updated timestamp if field exists
         if "updated_at" in entity_dict:
-            entity_dict["updated_at"] = datetime.utcnow()
+            entity_dict["updated_at"] = datetime.now(timezone.utc)
 
         # Build UPDATE query (exclude ID field from SET clause)
         update_fields = [
@@ -577,7 +577,7 @@ class TenantAwareRepository(BaseRepository[T]):
             Inserted entity with generated fields
         """
         # Add timestamp fields if they exist
-        current_time = datetime.utcnow()
+        current_time = datetime.now(timezone.utc)
         if "created_at" in entity_dict and entity_dict["created_at"] is None:
             entity_dict["created_at"] = current_time
         if "updated_at" in entity_dict:

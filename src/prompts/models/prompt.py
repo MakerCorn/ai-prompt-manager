@@ -6,7 +6,7 @@ prompt entities with proper validation and serialization.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 
@@ -41,7 +41,7 @@ class Prompt:
         """Post-initialization validation and setup."""
         # Set default timestamps
         if self.created_at is None:
-            self.created_at = datetime.utcnow()
+            self.created_at = datetime.now(timezone.utc)
 
         if self.updated_at is None:
             self.updated_at = self.created_at
@@ -85,7 +85,7 @@ class Prompt:
     def tag_list(self, tags: List[str]) -> None:
         """Set tags from a list."""
         self.tags = ", ".join(tags) if tags else ""
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     @property
     def content_length(self) -> int:
@@ -102,7 +102,7 @@ class Prompt:
     def update_content(self, content: str) -> None:
         """Update prompt content and timestamp."""
         self.content = content
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def add_tag(self, tag: str) -> None:
         """Add a tag to the prompt."""
@@ -125,12 +125,12 @@ class Prompt:
     def set_category(self, category: str) -> None:
         """Set prompt category."""
         self.category = category
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def mark_as_enhancement(self, is_enhancement: bool = True) -> None:
         """Mark or unmark prompt as enhancement prompt."""
         self.is_enhancement_prompt = is_enhancement
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def get_metadata(self, key: str, default: Any = None) -> Any:
         """Get metadata value."""
@@ -139,7 +139,7 @@ class Prompt:
     def set_metadata(self, key: str, value: Any) -> None:
         """Set metadata value."""
         self.metadata[key] = value
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def to_dict(self, include_metadata: bool = True) -> Dict[str, Any]:
         """
@@ -295,7 +295,7 @@ class Prompt:
 
         # Clear ID and timestamps for new prompt
         cloned.id = None
-        cloned.created_at = datetime.utcnow()
+        cloned.created_at = datetime.now(timezone.utc)
         cloned.updated_at = cloned.created_at
 
         return cloned

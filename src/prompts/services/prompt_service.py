@@ -6,7 +6,7 @@ validation, business rules, and coordination between components.
 """
 
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from ...core.base.database_manager import BaseDatabaseManager
@@ -188,7 +188,7 @@ class PromptService(BaseService):
             existing_prompt.category = category.strip() or "Uncategorized"
             existing_prompt.tags = tags.strip()
             existing_prompt.is_enhancement_prompt = is_enhancement_prompt
-            existing_prompt.updated_at = datetime.utcnow()
+            existing_prompt.updated_at = datetime.now(timezone.utc)
 
             # Save changes
             updated_prompt = self.repository.save(existing_prompt)

@@ -5,7 +5,7 @@ This module tests the Prompt entity model including validation,
 business logic, metadata operations, and serialization.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -41,8 +41,8 @@ class TestPromptModel:
 
     def test_prompt_creation_with_all_fields(self):
         """Test creating a prompt with all fields."""
-        created_at = datetime.utcnow()
-        updated_at = datetime.utcnow()
+        created_at = datetime.now(timezone.utc)
+        updated_at = datetime.now(timezone.utc)
         metadata = {"version": 1, "source": "test"}
 
         prompt = Prompt(
@@ -600,8 +600,8 @@ class TestPromptModel:
 
     def test_from_dict_with_datetime_objects(self):
         """Test creating prompt from dictionary with datetime objects."""
-        created_at = datetime.utcnow()
-        updated_at = datetime.utcnow()
+        created_at = datetime.now(timezone.utc)
+        updated_at = datetime.now(timezone.utc)
 
         prompt_data = {
             "tenant_id": "tenant-123",

@@ -8,7 +8,7 @@ should inherit from, providing consistent error handling, logging, and validatio
 import logging
 from abc import ABC
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 from ..exceptions.base import ServiceException, ValidationException
@@ -48,7 +48,10 @@ class ServiceResult(Generic[T]):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to dictionary for API responses."""
-        result = {"success": self.success, "timestamp": datetime.utcnow().isoformat()}
+        result = {
+            "success": self.success,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
 
         if self.success:
             result["data"] = self.data
@@ -244,7 +247,7 @@ class BaseService(ABC):
         """
         log_data: Dict[str, Any] = {
             "operation": operation,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_id": user_id,
             "tenant_id": tenant_id,
         }
@@ -410,7 +413,7 @@ class CachedService(BaseService):
         if key not in self.cache_timestamps:
             return False
 
-        age = (datetime.utcnow() - self.cache_timestamps[key]).total_seconds()
+        age = (datetime.now(timezone.utc) - self.cache_timestamps[key]).total_seconds()
         return age < self.cache_ttl
 
     def get_cached(self, key: str) -> Optional[Any]:
@@ -426,7 +429,7 @@ class CachedService(BaseService):
     def set_cached(self, key: str, value: Any) -> None:
         """Set item in cache."""
         self.cache[key] = value
-        self.cache_timestamps[key] = datetime.utcnow()
+        self.cache_timestamps[key] = datetime.now(timezone.utc)
 
     def clear_cache(self) -> None:
         """Clear all cached items."""
