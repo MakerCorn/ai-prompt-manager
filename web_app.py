@@ -514,12 +514,12 @@ class WebApp:
 
             return self.templates.TemplateResponse(
                 "prompts/_list_partial.html",
-                {
-                    "request": request,
-                    "user": user,
-                    "prompts": prompts,
-                    "categories": categories,
-                },
+                self.get_template_context(
+                    request,
+                    user,
+                    prompts=prompts,
+                    categories=categories,
+                ),
             )
 
         @self.app.get("/prompts/filter")
@@ -556,12 +556,12 @@ class WebApp:
 
             return self.templates.TemplateResponse(
                 "prompts/_list_partial.html",
-                {
-                    "request": request,
-                    "user": user,
-                    "prompts": prompts,
-                    "categories": categories,
-                },
+                self.get_template_context(
+                    request,
+                    user,
+                    prompts=prompts,
+                    categories=categories,
+                ),
             )
 
         # Language switching route
@@ -772,12 +772,12 @@ class WebApp:
 
             return self.templates.TemplateResponse(
                 "prompts/execute.html",
-                {
-                    "request": request,
-                    "user": user,
-                    "prompt": prompt,
-                    "page_title": f"Execute: {prompt['name']}",
-                },
+                self.get_template_context(
+                    request,
+                    user,
+                    prompt=prompt,
+                    page_title=f"Execute: {prompt['name']}",
+                ),
             )
 
         # Templates routes
@@ -1144,12 +1144,12 @@ class WebApp:
 
             return self.templates.TemplateResponse(
                 "settings/api_tokens.html",
-                {
-                    "request": request,
-                    "user": user,
-                    "tokens": tokens,
-                    "page_title": "API Tokens",
-                },
+                self.get_template_context(
+                    request,
+                    user,
+                    tokens=tokens,
+                    page_title="API Tokens",
+                ),
             )
 
         @self.app.post("/api-tokens/create")
