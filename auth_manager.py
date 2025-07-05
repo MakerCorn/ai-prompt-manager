@@ -111,6 +111,10 @@ class AuthManager:
         self.init_auth_database()
         self._ensure_default_tenant()
 
+    def is_multitenant_mode(self) -> bool:
+        """Check if the application is running in multi-tenant mode."""
+        return os.getenv("MULTITENANT_MODE", "true").lower() == "true"
+
     def get_conn(self):
         if self.db_type == "postgres":
             return psycopg2.connect(self.dsn, cursor_factory=RealDictCursor)
@@ -1010,12 +1014,24 @@ class AuthManager:
                     max_users=row["max_users"],
                 )
             else:
+                # Parse datetime string for SQLite
+                created_at_str = row[5]
+                try:
+                    if isinstance(created_at_str, str):
+                        created_at = datetime.fromisoformat(
+                            created_at_str.replace("Z", "+00:00")
+                        )
+                    else:
+                        created_at = created_at_str
+                except (ValueError, TypeError):
+                    created_at = datetime.now()
+
                 tenant = Tenant(
                     id=row[0],
                     name=row[1],
                     subdomain=row[2],
                     is_active=bool(row[3]),
-                    created_at=row[5],
+                    created_at=created_at,
                     max_users=row[4],
                 )
             tenants.append(tenant)

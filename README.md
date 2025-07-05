@@ -2,6 +2,8 @@
 
 > **The intelligent way to manage, optimize, and scale your AI prompts**
 
+![Instruere](./docs/Home%20Screen.png)
+
 A comprehensive AI prompt management system featuring a **modern web interface** (FastAPI + HTMX + Tailwind CSS) with unified architecture supporting both single-user and multi-tenant deployments. Features advanced authentication, real-time cost estimation, AI-powered optimization, and secure API access.
 
 ```mermaid
@@ -205,10 +207,13 @@ poetry install
 cp .env.example .env
 # Edit .env for custom settings
 
-# 3️⃣ Launch application
+# 3️⃣ Launch application (IMPORTANT: Use Poetry environment)
 poetry run python run.py
 
 # 4️⃣ Open browser to http://localhost:7860
+
+# ⚠️  CRITICAL: Always use 'poetry run' to ensure dependencies are available
+# Running python run.py directly may result in "Create New Prompt" errors
 ```
 
 ### 🚀 Deployment Options
@@ -226,15 +231,25 @@ poetry run python run.py
 ### ✅ Verify Installation
 
 ```bash
-# Check system health
+# Check system health (if API enabled)
 curl http://localhost:7860/api/health
-
 # Expected response: {"status": "healthy"}
 
-# Test comprehensive functionality
-python tests/integration/test_mt_install.py                    # Multi-tenant setup
-python tests/integration/test_new_architecture_integration.py # New architecture
-python tests/integration/test_langwatch_integration.py        # AI optimization
+# Test prompt creation (main functionality)
+# 1. Open http://localhost:7860 in browser
+# 2. Click "Create New Prompt" 
+# 3. Fill form and save - should work without errors
+
+# Test comprehensive functionality (development)
+poetry run python tests/integration/test_mt_install.py                    # Multi-tenant setup
+poetry run python tests/integration/test_new_architecture_integration.py # New architecture
+poetry run python tests/integration/test_langwatch_integration.py        # AI optimization
+
+# Run validation steps for code quality
+poetry run black .                           # Format Python code
+poetry run isort .                           # Organize imports  
+poetry run flake8 . --max-line-length=88 --extend-ignore=E203,W503  # Linting
+poetry run bandit -r . --skip B101,B602,B603 # Security scanning
 ```
 
 ---

@@ -18,12 +18,15 @@ python -m promptman
 
 ### Development Commands
 ```bash
+# CRITICAL: Always use Poetry environment to avoid dependency issues
+# Running python run.py directly may cause "Create New Prompt" errors
+
 # Run application (different modes)
-python run.py                     # Multi-tenant mode (default)
-python run.py --single-user       # Single-user mode
-python run.py --with-api          # Multi-tenant + Dual-Server API
-python run.py --single-user --with-api  # Single-user + API
-python run.py --debug --port 8080 # Debug mode on custom port
+poetry run python run.py                     # Multi-tenant mode (default)
+poetry run python run.py --single-user       # Single-user mode
+poetry run python run.py --with-api          # Multi-tenant + Dual-Server API
+poetry run python run.py --single-user --with-api  # Single-user + API
+poetry run python run.py --debug --port 8080 # Debug mode on custom port
 
 # API Architecture Notes:
 # --with-api enables dual-server architecture:
@@ -31,15 +34,15 @@ python run.py --debug --port 8080 # Debug mode on custom port
 #   - FastAPI API Server: Main port + 1 (e.g., 8081)
 
 # Testing - Web UI (FastAPI)
-python tests/integration/test_web_interface_integration.py     # Web interface integration
-python tests/integration/test_web_ui_integration.py            # Web UI functionality
-python tests/e2e/test_web_ui_e2e.py                          # End-to-end browser tests with Playwright
+poetry run python tests/integration/test_web_interface_integration.py     # Web interface integration
+poetry run python tests/integration/test_web_ui_integration.py            # Web UI functionality
+poetry run python tests/e2e/test_web_ui_e2e.py                          # End-to-end browser tests with Playwright
 
 # Testing - Multi-tenant & Architecture
-python tests/integration/test_mt_install.py                    # Multi-tenant setup
-python tests/integration/test_new_architecture_integration.py # New architecture
-python tests/integration/test_langwatch_integration.py        # AI optimization
-python tests/integration/test_api_integration.py              # API integration
+poetry run python tests/integration/test_mt_install.py                    # Multi-tenant setup
+poetry run python tests/integration/test_new_architecture_integration.py # New architecture
+poetry run python tests/integration/test_langwatch_integration.py        # AI optimization
+poetry run python tests/integration/test_api_integration.py              # API integration
 
 # Docker testing
 ./scripts/docker-test.sh          # Full Docker validation
@@ -90,11 +93,13 @@ web_templates/
 ├── layouts/
 │   └── base.html                  # Base template with navigation and theming
 ├── auth/
-│   └── login.html                 # Modern login interface
+│   └── login.html                 # Modern login interface with i18n support
 ├── prompts/
+│   ├── dashboard.html             # Main dashboard with recent prompts
 │   ├── list.html                  # Prompt library with search/filter
 │   ├── form.html                  # Create/edit prompt with real-time features
 │   ├── execute.html               # Prompt execution interface
+│   ├── builder.html               # Drag-and-drop prompt builder
 │   └── _list_partial.html         # HTMX partial for dynamic updates
 ├── ai_services/
 │   └── config.html                # AI service configuration and testing
@@ -102,18 +107,28 @@ web_templates/
 │   ├── index.html                 # Settings hub
 │   ├── profile.html               # User profile management
 │   └── api_tokens.html            # API token management
-└── templates/
-    └── list.html                  # Template library
+├── templates/
+│   ├── list.html                  # Template library
+│   └── form.html                  # Template creation/editing
+├── admin/
+│   └── dashboard.html             # Admin control panel
+└── static/                        # Static assets (CSS, JS, images)
+    ├── css/
+    └── js/
 ```
 
 **FastAPI Web UI Features:**
 - **FastAPI + Jinja2**: Server-side rendered templates with modern styling
-- **Tailwind CSS**: Responsive, mobile-first design
-- **Multi-language Support**: 10 languages with dynamic switching
-- **Session Authentication**: Secure session-based authentication
+- **Tailwind CSS**: Responsive, mobile-first design (built-in CSS framework)
+- **Multi-language Support**: 10 languages with dynamic switching and real-time translation
+- **Session Authentication**: Secure session-based authentication with 24-hour expiry
 - **HTMX Integration**: Dynamic content updates without page reloads
 - **Modern Components**: Clean forms, navigation, and interactive elements
 - **Accessibility**: ARIA labels, keyboard navigation, screen reader support
+- **Complete CRUD Operations**: Full Create, Read, Update, Delete for prompts and templates
+- **Drag-and-Drop Builder**: Visual prompt combination with live preview
+- **AI Integration**: Built-in optimization, translation, and token calculation
+- **Single-User & Multi-Tenant**: Seamless mode switching with proper isolation
 
 **Modular Architecture (src/):**
 ```
@@ -207,12 +222,15 @@ AZURE_OPENAI_KEY=your_key
 tests/
 ├── unit/                          # Unit tests for individual components
 │   ├── core/                      # Core infrastructure tests
-│   └── auth/                      # Authentication tests
+│   ├── auth/                      # Authentication tests
+│   └── api/                       # API endpoint tests
 ├── integration/                   # Integration and system tests
 │   ├── test_mt_install.py         # Multi-tenant setup validation
 │   ├── test_new_architecture_integration.py  # Modern architecture tests
 │   ├── test_langwatch_integration.py         # AI optimization features
-│   └── test_api_integration.py               # Complete API test suite
+│   ├── test_api_integration.py               # Complete API test suite
+│   ├── test_web_interface_integration.py     # Web interface integration
+│   └── test_web_ui_integration.py            # Web UI functionality
 ├── e2e/                          # End-to-end browser automation tests
 │   ├── conftest.py               # E2E test fixtures and configuration
 │   ├── test_authentication_flow.py          # Login/logout workflows
@@ -225,9 +243,9 @@ tests/
 
 ### Testing Commands
 ```bash
-# Test specific components
-python tests/integration/test_mt_install.py
-python tests/integration/test_new_architecture_integration.py
+# Test specific components (CRITICAL: Use Poetry environment)
+poetry run python tests/integration/test_mt_install.py
+poetry run python tests/integration/test_new_architecture_integration.py
 
 # Test Docker deployment
 ./scripts/docker-test.sh
@@ -245,15 +263,15 @@ python tests/e2e/test_web_ui_e2e.py         # Direct execution
 E2E_HEADLESS=false python tests/e2e/test_web_ui_e2e.py  # With visible browser
 E2E_SLOW_MO=500 python tests/e2e/test_web_ui_e2e.py     # Slow motion debugging
 
-# Test imports and basic functionality
-python -c "
+# Test imports and basic functionality (CRITICAL: Use Poetry environment)
+poetry run python -c "
 from auth_manager import AuthManager
 from prompt_data_manager import PromptDataManager  
 from run import main
 print('✅ Core components working')
 "
 
-python -c "
+poetry run python -c "
 import sys; sys.path.insert(0, 'src')
 from src.prompts.services.prompt_service import PromptService
 from src.core.config.settings import AppConfig
@@ -289,12 +307,20 @@ print('✅ New architecture working')
 
 ## Development Guidelines
 
+### Critical Environment Requirements
+**ALWAYS use Poetry environment** to avoid dependency issues:
+- ❌ `python run.py` - May cause "Create New Prompt" internal server errors
+- ✅ `poetry run python run.py` - Proper dependency resolution
+- ❌ Direct Python execution - Missing dependencies like `python-dotenv`, `fastapi`
+- ✅ Poetry environment - All dependencies available
+
 ### Working with Core Components  
 When modifying core components (root-level .py files):
 - Maintain backward compatibility with existing deployments
 - Follow existing patterns for tenant isolation
 - Ensure all database operations include tenant_id filtering
 - Update corresponding tests in `tests/integration/`
+- **CRITICAL**: Test with `poetry run` to ensure dependencies are available
 
 ### Working with New Architecture  
 When working in `src/` directory:
@@ -303,6 +329,8 @@ When working in `src/` directory:
 - Implement comprehensive type hints
 - Add unit tests in `tests/unit/`
 - Follow the base class patterns in `src/core/base/`
+- **CRITICAL**: Always test imports with `poetry run` environment
+- Update both legacy and new architecture components when making changes
 
 ### Database Operations
 - **Always include tenant_id** in queries for multi-tenant isolation
@@ -326,11 +354,11 @@ When working in `src/` directory:
 - **Port Calculation**: `api_port = main_port + 1`
 
 #### Development Workflow
-1. **Start with API**: `python run.py --with-api --port 7860`
+1. **Start with API**: `poetry run python run.py --with-api --port 7860`
 2. **Access UI**: http://localhost:7860 (Web interface)
 3. **Access API**: http://localhost:7861 (FastAPI server)
 4. **API Docs**: http://localhost:7861/docs (Swagger UI)
-5. **Test Integration**: `python tests/integration/test_api_integration.py`
+5. **Test Integration**: `poetry run python tests/integration/test_api_integration.py`
 
 #### Adding New API Endpoints
 To add new endpoints, modify the API app creation in `run.py`:
@@ -488,16 +516,16 @@ poetry install --with e2e
 poetry run playwright install chromium
 
 # Run Web UI E2E tests directly  
-python tests/e2e/test_web_ui_e2e.py
+poetry run python tests/e2e/test_web_ui_e2e.py
 
 # Run with visible browser for debugging
-E2E_HEADLESS=false python tests/e2e/test_web_ui_e2e.py
+E2E_HEADLESS=false poetry run python tests/e2e/test_web_ui_e2e.py
 
 # Run with slow motion for detailed observation
-E2E_SLOW_MO=500 python tests/e2e/test_web_ui_e2e.py
+E2E_SLOW_MO=500 poetry run python tests/e2e/test_web_ui_e2e.py
 
 # Combined debugging settings
-E2E_HEADLESS=false E2E_SLOW_MO=1000 python tests/e2e/test_web_ui_e2e.py
+E2E_HEADLESS=false E2E_SLOW_MO=1000 poetry run python tests/e2e/test_web_ui_e2e.py
 ```
 
 **Web UI Test Coverage:**
@@ -541,47 +569,54 @@ E2E_HEADLESS=false E2E_SLOW_MO=1000 python tests/e2e/test_web_ui_e2e.py
 
 ### Single-User Mode
 ```bash
-python run.py --single-user
+poetry run python run.py --single-user
 # - No authentication required
 # - SQLite database
 # - File-based storage
 # - Single port: UI only
+# - Full CRUD operations available
+# - All features work without login
 ```
 
 ### Multi-Tenant Mode  
 ```bash
-python run.py
+poetry run python run.py
 # - Authentication required
-# - Tenant isolation
+# - Complete tenant isolation
 # - Admin panel available
 # - Default: admin@localhost / admin123
 # - Single port: UI only
+# - 24-hour session expiry
+# - Role-based access control
 ```
 
 ### API-Enabled Mode (Dual-Server Architecture)
 ```bash  
-python run.py --with-api
+poetry run python run.py --with-api
 # - Dual-server architecture activated
 # - Web UI: Main port (e.g., 7860)
 # - FastAPI Server: Main port + 1 (e.g., 7861)
 # - API documentation at http://localhost:7861/docs
 # - Health check at http://localhost:7861/health
 # - Both servers managed by single process
+# - Automatic port calculation and management
 ```
 
 ### Combined Modes
 ```bash
 # Single-user with API
-python run.py --single-user --with-api
+poetry run python run.py --single-user --with-api
 # - No authentication for UI
 # - API server on main port + 1
 # - Simplified development setup
+# - Best for development and testing
 
 # Custom port with API
-python run.py --with-api --port 8080
+poetry run python run.py --with-api --port 8080
 # - UI: http://localhost:8080
 # - API: http://localhost:8081
 # - API Docs: http://localhost:8081/docs
+# - Flexible port configuration
 ```
 
 ### Docker Deployment

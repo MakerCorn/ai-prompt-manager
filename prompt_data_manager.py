@@ -97,6 +97,24 @@ class PromptDataManager:
                 )
             """
             )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS templates (
+                    id SERIAL PRIMARY KEY,
+                    tenant_id UUID,
+                    user_id UUID,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    content TEXT NOT NULL,
+                    category TEXT DEFAULT 'Custom',
+                    variables TEXT,
+                    is_builtin BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(tenant_id, name)
+                )
+            """
+            )
 
             # Add columns to existing tables if they don't exist
             cursor.execute(
@@ -162,6 +180,24 @@ class PromptDataManager:
                     key TEXT NOT NULL,
                     value TEXT,
                     UNIQUE(tenant_id, user_id, key)
+                )
+            """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS templates (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT,
+                    user_id TEXT,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    content TEXT NOT NULL,
+                    category TEXT DEFAULT 'Custom',
+                    variables TEXT,
+                    is_builtin BOOLEAN DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(tenant_id, name)
                 )
             """
             )
@@ -845,3 +881,402 @@ class PromptDataManager:
         except Exception:
             conn.close()
             return None
+
+    # Template management methods
+    def get_all_templates(self) -> List[Dict]:
+        """Get all templates for the current tenant"""
+        if not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, description, content, 
+                           category, variables, is_builtin, created_at, updated_at
+                    FROM templates 
+                    WHERE tenant_id = %s 
+                    ORDER BY created_at DESC
+                    """,
+                    (self.tenant_id,),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, description, content, 
+                           category, variables, is_builtin, created_at, updated_at
+                    FROM templates 
+                    WHERE tenant_id = ? 
+                    ORDER BY created_at DESC
+                    """,
+                    (self.tenant_id,),
+                )
+
+            rows = cursor.fetchall()
+            conn.close()
+
+            templates = []
+            for row in rows:
+                if self.db_type == "postgres":
+                    template = dict(row)
+                else:
+                    template = {
+                        "id": row[0],
+                        "tenant_id": row[1],
+                        "user_id": row[2],
+                        "name": row[3],
+                        "description": row[4],
+                        "content": row[5],
+                        "category": row[6],
+                        "variables": row[7],
+                        "is_builtin": bool(row[8]) if row[8] is not None else False,
+                        "created_at": row[9],
+                        "updated_at": row[10],
+                    }
+                templates.append(template)
+
+            return templates
+        except Exception:
+            conn.close()
+            return []
+
+    def get_template_by_id(self, template_id: int) -> Optional[Dict]:
+        """Get a specific template by ID"""
+        if not self.tenant_id:
+            return None
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, description, content, 
+                           category, variables, is_builtin, created_at, updated_at
+                    FROM templates 
+                    WHERE id = %s AND tenant_id = %s
+                    """,
+                    (template_id, self.tenant_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, description, content, 
+                           category, variables, is_builtin, created_at, updated_at
+                    FROM templates 
+                    WHERE id = ? AND tenant_id = ?
+                    """,
+                    (template_id, self.tenant_id),
+                )
+
+            row = cursor.fetchone()
+            conn.close()
+
+            if row:
+                if self.db_type == "postgres":
+                    return dict(row)
+                else:
+                    return {
+                        "id": row[0],
+                        "tenant_id": row[1],
+                        "user_id": row[2],
+                        "name": row[3],
+                        "description": row[4],
+                        "content": row[5],
+                        "category": row[6],
+                        "variables": row[7],
+                        "is_builtin": bool(row[8]) if row[8] is not None else False,
+                        "created_at": row[9],
+                        "updated_at": row[10],
+                    }
+            return None
+        except Exception:
+            conn.close()
+            return None
+
+    def get_template_by_name(self, name: str) -> Optional[Dict]:
+        """Get a specific template by name"""
+        if not self.tenant_id:
+            return None
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, description, content, 
+                           category, variables, is_builtin, created_at, updated_at
+                    FROM templates 
+                    WHERE name = %s AND tenant_id = %s
+                    """,
+                    (name, self.tenant_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, description, content, 
+                           category, variables, is_builtin, created_at, updated_at
+                    FROM templates 
+                    WHERE name = ? AND tenant_id = ?
+                    """,
+                    (name, self.tenant_id),
+                )
+
+            row = cursor.fetchone()
+            conn.close()
+
+            if row:
+                if self.db_type == "postgres":
+                    return dict(row)
+                else:
+                    return {
+                        "id": row[0],
+                        "tenant_id": row[1],
+                        "user_id": row[2],
+                        "name": row[3],
+                        "description": row[4],
+                        "content": row[5],
+                        "category": row[6],
+                        "variables": row[7],
+                        "is_builtin": bool(row[8]) if row[8] is not None else False,
+                        "created_at": row[9],
+                        "updated_at": row[10],
+                    }
+            return None
+        except Exception:
+            conn.close()
+            return None
+
+    def create_template(
+        self,
+        name: str,
+        description: str,
+        content: str,
+        category: str = "Custom",
+        variables: str = "",
+    ) -> str:
+        """Create a new template"""
+        if not self.tenant_id or not self.user_id:
+            return "Error: Missing tenant or user information"
+
+        if not name or not content:
+            return "Error: Template name and content are required"
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            current_time = datetime.now().isoformat()
+
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    INSERT INTO templates (tenant_id, user_id, name, description, content, category, variables, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        self.tenant_id,
+                        self.user_id,
+                        name,
+                        description,
+                        content,
+                        category,
+                        variables,
+                        current_time,
+                        current_time,
+                    ),
+                )
+            else:
+                cursor.execute(
+                    """
+                    INSERT INTO templates (tenant_id, user_id, name, description, content, category, variables, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        self.tenant_id,
+                        self.user_id,
+                        name,
+                        description,
+                        content,
+                        category,
+                        variables,
+                        current_time,
+                        current_time,
+                    ),
+                )
+
+            conn.commit()
+            conn.close()
+            return "Template created successfully"
+
+        except Exception as e:
+            conn.close()
+            if "UNIQUE constraint failed" in str(e) or "duplicate key" in str(e):
+                return "Error: A template with this name already exists"
+            return f"Error: Failed to create template - {str(e)}"
+
+    def update_template(
+        self,
+        template_id: int,
+        name: str,
+        description: str,
+        content: str,
+        category: str = "Custom",
+        variables: str = "",
+    ) -> str:
+        """Update an existing template"""
+        if not self.tenant_id or not self.user_id:
+            return "Error: Missing tenant or user information"
+
+        if not name or not content:
+            return "Error: Template name and content are required"
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            current_time = datetime.now().isoformat()
+
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    UPDATE templates 
+                    SET name = %s, description = %s, content = %s, category = %s, variables = %s, updated_at = %s
+                    WHERE id = %s AND tenant_id = %s AND user_id = %s
+                    """,
+                    (
+                        name,
+                        description,
+                        content,
+                        category,
+                        variables,
+                        current_time,
+                        template_id,
+                        self.tenant_id,
+                        self.user_id,
+                    ),
+                )
+            else:
+                cursor.execute(
+                    """
+                    UPDATE templates 
+                    SET name = ?, description = ?, content = ?, category = ?, variables = ?, updated_at = ?
+                    WHERE id = ? AND tenant_id = ? AND user_id = ?
+                    """,
+                    (
+                        name,
+                        description,
+                        content,
+                        category,
+                        variables,
+                        current_time,
+                        template_id,
+                        self.tenant_id,
+                        self.user_id,
+                    ),
+                )
+
+            if cursor.rowcount == 0:
+                conn.close()
+                return (
+                    "Error: Template not found or you don't have permission to edit it"
+                )
+
+            conn.commit()
+            conn.close()
+            return "Template updated successfully"
+
+        except Exception as e:
+            conn.close()
+            if "UNIQUE constraint failed" in str(e) or "duplicate key" in str(e):
+                return "Error: A template with this name already exists"
+            return f"Error: Failed to update template - {str(e)}"
+
+    def delete_template(self, template_id: int) -> bool:
+        """Delete a template"""
+        if not self.tenant_id or not self.user_id:
+            return False
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    "DELETE FROM templates WHERE id = %s AND tenant_id = %s AND user_id = %s AND is_builtin = FALSE",
+                    (template_id, self.tenant_id, self.user_id),
+                )
+            else:
+                cursor.execute(
+                    "DELETE FROM templates WHERE id = ? AND tenant_id = ? AND user_id = ? AND is_builtin = 0",
+                    (template_id, self.tenant_id, self.user_id),
+                )
+
+            success = cursor.rowcount > 0
+            conn.commit()
+            conn.close()
+            return success
+
+        except Exception:
+            conn.close()
+            return False
+
+    def get_template_categories(self) -> List[str]:
+        """Get all unique template categories for the current tenant"""
+        if not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    "SELECT DISTINCT category FROM templates WHERE tenant_id = %s ORDER BY category",
+                    (self.tenant_id,),
+                )
+            else:
+                cursor.execute(
+                    "SELECT DISTINCT category FROM templates WHERE tenant_id = ? ORDER BY category",
+                    (self.tenant_id,),
+                )
+
+            rows = cursor.fetchall()
+            conn.close()
+
+            categories = []
+            for row in rows:
+                category = row[0] if not self.db_type == "postgres" else row["category"]
+                if category:
+                    categories.append(category)
+
+            # Add default categories if not present
+            default_categories = [
+                "Business",
+                "Technical",
+                "Creative",
+                "Analytical",
+                "Custom",
+                "General",
+            ]
+            for cat in default_categories:
+                if cat not in categories:
+                    categories.append(cat)
+
+            return sorted(categories)
+        except Exception:
+            conn.close()
+            return [
+                "Business",
+                "Technical",
+                "Creative",
+                "Analytical",
+                "Custom",
+                "General",
+            ]

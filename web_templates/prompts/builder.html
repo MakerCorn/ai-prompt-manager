@@ -209,13 +209,13 @@
                     <div class="p-4">
                         <div class="bg-gray-50 rounded-lg p-4 min-h-32">
                             <pre id="preview-content" class="text-sm text-gray-700 whitespace-pre-wrap font-mono">
-Select prompts to see preview...
+{{ i18n.t('builder.select_prompts_preview') }}
                             </pre>
                         </div>
                         
                         <div class="mt-4 flex justify-between items-center text-sm text-gray-600">
-                            <span id="preview-stats">0 characters, 0 tokens (estimated)</span>
-                            <span id="preview-sources">0 source prompts</span>
+                            <span id="preview-stats">0 {{ i18n.t('builder.characters') }}, 0 {{ i18n.t('builder.tokens_estimated') }}</span>
+                            <span id="preview-sources">0 {{ i18n.t('builder.source_prompts') }}</span>
                         </div>
                     </div>
                 </div>
@@ -370,7 +370,7 @@ function updateSelectedPromptsDisplay() {
     if (selectedPrompts.length === 0) {
         placeholder.style.display = 'block';
         container.innerHTML = placeholder.outerHTML;
-        document.getElementById('selection-count').textContent = '0 prompts selected';
+        document.getElementById('selection-count').textContent = `0 {{ i18n.t('builder.prompts_selected') }}`;
         document.getElementById('clear-btn').disabled = true;
         document.getElementById('combine-btn').disabled = true;
         return;
@@ -383,7 +383,7 @@ function updateSelectedPromptsDisplay() {
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
                         <h4 class="font-medium text-gray-900">${prompt.title || prompt.name}</h4>
-                        <p class="text-sm text-gray-500">${prompt.category} • ${prompt.content.length} chars</p>
+                        <p class="text-sm text-gray-500">${prompt.category} • ${prompt.content.length} {{ i18n.t('builder.chars') }}</p>
                     </div>
                     <div class="flex items-center space-x-2">
                         <span class="text-xs text-gray-400">#${index + 1}</span>
@@ -400,7 +400,7 @@ function updateSelectedPromptsDisplay() {
     });
     
     container.innerHTML = html;
-    document.getElementById('selection-count').textContent = `${selectedPrompts.length} prompt${selectedPrompts.length === 1 ? '' : 's'} selected`;
+    document.getElementById('selection-count').textContent = `${selectedPrompts.length} ${selectedPrompts.length === 1 ? '{{ i18n.t("builder.prompt_selected") }}' : '{{ i18n.t("builder.prompts_selected") }}'}`;
     document.getElementById('clear-btn').disabled = false;
     document.getElementById('combine-btn').disabled = selectedPrompts.length < 2;
 }
@@ -413,9 +413,9 @@ function clearSelection() {
 
 function updatePreview() {
     if (selectedPrompts.length === 0) {
-        document.getElementById('preview-content').textContent = 'Select prompts to see preview...';
-        document.getElementById('preview-stats').textContent = '0 characters, 0 tokens (estimated)';
-        document.getElementById('preview-sources').textContent = '0 source prompts';
+        document.getElementById('preview-content').textContent = '{{ i18n.t("builder.select_prompts_preview") }}';
+        document.getElementById('preview-stats').textContent = `0 {{ i18n.t('builder.characters') }}, 0 {{ i18n.t('builder.tokens_estimated') }}`;
+        document.getElementById('preview-sources').textContent = `0 {{ i18n.t('builder.source_prompts') }}`;
         return;
     }
     
@@ -474,8 +474,8 @@ function updatePreview() {
     // Update stats
     const charCount = combined.length;
     const tokenCount = Math.ceil(charCount / 4); // Rough estimation
-    document.getElementById('preview-stats').textContent = `${charCount} characters, ${tokenCount} tokens (estimated)`;
-    document.getElementById('preview-sources').textContent = `${selectedPrompts.length} source prompts`;
+    document.getElementById('preview-stats').textContent = `${charCount} {{ i18n.t('builder.characters') }}, ${tokenCount} {{ i18n.t('builder.tokens_estimated') }}`;
+    document.getElementById('preview-sources').textContent = `${selectedPrompts.length} {{ i18n.t('builder.source_prompts') }}`;
     
     // Show/hide custom template section
     const customSection = document.getElementById('custom-template-section');
@@ -488,7 +488,7 @@ function updatePreview() {
 
 function combinePrompts() {
     if (selectedPrompts.length < 2) {
-        alert('Please select at least 2 prompts to combine');
+        alert('{{ i18n.t("builder.min_prompts_required") }}');
         return;
     }
     
@@ -496,9 +496,9 @@ function combinePrompts() {
     
     // Generate metadata
     const name = 'Combined_' + selectedPrompts.map(p => p.name).join('+');
-    const title = `Combined Prompt (${selectedPrompts.length} parts)`;
-    const category = 'Combined';
-    const tags = [...new Set(selectedPrompts.flatMap(p => (p.tags || '').split(',').map(t => t.trim()).filter(t => t)))].join(', ') + ', combined, ' + selectedPrompts.length + '-part';
+    const title = `{{ i18n.t('builder.combined_prompt_name') }}`.replace('{count}', selectedPrompts.length);
+    const category = '{{ i18n.t("builder.combined_category") }}';
+    const tags = [...new Set(selectedPrompts.flatMap(p => (p.tags || '').split(',').map(t => t.trim()).filter(t => t)))].join(', ') + ', {{ i18n.t("builder.combined_tags_suffix") }}'.replace('{count}', selectedPrompts.length);
     
     // Create form data and submit
     const form = document.createElement('form');
@@ -511,7 +511,7 @@ function combinePrompts() {
         content: combined,
         category: category,
         tags: tags,
-        description: `Combined prompt created from: ${selectedPrompts.map(p => p.title || p.name).join(', ')}`
+        description: `{{ i18n.t('builder.combined_description') }}`.replace('{sources}', selectedPrompts.map(p => p.title || p.name).join(', '))
     };
     
     Object.entries(fields).forEach(([key, value]) => {

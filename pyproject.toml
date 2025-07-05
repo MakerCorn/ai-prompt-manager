@@ -4,8 +4,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "promptman"
-version = "0.5.0"
-description = "AI Prompt Management System"
+version = "0.5.1"
+description = "Modern AI Prompt Management System with FastAPI Web UI, Multi-Language Support, and AI-Powered Optimization"
 authors = ["MakerCorn <corn.mendoza@outlook.com>"]
 license = "Non-Commercial"
 readme = "README.md"
@@ -16,9 +16,14 @@ packages = [
     { include = "api_endpoints.py" },
     { include = "langwatch_optimizer.py" },
     { include = "run.py" },
+    { include = "web_app.py" },
     { include = "token_calculator.py" },
+    { include = "text_translator.py" },
+    { include = "i18n.py" },
     { include = "__main__.py" },
-    { include = "src" }
+    { include = "src" },
+    { include = "web_templates", format = "sdist" },
+    { include = "templates", format = "sdist" }
 ]
 
 [tool.pytest.ini_options]
@@ -40,7 +45,8 @@ python_functions = ["test_*"]
 python = "^3.12"
 
 # Core UI Framework (Modern Web Interface)
-# Note: FastAPI + HTMX is now the default UI
+# FastAPI + HTMX + Tailwind CSS is the default UI
+# Supports single-user and multi-tenant modes with complete CRUD operations
 
 # HTTP Requests and API
 requests = ">=2.32.3,<3.0.0"
@@ -64,9 +70,11 @@ cryptography = ">=43.0.3,<44.0.0"
 # AI and Tokenization (optional)
 tiktoken = ">=0.8.0,<1.0.0"
 
-# Optional dependencies
+# Security and Password Hashing
 bcrypt = {version = ">=4.0.0,<5.0.0", optional = true}
 argon2-cffi = {version = ">=21.0.0,<24.0.0", optional = true}
+
+# Code Quality Tools (main dependencies)
 flake8 = {version = "^6.0.0", optional = true}
 mypy = {version = "^1.0.0", optional = true}
 black = {version = "^23.0.0", optional = true}

@@ -172,7 +172,7 @@ class APIManager:
                 success=True,
                 message="User information retrieved successfully",
                 data={
-                    "user": user_info.dict(),
+                    "user": user_info.model_dump(),
                     "token_stats": self.token_manager.get_token_stats(
                         user_info.user_id
                     ),

@@ -14,13 +14,13 @@
                 <div class="ml-4">
                     <h1 class="text-2xl font-bold text-gray-900">
                         {% if user %}
-                            Welcome back, {{ user.first_name }}!
+                            {{ i18n.t('dashboard.welcome_back', name=user.first_name) }}
                         {% else %}
-                            Welcome to AI Prompt Manager!
+                            {{ i18n.t('dashboard.welcome') }}
                         {% endif %}
                     </h1>
                     <p class="text-gray-600">
-                        Ready to create and manage your AI prompts
+                        {{ i18n.t('dashboard.subtitle') }}
                     </p>
                 </div>
             </div>
@@ -38,11 +38,11 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">
-                                Create New
+                                {{ i18n.t('dashboard.create_new') }}
                             </dt>
                             <dd class="text-lg font-medium text-gray-900">
                                 <a href="/prompts/new" class="text-green-600 hover:text-green-800">
-                                    New Prompt
+                                    {{ i18n.t('dashboard.new_prompt') }}
                                 </a>
                             </dd>
                         </dl>
@@ -60,7 +60,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">
-                                Total Prompts
+                                {{ i18n.t('stats.total_prompts') }}
                             </dt>
                             <dd class="text-lg font-medium text-gray-900">
                                 {{ prompts|length + 10 }}
@@ -80,11 +80,11 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">
-                                Templates
+                                {{ i18n.t('stats.templates') }}
                             </dt>
                             <dd class="text-lg font-medium text-gray-900">
                                 <a href="/templates" class="text-purple-600 hover:text-purple-800">
-                                    Browse
+                                    {{ i18n.t('dashboard.browse') }}
                                 </a>
                             </dd>
                         </dl>
@@ -102,11 +102,11 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">
-                                Settings
+                                {{ i18n.t('nav.settings') }}
                             </dt>
                             <dd class="text-lg font-medium text-gray-900">
                                 <a href="/settings" class="text-gray-600 hover:text-gray-800">
-                                    Configure
+                                    {{ i18n.t('dashboard.configure') }}
                                 </a>
                             </dd>
                         </dl>
@@ -122,10 +122,10 @@
             <div class="flex items-center justify-between">
                 <h3 class="text-lg leading-6 font-medium text-gray-900">
                     <i class="fas fa-clock mr-2 text-gray-400"></i>
-                    Recent Prompts
+                    {{ i18n.t('dashboard.recent_prompts') }}
                 </h3>
                 <a href="/prompts" class="text-sm font-medium text-primary-600 hover:text-primary-500">
-                    View all <i class="fas fa-arrow-right ml-1"></i>
+                    {{ i18n.t('dashboard.view_all') }} <i class="fas fa-arrow-right ml-1"></i>
                 </a>
             </div>
         </div>
@@ -148,7 +148,7 @@
                                 </p>
                                 <div class="mt-2 flex items-center text-xs text-gray-400">
                                     <i class="fas fa-calendar mr-1"></i>
-                                    Recently created
+                                    {{ i18n.t('dashboard.recently_created') }}
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
@@ -167,11 +167,11 @@
             {% else %}
                 <div class="text-center py-12">
                     <i class="fas fa-file-text text-4xl text-gray-300 mb-4"></i>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No prompts yet</h3>
-                    <p class="text-gray-500 mb-6">Get started by creating your first prompt</p>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">{{ i18n.t('dashboard.no_prompts') }}</h3>
+                    <p class="text-gray-500 mb-6">{{ i18n.t('dashboard.no_prompts_desc') }}</p>
                     <a href="/prompts/new" class="btn-primary">
                         <i class="fas fa-plus mr-2"></i>
-                        Create Your First Prompt
+                        {{ i18n.t('dashboard.create_first') }}
                     </a>
                 </div>
             {% endif %}
@@ -183,7 +183,7 @@
         <div class="px-4 py-5 sm:p-6">
             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
                 <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
-                Getting Started Tips
+                {{ i18n.t('tips.title') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex items-start">
@@ -193,8 +193,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-gray-900">Create Your First Prompt</h4>
-                        <p class="text-sm text-gray-600">Start by creating a prompt for your most common AI task</p>
+                        <h4 class="text-sm font-medium text-gray-900">{{ i18n.t('tips.create_title') }}</h4>
+                        <p class="text-sm text-gray-600">{{ i18n.t('tips.create_desc') }}</p>
                     </div>
                 </div>
                 <div class="flex items-start">
@@ -204,8 +204,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-gray-900">Use Templates</h4>
-                        <p class="text-sm text-gray-600">Browse our template library for proven prompt patterns</p>
+                        <h4 class="text-sm font-medium text-gray-900">{{ i18n.t('tips.templates_title') }}</h4>
+                        <p class="text-sm text-gray-600">{{ i18n.t('tips.templates_desc') }}</p>
                     </div>
                 </div>
                 <div class="flex items-start">
@@ -215,8 +215,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-gray-900">Test & Optimize</h4>
-                        <p class="text-sm text-gray-600">Use our built-in testing tools to refine your prompts</p>
+                        <h4 class="text-sm font-medium text-gray-900">{{ i18n.t('tips.test_title') }}</h4>
+                        <p class="text-sm text-gray-600">{{ i18n.t('tips.test_desc') }}</p>
                     </div>
                 </div>
                 <div class="flex items-start">
@@ -226,8 +226,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-gray-900">Organize with Categories</h4>
-                        <p class="text-sm text-gray-600">Keep your prompts organized using categories and tags</p>
+                        <h4 class="text-sm font-medium text-gray-900">{{ i18n.t('tips.organize_title') }}</h4>
+                        <p class="text-sm text-gray-600">{{ i18n.t('tips.organize_desc') }}</p>
                     </div>
                 </div>
             </div>

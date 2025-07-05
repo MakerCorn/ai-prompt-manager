@@ -3,10 +3,12 @@
 Test Multi-Service Prompt Optimization Integration
 """
 
-# import os  # noqa: F401
+import os
+import sys
 
-from langwatch_optimizer import langwatch_optimizer  # noqa: F401
-from langwatch_optimizer import prompt_optimizer
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+from langwatch_optimizer import PromptOptimizer, prompt_optimizer  # noqa: F401
 
 
 def test_langwatch_optimization():

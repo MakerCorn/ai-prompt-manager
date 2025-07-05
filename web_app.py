@@ -158,13 +158,13 @@ class WebApp:
             else:
                 return self.templates.TemplateResponse(
                     "auth/login.html",
-                    {
-                        "request": request,
-                        "error": message,
-                        "page_title": "Login",
-                        "email": email,
-                        "subdomain": subdomain,
-                    },
+                    self.get_template_context(
+                        request,
+                        error=message,
+                        page_title="Login",
+                        email=email,
+                        subdomain=subdomain,
+                    ),
                 )
 
         @self.app.get("/logout")
@@ -194,25 +194,17 @@ class WebApp:
             prompts = data_manager.get_all_prompts()
             categories = data_manager.get_categories()
 
-            context = {
-                "request": request,
-                "user": user,
-                "prompts": prompts,
-                "categories": categories,
-                "page_title": "Prompts",
-            }
-
-            if self.single_user_mode:
-                context.update(
-                    {
-                        "single_user_mode": True,
-                        "i18n": i18n,
-                        "current_language": i18n.current_language,
-                        "available_languages": i18n.get_available_languages(),
-                    }
-                )
-
-            return self.templates.TemplateResponse("prompts/list.html", context)
+            return self.templates.TemplateResponse(
+                "prompts/list.html",
+                self.get_template_context(
+                    request,
+                    user,
+                    prompts=prompts,
+                    categories=categories,
+                    page_title=i18n.t("nav.prompts"),
+                    single_user_mode=self.single_user_mode,
+                ),
+            )
 
         @self.app.get("/prompts/new", response_class=HTMLResponse)
         async def new_prompt(request: Request):
@@ -228,9 +220,17 @@ class WebApp:
                     {
                         "request": request,
                         "user": None,
-                        "categories": categories,
-                        "page_title": "New Prompt",
+                        "categories": categories
+                        or [],  # Ensure categories is never None
+                        "page_title": i18n.t("prompt.create_new"),
                         "action": "create",
+                        "name": "",
+                        "content": "",
+                        "category": "",
+                        "description": "",
+                        "tags": "",
+                        "prompt_id": None,
+                        "error": None,  # Explicitly set error to None
                         "single_user_mode": True,
                         "i18n": i18n,
                         "current_language": i18n.current_language,
@@ -254,9 +254,20 @@ class WebApp:
                 {
                     "request": request,
                     "user": user,
-                    "categories": categories,
-                    "page_title": "New Prompt",
+                    "categories": categories or [],  # Ensure categories is never None
+                    "page_title": i18n.t("prompt.create_new"),
                     "action": "create",
+                    "name": "",
+                    "content": "",
+                    "category": "",
+                    "description": "",
+                    "tags": "",
+                    "prompt_id": None,
+                    "error": None,  # Explicitly set error to None
+                    "i18n": i18n,
+                    "available_languages": i18n.get_available_languages(),
+                    "current_language": i18n.current_language,
+                    "single_user_mode": self.single_user_mode,
                 },
             )
 
@@ -300,44 +311,43 @@ class WebApp:
                 return RedirectResponse(url="/prompts", status_code=302)
             else:
                 categories = data_manager.get_categories()
-                context = {
-                    "request": request,
-                    "user": user,
-                    "categories": categories,
-                    "error": result,  # Show the actual error message
-                    "page_title": "New Prompt",
-                    "action": "create",
-                    "name": name,
-                    "content": content,
-                    "category": category,
-                    "description": description,
-                    "tags": tags,
-                }
+                return self.templates.TemplateResponse(
+                    "prompts/form.html",
+                    self.get_template_context(
+                        request,
+                        user,
+                        categories=categories,
+                        error=result,
+                        page_title=i18n.t("prompt.create_new"),
+                        action="create",
+                        name=name,
+                        content=content,
+                        category=category,
+                        description=description,
+                        tags=tags,
+                        single_user_mode=self.single_user_mode,
+                    ),
+                )
 
-                # Add single-user mode context if needed
-                if self.single_user_mode:
-                    context.update(
-                        {
-                            "single_user_mode": True,
-                            "i18n": i18n,
-                            "current_language": i18n.current_language,
-                            "available_languages": i18n.get_available_languages(),
-                        }
-                    )
+        @self.app.get("/prompts/{prompt_id}/edit", response_class=HTMLResponse)
+        async def edit_prompt(request: Request, prompt_id: int):
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                user = None
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
 
-                return self.templates.TemplateResponse("prompts/form.html", context)
-
-        @self.app.get("/prompts/{prompt_name}/edit", response_class=HTMLResponse)
-        async def edit_prompt(request: Request, prompt_name: str):
-            user = await self.get_current_user(request)
-            if not user:
-                return RedirectResponse(url="/login", status_code=302)
-
-            data_manager = PromptDataManager(
-                db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
-            )
-
-            prompt = data_manager.get_prompt_by_name(prompt_name)
+            # Get prompt by ID
+            all_prompts = data_manager.get_all_prompts()
+            prompt = next((p for p in all_prompts if p["id"] == prompt_id), None)
             if not prompt:
                 raise HTTPException(status_code=404, detail="Prompt not found")
 
@@ -349,41 +359,50 @@ class WebApp:
                     "request": request,
                     "user": user,
                     "categories": categories,
-                    "page_title": "Edit Prompt",
+                    "page_title": i18n.t("prompt.edit"),
                     "action": "edit",
+                    "prompt_id": prompt_id,
                     "name": prompt.get("name", ""),
                     "content": prompt.get("content", ""),
                     "category": prompt.get("category", ""),
                     "description": prompt.get("description", ""),
-                    "tags": (
-                        ", ".join(prompt.get("tags", [])) if prompt.get("tags") else ""
-                    ),
+                    "tags": prompt.get("tags", ""),
+                    "i18n": i18n,
+                    "available_languages": i18n.get_available_languages(),
+                    "current_language": i18n.current_language,
+                    "single_user_mode": self.single_user_mode,
                 },
             )
 
-        @self.app.post("/prompts/{prompt_name}/edit")
+        @self.app.post("/prompts/{prompt_id}/edit")
         async def update_prompt(
             request: Request,
-            prompt_name: str,
+            prompt_id: int,
             name: str = Form(...),
             content: str = Form(...),
             category: str = Form(...),
             description: str = Form(default=""),
             tags: str = Form(default=""),
         ):
-            user = await self.get_current_user(request)
-            if not user:
-                return RedirectResponse(url="/login", status_code=302)
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                user = None
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
 
-            data_manager = PromptDataManager(
-                db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+            # Get the original prompt by ID
+            all_prompts = data_manager.get_all_prompts()
+            original_prompt = next(
+                (p for p in all_prompts if p["id"] == prompt_id), None
             )
-
-            # Process tags
-            tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
-
-            # Get the original prompt to update
-            original_prompt = data_manager.get_prompt_by_name(prompt_name)
             if not original_prompt:
                 raise HTTPException(status_code=404, detail="Prompt not found")
 
@@ -393,7 +412,7 @@ class WebApp:
                 title=name,  # Using name as title
                 content=content,
                 category=category,
-                tags=", ".join(tag_list),  # convert list back to string
+                tags=tags,
             )
 
             if not result.startswith("Error:"):
@@ -406,43 +425,63 @@ class WebApp:
                         "request": request,
                         "user": user,
                         "categories": categories,
-                        "error": result,  # Show the actual error message
-                        "page_title": "Edit Prompt",
+                        "error": result,
+                        "page_title": i18n.t("prompt.edit"),
                         "action": "edit",
+                        "prompt_id": prompt_id,
                         "name": name,
                         "content": content,
                         "category": category,
                         "description": description,
                         "tags": tags,
+                        "i18n": i18n,
+                        "available_languages": i18n.get_available_languages(),
+                        "current_language": i18n.current_language,
+                        "single_user_mode": self.single_user_mode,
                     },
                 )
 
-        @self.app.delete("/prompts/{prompt_name}")
-        async def delete_prompt(request: Request, prompt_name: str):
-            user = await self.get_current_user(request)
-            if not user:
-                raise HTTPException(status_code=401, detail="Authentication required")
+        @self.app.delete("/prompts/{prompt_id}")
+        async def delete_prompt(request: Request, prompt_id: int):
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                user = None
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
 
-            data_manager = PromptDataManager(
-                db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
-            )
+            # Get prompt by ID to get its name for deletion
+            all_prompts = data_manager.get_all_prompts()
+            prompt = next((p for p in all_prompts if p["id"] == prompt_id), None)
+            if not prompt:
+                raise HTTPException(status_code=404, detail="Prompt not found")
 
-            success = data_manager.delete_prompt(
-                prompt_name
-            )  # delete_prompt takes name as string
+            success = data_manager.delete_prompt(prompt["name"])
             if success:
                 # Return updated prompts list for HTMX
                 prompts = data_manager.get_all_prompts()
                 categories = data_manager.get_categories()
 
                 return self.templates.TemplateResponse(
-                    "prompts/list.html",
+                    "prompts/_list_partial.html",
                     {
                         "request": request,
                         "user": user,
                         "prompts": prompts,
                         "categories": categories,
-                        "page_title": "Prompts",
+                        "i18n": i18n,
+                        "available_languages": i18n.get_available_languages(),
+                        "current_language": i18n.current_language,
+                        "single_user_mode": self.single_user_mode,
                     },
                 )
             else:
@@ -670,6 +709,30 @@ class WebApp:
         # Prompt Builder route
         @self.app.get("/prompts/builder", response_class=HTMLResponse)
         async def prompt_builder(request: Request):
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                prompts = data_manager.get_all_prompts()
+                categories = data_manager.get_categories()
+
+                return self.templates.TemplateResponse(
+                    "prompts/builder.html",
+                    {
+                        "request": request,
+                        "user": None,
+                        "prompts": prompts,
+                        "categories": categories,
+                        "page_title": i18n.t("builder.title"),
+                        "single_user_mode": True,
+                        "i18n": i18n,
+                        "current_language": i18n.current_language,
+                        "available_languages": i18n.get_available_languages(),
+                    },
+                )
+
+            # Multi-tenant mode
             user = await self.get_current_user(request)
             if not user:
                 return RedirectResponse(url="/login", status_code=302)
@@ -688,7 +751,7 @@ class WebApp:
                     user,
                     prompts=prompts,
                     categories=categories,
-                    page_title="Prompt Builder",
+                    page_title=i18n.t("builder.title"),
                 ),
             )
 
@@ -720,14 +783,318 @@ class WebApp:
         # Templates routes
         @self.app.get("/templates", response_class=HTMLResponse)
         async def templates_page(request: Request):
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                templates = data_manager.get_all_templates()
+                categories = data_manager.get_template_categories()
+
+                return self.templates.TemplateResponse(
+                    "templates/list.html",
+                    {
+                        "request": request,
+                        "user": None,
+                        "templates": templates,
+                        "categories": categories,
+                        "page_title": "Templates",
+                        "single_user_mode": True,
+                        "i18n": i18n,
+                        "current_language": i18n.current_language,
+                        "available_languages": i18n.get_available_languages(),
+                    },
+                )
+
             user = await self.get_current_user(request)
             if not user:
                 return RedirectResponse(url="/login", status_code=302)
 
+            data_manager = PromptDataManager(
+                db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+            )
+            templates = data_manager.get_all_templates()
+            categories = data_manager.get_template_categories()
+
             return self.templates.TemplateResponse(
                 "templates/list.html",
-                {"request": request, "user": user, "page_title": "Templates"},
+                self.get_template_context(
+                    request,
+                    user,
+                    templates=templates,
+                    categories=categories,
+                    page_title="Templates",
+                ),
             )
+
+        @self.app.get("/templates/new", response_class=HTMLResponse)
+        async def new_template_page(request: Request):
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                categories = data_manager.get_template_categories()
+
+                return self.templates.TemplateResponse(
+                    "templates/form.html",
+                    {
+                        "request": request,
+                        "user": None,
+                        "categories": categories,
+                        "page_title": "New Template",
+                        "action": "create",
+                        "single_user_mode": True,
+                        "i18n": i18n,
+                        "current_language": i18n.current_language,
+                        "available_languages": i18n.get_available_languages(),
+                    },
+                )
+
+            user = await self.get_current_user(request)
+            if not user:
+                return RedirectResponse(url="/login", status_code=302)
+
+            data_manager = PromptDataManager(
+                db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+            )
+            categories = data_manager.get_template_categories()
+
+            return self.templates.TemplateResponse(
+                "templates/form.html",
+                self.get_template_context(
+                    request,
+                    user,
+                    categories=categories,
+                    page_title="New Template",
+                    action="create",
+                ),
+            )
+
+        @self.app.post("/templates")
+        async def create_template(
+            request: Request,
+            name: str = Form(...),
+            description: str = Form(default=""),
+            content: str = Form(...),
+            category: str = Form(default="Custom"),
+        ):
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+
+            # Extract variables from template content
+            import re
+
+            variables = re.findall(r"\{([^}]+)\}", content)
+            variables_str = ",".join(variables) if variables else ""
+
+            result = data_manager.create_template(
+                name, description, content, category, variables_str
+            )
+
+            if not result.startswith("Error:"):
+                return RedirectResponse(url="/templates", status_code=302)
+            else:
+                categories = data_manager.get_template_categories()
+                if self.single_user_mode:
+                    return self.templates.TemplateResponse(
+                        "templates/form.html",
+                        {
+                            "request": request,
+                            "user": None,
+                            "categories": categories,
+                            "error": result,
+                            "page_title": "New Template",
+                            "action": "create",
+                            "name": name,
+                            "description": description,
+                            "content": content,
+                            "category": category,
+                            "single_user_mode": True,
+                            "i18n": i18n,
+                            "current_language": i18n.current_language,
+                            "available_languages": i18n.get_available_languages(),
+                        },
+                    )
+                else:
+                    user = await self.get_current_user(request)
+                    return self.templates.TemplateResponse(
+                        "templates/form.html",
+                        self.get_template_context(
+                            request,
+                            user,
+                            categories=categories,
+                            error=result,
+                            page_title="New Template",
+                            action="create",
+                            name=name,
+                            description=description,
+                            content=content,
+                            category=category,
+                        ),
+                    )
+
+        @self.app.get("/templates/{template_id}/edit", response_class=HTMLResponse)
+        async def edit_template_page(request: Request, template_id: int):
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+
+            template = data_manager.get_template_by_id(template_id)
+            if not template:
+                raise HTTPException(status_code=404, detail="Template not found")
+
+            categories = data_manager.get_template_categories()
+
+            if self.single_user_mode:
+                return self.templates.TemplateResponse(
+                    "templates/form.html",
+                    {
+                        "request": request,
+                        "user": None,
+                        "categories": categories,
+                        "page_title": "Edit Template",
+                        "action": "edit",
+                        "template_id": template_id,
+                        "name": template.get("name", ""),
+                        "description": template.get("description", ""),
+                        "content": template.get("content", ""),
+                        "category": template.get("category", ""),
+                        "single_user_mode": True,
+                        "i18n": i18n,
+                        "current_language": i18n.current_language,
+                        "available_languages": i18n.get_available_languages(),
+                    },
+                )
+            else:
+                user = await self.get_current_user(request)
+                return self.templates.TemplateResponse(
+                    "templates/form.html",
+                    self.get_template_context(
+                        request,
+                        user,
+                        categories=categories,
+                        page_title="Edit Template",
+                        action="edit",
+                        template_id=template_id,
+                        name=template.get("name", ""),
+                        description=template.get("description", ""),
+                        content=template.get("content", ""),
+                        category=template.get("category", ""),
+                    ),
+                )
+
+        @self.app.post("/templates/{template_id}")
+        async def update_template(
+            request: Request,
+            template_id: int,
+            name: str = Form(...),
+            description: str = Form(default=""),
+            content: str = Form(...),
+            category: str = Form(default="Custom"),
+        ):
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+
+            # Extract variables from template content
+            import re
+
+            variables = re.findall(r"\{([^}]+)\}", content)
+            variables_str = ",".join(variables) if variables else ""
+
+            result = data_manager.update_template(
+                template_id, name, description, content, category, variables_str
+            )
+
+            if not result.startswith("Error:"):
+                return RedirectResponse(url="/templates", status_code=302)
+            else:
+                categories = data_manager.get_template_categories()
+                if self.single_user_mode:
+                    return self.templates.TemplateResponse(
+                        "templates/form.html",
+                        {
+                            "request": request,
+                            "user": None,
+                            "categories": categories,
+                            "error": result,
+                            "page_title": "Edit Template",
+                            "action": "edit",
+                            "template_id": template_id,
+                            "name": name,
+                            "description": description,
+                            "content": content,
+                            "category": category,
+                            "single_user_mode": True,
+                            "i18n": i18n,
+                            "current_language": i18n.current_language,
+                            "available_languages": i18n.get_available_languages(),
+                        },
+                    )
+                else:
+                    user = await self.get_current_user(request)
+                    return self.templates.TemplateResponse(
+                        "templates/form.html",
+                        self.get_template_context(
+                            request,
+                            user,
+                            categories=categories,
+                            error=result,
+                            page_title="Edit Template",
+                            action="edit",
+                            template_id=template_id,
+                            name=name,
+                            description=description,
+                            content=content,
+                            category=category,
+                        ),
+                    )
+
+        @self.app.delete("/templates/{template_id}")
+        async def delete_template(request: Request, template_id: int):
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+
+            success = data_manager.delete_template(template_id)
+            if success:
+                return RedirectResponse(url="/templates", status_code=302)
+            else:
+                raise HTTPException(
+                    status_code=404, detail="Template not found or cannot be deleted"
+                )
 
         # Settings routes
         @self.app.get("/settings", response_class=HTMLResponse)
@@ -742,7 +1109,7 @@ class WebApp:
 
             return self.templates.TemplateResponse(
                 "settings/index.html",
-                {"request": request, "user": user, "page_title": "Settings"},
+                self.get_template_context(request, user, page_title="Settings"),
             )
 
         # Profile routes
@@ -758,7 +1125,7 @@ class WebApp:
 
             return self.templates.TemplateResponse(
                 "settings/profile.html",
-                {"request": request, "user": user, "page_title": "Profile"},
+                self.get_template_context(request, user, page_title="Profile"),
             )
 
         # API Tokens routes
@@ -840,7 +1207,7 @@ class WebApp:
 
             return self.templates.TemplateResponse(
                 "ai_services/config.html",
-                {"request": request, "user": user, "page_title": "AI Services"},
+                self.get_template_context(request, user, page_title="AI Services"),
             )
 
         @self.app.post("/ai-services/test")

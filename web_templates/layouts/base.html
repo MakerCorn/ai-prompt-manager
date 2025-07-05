@@ -40,43 +40,39 @@
         <!-- Navigation (shown in both single-user and multi-tenant modes) -->
         <nav class="bg-white shadow-sm border-b border-gray-200">
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 justify-between">
-                        <div class="flex">
-                            <div class="flex flex-shrink-0 items-center">
+                    <div class="flex h-16 justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="flex flex-shrink-0 items-center hidden">
                                 <h1 class="text-xl font-bold text-gray-900">
                                     <i class="fas fa-robot text-primary-500 mr-2"></i>
-                                    AI Prompt Manager
+                                    {{ i18n.t('app.title') }}
                                 </h1>
                             </div>
-                            <div class="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
+                            <div class="hidden sm:ml-6 sm:flex sm:space-x-8 sm:items-center">
                                 <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
-                                    <i class="fas fa-tachometer-alt mr-1"></i>
-                                    Dashboard
+                                    <i class="fas fa-home mr-1"></i>
+                                    {{ i18n.t('nav.home') }}
                                 </a>
                                 <a href="/prompts" class="nav-link {% if '/prompts' in request.url.path and '/builder' not in request.url.path %}active{% endif %}">
                                     <i class="fas fa-file-text mr-1"></i>
-                                    Prompts
+                                    {{ i18n.t('nav.prompts') }}
                                 </a>
                                 <a href="/prompts/builder" class="nav-link {% if '/prompts/builder' in request.url.path %}active{% endif %}">
-                                    <i class="fas fa-puzzle-piece mr-1"></i>
-                                    Prompt Builder
+                                    <i class="fas fa-hammer mr-1"></i>
+                                    {{ i18n.t('nav.builder') }}
                                 </a>
                                 <a href="/templates" class="nav-link {% if '/templates' in request.url.path %}active{% endif %}">
                                     <i class="fas fa-layer-group mr-1"></i>
-                                    Templates
-                                </a>
-                                <a href="/ai-services" class="nav-link {% if '/ai-services' in request.url.path %}active{% endif %}">
-                                    <i class="fas fa-robot mr-1"></i>
-                                    AI Services
+                                    {{ i18n.t('template.list') }}
                                 </a>
                                 <a href="/settings" class="nav-link {% if '/settings' in request.url.path %}active{% endif %}">
                                     <i class="fas fa-cog mr-1"></i>
-                                    Settings
+                                    {{ i18n.t('nav.settings') }}
                                 </a>
                                 {% if user and user.role == 'admin' %}
                                 <a href="/admin" class="nav-link {% if '/admin' in request.url.path %}active{% endif %}">
                                     <i class="fas fa-shield-alt mr-1"></i>
-                                    Admin
+                                    {{ i18n.t('nav.admin') }}
                                 </a>
                                 {% endif %}
                             </div>

@@ -16,8 +16,11 @@ os.environ.setdefault("LOCAL_DEV_MODE", "true")
 def start_api_server():
     """Start just the API server"""
     try:
+        import sys
+
         import uvicorn
 
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
         from api_endpoints import get_api_app
 
         app = get_api_app()

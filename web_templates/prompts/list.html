@@ -7,13 +7,13 @@
         <div>
             <h1 class="text-2xl font-bold text-gray-900">
                 <i class="fas fa-file-text text-primary-500 mr-2"></i>
-                Prompts
+                {{ i18n.t('nav.prompts') }}
             </h1>
-            <p class="text-gray-600">Manage your AI prompts and templates</p>
+            <p class="text-gray-600">{{ i18n.t('prompt.manage_desc') }}</p>
         </div>
         <a href="/prompts/new" class="btn-primary">
             <i class="fas fa-plus mr-2"></i>
-            New Prompt
+            {{ i18n.t('prompt.create_new') }}
         </a>
     </div>
 
@@ -22,14 +22,14 @@
         <div class="px-4 py-5 sm:p-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="md:col-span-2">
-                    <label for="search" class="sr-only">Search prompts</label>
+                    <label for="search" class="sr-only">{{ i18n.t('prompt.search') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
                         <input type="text" id="search" name="search" 
                                class="form-input pl-10" 
-                               placeholder="Search prompts..."
+                               placeholder="{{ i18n.t('prompt.search_placeholder') }}"
                                hx-get="/prompts/search" 
                                hx-trigger="keyup changed delay:300ms" 
                                hx-target="#prompts-list">
@@ -40,7 +40,7 @@
                             hx-get="/prompts/filter" 
                             hx-trigger="change" 
                             hx-target="#prompts-list">
-                        <option value="">All Categories</option>
+                        <option value="">{{ i18n.t('prompt.all_categories') }}</option>
                         {% for category in categories %}
                             <option value="{{ category }}">{{ category }}</option>
                         {% endfor %}
@@ -51,11 +51,11 @@
                             hx-get="/prompts/filter" 
                             hx-trigger="change" 
                             hx-target="#prompts-list">
-                        <option value="created_desc">Newest First</option>
-                        <option value="created_asc">Oldest First</option>
-                        <option value="name_asc">Name A-Z</option>
-                        <option value="name_desc">Name Z-A</option>
-                        <option value="category_asc">Category A-Z</option>
+                        <option value="created_desc">{{ i18n.t('prompt.sort_newest') }}</option>
+                        <option value="created_asc">{{ i18n.t('prompt.sort_oldest') }}</option>
+                        <option value="name_asc">{{ i18n.t('prompt.sort_name_asc') }}</option>
+                        <option value="name_desc">{{ i18n.t('prompt.sort_name_desc') }}</option>
+                        <option value="category_asc">{{ i18n.t('prompt.sort_category') }}</option>
                     </select>
                 </div>
             </div>

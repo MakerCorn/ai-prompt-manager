@@ -342,7 +342,7 @@ jobs:
           type=raw,value=stable,enable=${{ github.event.inputs.prerelease == 'false' }}
         labels: |
           org.opencontainers.image.title=AI Prompt Manager
-          org.opencontainers.image.description=A comprehensive AI prompt management system with multi-service optimization
+          org.opencontainers.image.description=Modern AI Prompt Management System with FastAPI Web UI, Multi-Language Support, and AI-Powered Optimization
           org.opencontainers.image.vendor=MakerCorn
           org.opencontainers.image.version=v${{ needs.version-bump.outputs.new_version }}
           org.opencontainers.image.revision=${{ github.sha }}
@@ -477,7 +477,7 @@ jobs:
         body: |
           # 🚀 AI Prompt Manager v${{ needs.version-bump.outputs.new_version }}
           
-          A comprehensive AI prompt management system with unified architecture supporting both single-user and multi-tenant deployments.
+          Modern AI Prompt Management System with FastAPI Web UI, complete CRUD operations, multi-language support, and AI-powered optimization services.
           
           ## 🌟 What's New
           
@@ -509,12 +509,13 @@ jobs:
           cd ai-prompt-manager
           git checkout v${{ needs.version-bump.outputs.new_version }}
           poetry install
-          poetry run python run.py
+          poetry run python run.py  # CRITICAL: Use Poetry environment to avoid dependency issues
           ```
           
           ## 🛠️ Key Features
           
-          - **Modern Architecture**: Service Layer, Repository Pattern, and clean separation of concerns
+          - **FastAPI Web UI**: Modern responsive interface with HTMX and Tailwind CSS
+          - **Hybrid Architecture**: Service Layer, Repository Pattern, and clean separation of concerns
           - **Multi-Service Prompt Optimizer**: LangWatch, PromptPerfect, LangSmith, Helicone support
           - **Multi-Language Interface**: 10 languages with real-time switching
           - **Unified Architecture**: Single codebase for single-user and multi-tenant modes
@@ -523,7 +524,7 @@ jobs:
           - **Token Calculator**: Real-time cost estimation for AI models
           - **Prompt Builder**: Drag-and-drop interface for combining prompts
           - **Type Safety**: Full type hints and validation throughout the codebase
-          - **Comprehensive Testing**: 358 passing tests with full coverage
+          - **Comprehensive Testing**: Complete test suite including E2E browser automation with Playwright
           
           ## 🐳 Docker Images
           

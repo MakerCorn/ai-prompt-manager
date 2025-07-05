@@ -373,7 +373,8 @@ def main():
                     print(f"✅ API server is responding on port {api_port}")
                 else:
                     print(
-                        f"⚠️  API server started but health check failed: {response.status_code}"
+                        f"⚠️  API server started but health check failed: "
+                        f"{response.status_code}"
                     )
             except Exception as e:
                 print(f"⚠️  API server may not be fully started yet: {e}")

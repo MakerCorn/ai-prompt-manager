@@ -116,9 +116,12 @@ class I18nManager:
             "app.status.authenticated": "✅ Authenticated as {user}",
             "app.status.not_authenticated": "❌ Not authenticated",
             # Navigation
+            "nav.home": "Home",
             "nav.prompts": "Prompts",
+            "nav.builder": "Builder",
             "nav.library": "Library",
             "nav.tokens": "Tokens",
+            "nav.services": "Services",
             "nav.settings": "Settings",
             "nav.admin": "Admin",
             # Authentication
@@ -130,19 +133,236 @@ class I18nManager:
             "auth.sso": "SSO Login",
             "auth.welcome": "Welcome, {name}!",
             "auth.invalid": "Invalid credentials",
+            "auth.signin": "Sign in to your account",
+            "auth.error": "Authentication Error",
+            "auth.organization": "Organization",
+            "auth.organization_placeholder": "Organization subdomain",
+            "auth.organization_help": (
+                "Enter your organization's subdomain "
+                "(use 'localhost' for local development)"
+            ),
+            "auth.email_placeholder": "you@example.com",
+            "auth.password_placeholder": "Enter your password",
+            "auth.remember": "Remember me",
+            "auth.forgot_password": "Forgot password?",
+            "auth.need_account": "Need an account?",
+            "auth.create_account": "Create new account",
+            # Dashboard
+            "dashboard.title": "Dashboard",
+            "dashboard.admin_title": "Admin Dashboard",
+            "dashboard.admin_subtitle": "Manage users, tenants, and system settings",
+            "dashboard.welcome_back": "Welcome back, {name}!",
+            "dashboard.welcome": "Welcome to AI Prompt Manager!",
+            "dashboard.subtitle": "Ready to create and manage your AI prompts",
+            "dashboard.quick_actions": "Quick Actions",
+            "dashboard.recent_prompts": "Recent Prompts",
+            "dashboard.recent_activity": "Recent Activity",
+            "dashboard.no_activity": "No recent activity",
+            "dashboard.no_prompts": "No prompts yet",
+            "dashboard.no_prompts_desc": "Get started by creating your first prompt",
+            "dashboard.view_all": "View all",
+            "dashboard.create_first": "Create Your First Prompt",
+            "dashboard.create_new": "Create New",
+            "dashboard.new_prompt": "New Prompt",
+            "dashboard.browse": "Browse",
+            "dashboard.configure": "Configure",
+            "dashboard.recently_created": "Recently created",
+            # Statistics
+            "stats.total_users": "Total Users",
+            "stats.active_tenants": "Active Tenants",
+            "stats.total_prompts": "Total Prompts",
+            "stats.api_tokens": "API Tokens",
+            "stats.templates": "Templates",
+            # Admin sections
+            "admin.overview": "Overview",
+            "admin.users": "Users",
+            "admin.tenants": "Tenants",
+            "admin.system": "System",
+            "admin.user_management": "User Management",
+            "admin.tenant_management": "Tenant Management",
+            "admin.system_info": "System Information",
+            "admin.system_actions": "System Actions",
+            "admin.add_user": "Add User",
+            "admin.add_tenant": "Add Tenant",
+            "admin.no_users": "No users found",
+            "admin.no_tenants": "No tenants found",
+            # User table headers
+            "table.user": "User",
+            "table.role": "Role",
+            "table.tenant": "Tenant",
+            "table.last_login": "Last Login",
+            "table.status": "Status",
+            "table.actions": "Actions",
+            "table.subdomain": "Subdomain",
+            "table.users": "Users",
+            "table.created": "Created",
+            # System info
+            "system.version": "Version",
+            "system.database": "Database",
+            "system.multitenant": "Multi-tenant",
+            "system.api": "API",
+            "system.uptime": "Uptime",
+            "system.environment": "Environment",
+            "system.enabled": "Enabled",
+            "system.disabled": "Disabled",
+            "system.backup": "Backup Database",
+            "system.backup_desc": "Create a backup of the current database",
+            "system.clear_cache": "Clear Cache",
+            "system.clear_cache_desc": "Clear application cache and temporary files",
+            # Getting started tips
+            "tips.title": "Getting Started Tips",
+            "tips.create_title": "Create Your First Prompt",
+            "tips.create_desc": (
+                "Start by creating a prompt for your most common AI task"
+            ),
+            "tips.templates_title": "Use Templates",
+            "tips.templates_desc": (
+                "Browse our template library for proven prompt patterns"
+            ),
+            "tips.test_title": "Test & Optimize",
+            "tips.test_desc": "Use our built-in testing tools to refine your prompts",
+            "tips.organize_title": "Organize with Categories",
+            "tips.organize_desc": (
+                "Keep your prompts organized using categories and tags"
+            ),
             # Prompts
             "prompt.name": "Name",
             "prompt.title": "Title",
             "prompt.category": "Category",
             "prompt.content": "Content",
             "prompt.tags": "Tags",
+            "prompt.description": "Description",
             "prompt.add": "Add",
-            "prompt.update": "Update",
+            "prompt.create": "Create Prompt",
+            "prompt.create_new": "Create New Prompt",
+            "prompt.create_desc": "Create a new AI prompt for your library",
+            "prompt.edit": "Edit Prompt",
+            "prompt.edit_desc": "Update your existing prompt",
+            "prompt.update": "Update Prompt",
             "prompt.delete": "Delete",
             "prompt.clear": "Clear",
             "prompt.load": "Load",
             "prompt.search": "Search",
             "prompt.enhancement": "Enhancement Prompt",
+            "prompt.name_placeholder": ("Enter a descriptive name for your prompt"),
+            "prompt.name_help": "Give your prompt a clear, descriptive name",
+            "prompt.category_select": "Select a category",
+            "prompt.category_add": "+ Add New Category",
+            "prompt.category_name": "Category Name",
+            "prompt.category_name_placeholder": "Enter category name",
+            "prompt.tags_placeholder": "tag1, tag2, tag3",
+            "prompt.tags_help": "Separate tags with commas",
+            "prompt.description_placeholder": (
+                "Brief description of what this prompt does..."
+            ),
+            "prompt.description_help": (
+                "Optional: Describe the purpose and expected output of this prompt"
+            ),
+            "prompt.content_placeholder": (
+                "Enter your AI prompt here...\n\n"
+                "You can use variables like {variable_name} that will be replaced "
+                "when the prompt is executed.\n\n"
+                "Example:\nWrite a {tone} email to {recipient} about {topic}.\n"
+                "Keep it {length} and include {key_points}."
+            ),
+            "prompt.variables_help": "Use {variable_name} syntax for dynamic variables",
+            "prompt.insert_template": "Insert Template",
+            "prompt.variables": "Variables",
+            "prompt.characters": "characters",
+            "prompt.tokens": "tokens",
+            "prompt.variable_guide": "Variable Usage Guide",
+            "prompt.basic_variables": "Basic Variables",
+            "prompt.basic_variables_desc": (
+                "Use curly braces to define variables: {variable_name}"
+            ),
+            "prompt.common_variables": "Common Variables",
+            "prompt.execute": "Execute",
+            "prompt.more_tags": "more",
+            "prompt.no_prompts": "No prompts found",
+            "prompt.no_prompts_desc": "Get started by creating your first prompt",
+            "prompt.no_prompts_search_desc": (
+                "Try adjusting your search or create a new prompt"
+            ),
+            "prompt.create_first": "Create Your First Prompt",
+            "prompt.showing": "Showing",
+            "prompt.to": "to",
+            "prompt.of": "of",
+            "prompt.results": "results",
+            "prompt.manage_desc": "Manage your AI prompts and templates",
+            "prompt.search_placeholder": "Search prompts...",
+            "prompt.all_categories": "All Categories",
+            "prompt.sort_newest": "Newest First",
+            "prompt.sort_oldest": "Oldest First",
+            "prompt.sort_name_asc": "Name A-Z",
+            "prompt.sort_name_desc": "Name Z-A",
+            "prompt.sort_category": "Category A-Z",
+            # Prompt Builder
+            "builder.title": "Prompt Builder",
+            "builder.subtitle": (
+                "Combine multiple prompts using drag-and-drop to create "
+                "sophisticated workflows"
+            ),
+            "builder.available_prompts": "Available Prompts",
+            "builder.selected_prompts": "Selected Prompts",
+            "builder.selected_prompts_desc": (
+                "Drag prompts here or click to select. Drag to reorder."
+            ),
+            "builder.combination_template": "Combination Template",
+            "builder.combination_template_desc": (
+                "Choose how to combine your selected prompts"
+            ),
+            "builder.search_prompts": "Search prompts...",
+            "builder.all_categories": "All Categories",
+            "builder.no_prompts": "No prompts available",
+            "builder.create_first_prompt": "Create your first prompt",
+            "builder.drag_here": "Drag prompts here to combine them",
+            "builder.click_to_select": "Or click prompts to select them",
+            "builder.prompts_selected": "prompts selected",
+            "builder.prompt_selected": "prompt selected",
+            "builder.clear_all": "Clear All",
+            "builder.preview": "Preview",
+            "builder.refresh_preview": "Refresh Preview",
+            "builder.combine_prompts": "Combine Prompts",
+            "builder.select_prompts_preview": "Select prompts to see preview...",
+            "builder.characters": "characters",
+            "builder.tokens_estimated": "tokens (estimated)",
+            "builder.source_prompts": "source prompts",
+            "builder.chars": "chars",
+            # Builder Templates
+            "builder.template.sequential": "Sequential",
+            "builder.template.sequential_desc": (
+                "Combine prompts one after another with clear separation"
+            ),
+            "builder.template.sections": "Sections",
+            "builder.template.sections_desc": (
+                "Create distinct sections with headers for each prompt"
+            ),
+            "builder.template.layered": "Layered",
+            "builder.template.layered_desc": (
+                "Build context in layers with base + additional layers"
+            ),
+            "builder.template.custom": "Custom",
+            "builder.template.custom_desc": (
+                "Use your own formatting template with placeholders"
+            ),
+            # Builder Options
+            "builder.custom_separator": "Custom Separator",
+            "builder.add_numbers": "Add sequence numbers",
+            "builder.custom_template": "Custom Template",
+            "builder.custom_template_placeholder": (
+                "Use {content}, {name}, {title}, {category}, {tags} as placeholders"
+            ),
+            "builder.available_placeholders": (
+                "Available placeholders: {content}, {name}, {title}, {category}, {tags}"
+            ),
+            # Builder Actions & Messages
+            "builder.min_prompts_required": (
+                "Please select at least 2 prompts to combine"
+            ),
+            "builder.combined_prompt_name": "Combined Prompt ({count} parts)",
+            "builder.combined_category": "Combined",
+            "builder.combined_description": "Combined prompt created from: {sources}",
+            "builder.combined_tags_suffix": "combined, {count}-part",
             # Actions
             "action.save": "Save",
             "action.cancel": "Cancel",
@@ -152,6 +372,13 @@ class I18nManager:
             "action.copy": "Copy",
             "action.export": "Export",
             "action.import": "Import",
+            "action.translate": "Translate",
+            "action.optimize": "Optimize",
+            "action.preview": "Preview",
+            "action.test": "Test",
+            "action.close": "Close",
+            "action.previous": "Previous",
+            "action.next": "Next",
             # Status
             "status.success": "Success",
             "status.error": "Error",
@@ -190,13 +417,14 @@ class I18nManager:
             # Translation
             "translate.to_english": "Translate to English",
             "translate.status": "Translation Status",
-            "translate.help": "Translate your prompt to English for better AI enhancement",
+            "translate.help": (
+                "Translate your prompt to English for better AI enhancement"
+            ),
             # Testing
             "test.prompt": "Test Prompt",
             "test.status": "Test Status",
             # Prompt Builder
             "builder.title": "Prompt Builder",
-            "builder.subtitle": "Combine existing prompts to create new ones",
             "builder.available": "Available Prompts",
             "builder.selected": "Selected Prompts",
             "builder.preview": "Preview",
@@ -224,6 +452,65 @@ class I18nManager:
             "builder.search.placeholder": "Search prompts...",
             "builder.filter.category": "Filter by category",
             "builder.filter.all": "All Categories",
+            # Templates
+            "template.title": "Template",
+            "template.name": "Template Name",
+            "template.description": "Description",
+            "template.content": "Template Content",
+            "template.variables": "Variables",
+            "template.category": "Category",
+            "template.create": "Create Template",
+            "template.edit": "Edit Template",
+            "template.delete": "Delete Template",
+            "template.use": "Use Template",
+            "template.preview": "Preview",
+            "template.validate": "Validate",
+            "template.save": "Save Template",
+            "template.cancel": "Cancel",
+            "template.list": "Templates",
+            "template.custom": "Custom Templates",
+            "template.builtin": "Built-in Templates",
+            "template.new": "New Template",
+            "template.empty": "No templates found",
+            "template.empty_desc": "Create your first template to get started",
+            "template.validation_error": "Template validation failed",
+            "template.saved_success": "Template saved successfully",
+            "template.deleted_success": "Template deleted successfully",
+            "template.name_placeholder": "Enter template name",
+            "template.description_placeholder": "Describe what this template is for",
+            "template.content_placeholder": (
+                "Enter your template content with variables like {variable_name}"
+            ),
+            "template.variables_help": (
+                "Variables found in your template will appear here"
+            ),
+            "template.category_help": "Choose a category to organize your templates",
+            # Template categories
+            "template.category.business": "Business",
+            "template.category.technical": "Technical",
+            "template.category.creative": "Creative",
+            "template.category.analytical": "Analytical",
+            "template.category.custom": "Custom",
+            "template.category.general": "General",
+            # Settings
+            "settings.profile": "Profile",
+            "settings.profile_desc": "Update your personal information",
+            "settings.api_tokens": "API Tokens",
+            "settings.api_tokens_desc": "Manage your API access tokens",
+            "settings.ai_services": "AI Services",
+            "settings.ai_services_desc": "Configure AI provider settings",
+            "settings.security": "Security",
+            "settings.security_desc": "Password and security settings",
+            "settings.preferences": "Preferences",
+            "settings.preferences_desc": "UI and notification preferences",
+            "settings.export_import": "Export/Import",
+            "settings.export_import_desc": "Backup and restore your data",
+            "settings.account_info": "Account Information",
+            "settings.name": "Name",
+            "settings.email": "Email",
+            "settings.role": "Role",
+            "settings.member_since": "Member Since",
+            "settings.recently": "Recently",
         }
 
     def _get_spanish_translations(self) -> Dict[str, str]:
@@ -235,9 +522,12 @@ class I18nManager:
             "app.status.authenticated": "✅ Autenticado como {user}",
             "app.status.not_authenticated": "❌ No autenticado",
             # Navigation
+            "nav.home": "Inicio",
             "nav.prompts": "Prompts",
+            "nav.builder": "Constructor",
             "nav.library": "Biblioteca",
             "nav.tokens": "Tokens",
+            "nav.services": "Servicios",
             "nav.settings": "Configuración",
             "nav.admin": "Admin",
             # Authentication
@@ -249,6 +539,103 @@ class I18nManager:
             "auth.sso": "Login SSO",
             "auth.welcome": "¡Bienvenido, {name}!",
             "auth.invalid": "Credenciales inválidas",
+            "auth.signin": "Inicia sesión en tu cuenta",
+            "auth.error": "Error de Autenticación",
+            "auth.organization": "Organización",
+            "auth.organization_placeholder": "Subdominio de la organización",
+            "auth.organization_help": (
+                "Ingresa el subdominio de tu organización (usa 'localhost' para desarrollo local)"
+            ),
+            "auth.email_placeholder": "tu@ejemplo.com",
+            "auth.password_placeholder": "Ingresa tu contraseña",
+            "auth.remember": "Recordarme",
+            "auth.forgot_password": "¿Olvidaste tu contraseña?",
+            "auth.need_account": "¿Necesitas una cuenta?",
+            "auth.create_account": "Crear nueva cuenta",
+            # Dashboard
+            "dashboard.title": "Panel",
+            "dashboard.admin_title": "Panel de Administración",
+            "dashboard.admin_subtitle": (
+                "Gestionar usuarios, inquilinos y configuración del sistema"
+            ),
+            "dashboard.welcome_back": "¡Bienvenido de nuevo, {name}!",
+            "dashboard.welcome": "¡Bienvenido a AI Prompt Manager!",
+            "dashboard.subtitle": "Listo para crear y gestionar tus prompts de IA",
+            "dashboard.quick_actions": "Acciones Rápidas",
+            "dashboard.recent_prompts": "Prompts Recientes",
+            "dashboard.recent_activity": "Actividad Reciente",
+            "dashboard.no_activity": "Sin actividad reciente",
+            "dashboard.no_prompts": "Aún no hay prompts",
+            "dashboard.no_prompts_desc": "Comienza creando tu primer prompt",
+            "dashboard.view_all": "Ver todo",
+            "dashboard.create_first": "Crear Tu Primer Prompt",
+            "dashboard.create_new": "Crear Nuevo",
+            "dashboard.new_prompt": "Nuevo Prompt",
+            "dashboard.browse": "Explorar",
+            "dashboard.configure": "Configurar",
+            "dashboard.recently_created": "Creado recientemente",
+            # Statistics
+            "stats.total_users": "Total de Usuarios",
+            "stats.active_tenants": "Inquilinos Activos",
+            "stats.total_prompts": "Total de Prompts",
+            "stats.api_tokens": "Tokens API",
+            "stats.templates": "Plantillas",
+            # Admin sections
+            "admin.overview": "Resumen",
+            "admin.users": "Usuarios",
+            "admin.tenants": "Inquilinos",
+            "admin.system": "Sistema",
+            "admin.user_management": "Gestión de Usuarios",
+            "admin.tenant_management": "Gestión de Inquilinos",
+            "admin.system_info": "Información del Sistema",
+            "admin.system_actions": "Acciones del Sistema",
+            "admin.add_user": "Agregar Usuario",
+            "admin.add_tenant": "Agregar Inquilino",
+            "admin.no_users": "No se encontraron usuarios",
+            "admin.no_tenants": "No se encontraron inquilinos",
+            # User table headers
+            "table.user": "Usuario",
+            "table.role": "Rol",
+            "table.tenant": "Inquilino",
+            "table.last_login": "Último Acceso",
+            "table.status": "Estado",
+            "table.actions": "Acciones",
+            "table.subdomain": "Subdominio",
+            "table.users": "Usuarios",
+            "table.created": "Creado",
+            # System info
+            "system.version": "Versión",
+            "system.database": "Base de Datos",
+            "system.multitenant": "Multi-inquilino",
+            "system.api": "API",
+            "system.uptime": "Tiempo Activo",
+            "system.environment": "Entorno",
+            "system.enabled": "Habilitado",
+            "system.disabled": "Deshabilitado",
+            "system.backup": "Respaldar Base de Datos",
+            "system.backup_desc": "Crear un respaldo de la base de datos actual",
+            "system.clear_cache": "Limpiar Caché",
+            "system.clear_cache_desc": (
+                "Limpiar caché de aplicación y archivos temporales"
+            ),
+            # Getting started tips
+            "tips.title": "Consejos para Comenzar",
+            "tips.create_title": "Crear Tu Primer Prompt",
+            "tips.create_desc": (
+                "Comienza creando un prompt para tu tarea de IA más común"
+            ),
+            "tips.templates_title": "Usar Plantillas",
+            "tips.templates_desc": (
+                "Explora nuestra biblioteca de plantillas con patrones probados"
+            ),
+            "tips.test_title": "Probar y Optimizar",
+            "tips.test_desc": (
+                "Usa nuestras herramientas integradas para refinar tus prompts"
+            ),
+            "tips.organize_title": "Organizar con Categorías",
+            "tips.organize_desc": (
+                "Mantén tus prompts organizados usando categorías y etiquetas"
+            ),
             # Prompts
             "prompt.name": "Nombre",
             "prompt.title": "Título",
@@ -309,10 +696,11 @@ class I18nManager:
             # Translation
             "translate.to_english": "Traducir al Inglés",
             "translate.status": "Estado de Traducción",
-            "translate.help": "Traduzca su prompt al inglés para una mejor mejora con IA",
+            "translate.help": (
+                "Traduzca su prompt al inglés para una mejor mejora con IA"
+            ),
             # Prompt Builder
             "builder.title": "Constructor de Prompts",
-            "builder.subtitle": "Combine prompts existentes para crear nuevos",
             "builder.available": "Prompts Disponibles",
             "builder.selected": "Prompts Seleccionados",
             "builder.preview": "Vista Previa",
@@ -320,7 +708,9 @@ class I18nManager:
             "builder.template.sequential": "Secuencial",
             "builder.template.sequential.desc": "Combinar prompts uno tras otro",
             "builder.template.sections": "Secciones",
-            "builder.template.sections.desc": "Combinar prompts como secciones distintas",
+            "builder.template.sections.desc": (
+                "Combinar prompts como secciones distintas"
+            ),
             "builder.template.layered": "Por Capas",
             "builder.template.layered.desc": "Construir contexto en capas",
             "builder.template.custom": "Personalizado",
@@ -340,6 +730,136 @@ class I18nManager:
             "builder.search.placeholder": "Buscar prompts...",
             "builder.filter.category": "Filtrar por categoría",
             "builder.filter.all": "Todas las Categorías",
+            # Templates
+            "template.title": "Plantilla",
+            "template.name": "Nombre de la Plantilla",
+            "template.description": "Descripción",
+            "template.content": "Contenido de la Plantilla",
+            "template.variables": "Variables",
+            "template.category": "Categoría",
+            "template.create": "Crear Plantilla",
+            "template.edit": "Editar Plantilla",
+            "template.delete": "Eliminar Plantilla",
+            "template.use": "Usar Plantilla",
+            "template.preview": "Vista Previa",
+            "template.validate": "Validar",
+            "template.save": "Guardar Plantilla",
+            "template.cancel": "Cancelar",
+            "template.list": "Plantillas",
+            "template.custom": "Plantillas Personalizadas",
+            "template.builtin": "Plantillas Integradas",
+            "template.new": "Nueva Plantilla",
+            "template.empty": "No se encontraron plantillas",
+            "template.empty_desc": "Crea tu primera plantilla para comenzar",
+            "template.validation_error": "Falló la validación de la plantilla",
+            "template.saved_success": "Plantilla guardada exitosamente",
+            "template.deleted_success": "Plantilla eliminada exitosamente",
+            "template.name_placeholder": "Ingresa el nombre de la plantilla",
+            "template.description_placeholder": "Describe para qué es esta plantilla",
+            "template.content_placeholder": (
+                "Ingresa el contenido de tu plantilla con variables como {nombre_variable}"
+            ),
+            "template.variables_help": (
+                "Las variables encontradas en tu plantilla aparecerán aquí"
+            ),
+            "template.category_help": (
+                "Elige una categoría para organizar tus plantillas"
+            ),
+            # Template categories
+            "template.category.business": "Negocios",
+            "template.category.technical": "Técnico",
+            "template.category.creative": "Creativo",
+            "template.category.analytical": "Analítico",
+            "template.category.custom": "Personalizado",
+            "template.category.general": "General",
+            # Settings
+            "settings.profile": "Perfil",
+            "settings.profile_desc": "Actualiza tu información personal",
+            "settings.api_tokens": "Tokens API",
+            "settings.api_tokens_desc": "Gestiona tus tokens de acceso API",
+            "settings.ai_services": "Servicios IA",
+            "settings.ai_services_desc": "Configura los proveedores de IA",
+            "settings.security": "Seguridad",
+            "settings.security_desc": "Configuración de contraseña y seguridad",
+            "settings.preferences": "Preferencias",
+            "settings.preferences_desc": "Preferencias de UI y notificaciones",
+            "settings.export_import": "Exportar/Importar",
+            "settings.export_import_desc": "Respalda y restaura tus datos",
+            "settings.account_info": "Información de la Cuenta",
+            "settings.name": "Nombre",
+            "settings.email": "Correo",
+            "settings.role": "Rol",
+            "settings.member_since": "Miembro Desde",
+            "settings.recently": "Recientemente",
+            # Prompt Builder
+            "builder.title": "Constructor de Prompts",
+            "builder.subtitle": (
+                "Combina múltiples prompts usando arrastrar y soltar para "
+                "crear flujos sofisticados"
+            ),
+            "builder.available_prompts": "Prompts Disponibles",
+            "builder.selected_prompts": "Prompts Seleccionados",
+            "builder.selected_prompts_desc": (
+                "Arrastra prompts aquí o haz clic para seleccionar. Arrastra para reordenar."
+            ),
+            "builder.combination_template": "Plantilla de Combinación",
+            "builder.combination_template_desc": (
+                "Elige cómo combinar tus prompts seleccionados"
+            ),
+            "builder.search_prompts": "Buscar prompts...",
+            "builder.all_categories": "Todas las Categorías",
+            "builder.no_prompts": "No hay prompts disponibles",
+            "builder.create_first_prompt": "Crea tu primer prompt",
+            "builder.drag_here": "Arrastra prompts aquí para combinarlos",
+            "builder.click_to_select": "O haz clic en prompts para seleccionarlos",
+            "builder.prompts_selected": "prompts seleccionados",
+            "builder.prompt_selected": "prompt seleccionado",
+            "builder.clear_all": "Limpiar Todo",
+            "builder.preview": "Vista Previa",
+            "builder.refresh_preview": "Actualizar Vista Previa",
+            "builder.combine_prompts": "Combinar Prompts",
+            "builder.select_prompts_preview": (
+                "Selecciona prompts para ver la vista previa..."
+            ),
+            "builder.characters": "caracteres",
+            "builder.tokens_estimated": "tokens (estimado)",
+            "builder.source_prompts": "prompts fuente",
+            "builder.chars": "caract",
+            # Builder Templates
+            "builder.template.sequential": "Secuencial",
+            "builder.template.sequential_desc": (
+                "Combinar prompts uno tras otro con separación clara"
+            ),
+            "builder.template.sections": "Secciones",
+            "builder.template.sections_desc": (
+                "Crear secciones distintas con encabezados para cada prompt"
+            ),
+            "builder.template.layered": "Por Capas",
+            "builder.template.layered_desc": (
+                "Construir contexto en capas con base + capas adicionales"
+            ),
+            "builder.template.custom": "Personalizado",
+            "builder.template.custom_desc": (
+                "Usa tu propia plantilla de formato con marcadores de posición"
+            ),
+            # Builder Options
+            "builder.custom_separator": "Separador Personalizado",
+            "builder.add_numbers": "Agregar números de secuencia",
+            "builder.custom_template": "Plantilla Personalizada",
+            "builder.custom_template_placeholder": (
+                "Usa {content}, {name}, {title}, {category}, {tags} como marcadores"
+            ),
+            "builder.available_placeholders": (
+                "Marcadores disponibles: {content}, {name}, {title}, {category}, {tags}"
+            ),
+            # Builder Actions & Messages
+            "builder.min_prompts_required": (
+                "Por favor selecciona al menos 2 prompts para combinar"
+            ),
+            "builder.combined_prompt_name": "Prompt Combinado ({count} partes)",
+            "builder.combined_category": "Combinado",
+            "builder.combined_description": "Prompt combinado creado de: {sources}",
+            "builder.combined_tags_suffix": "combinado, {count}-partes",
         }
 
     def _get_french_translations(self) -> Dict[str, str]:
@@ -351,9 +871,12 @@ class I18nManager:
             "app.status.authenticated": "✅ Authentifié en tant que {user}",
             "app.status.not_authenticated": "❌ Non authentifié",
             # Navigation
+            "nav.home": "Accueil",
             "nav.prompts": "Prompts",
+            "nav.builder": "Constructeur",
             "nav.library": "Bibliothèque",
             "nav.tokens": "Jetons",
+            "nav.services": "Services",
             "nav.settings": "Paramètres",
             "nav.admin": "Admin",
             # Authentication
@@ -365,6 +888,37 @@ class I18nManager:
             "auth.sso": "Connexion SSO",
             "auth.welcome": "Bienvenue, {name}!",
             "auth.invalid": "Identifiants invalides",
+            # Dashboard (basic keys)
+            "dashboard.welcome_back": "Bon retour, {name}!",
+            "dashboard.welcome": "Bienvenue dans AI Prompt Manager!",
+            "dashboard.subtitle": "Prêt à créer et gérer vos prompts IA",
+            "dashboard.create_new": "Créer Nouveau",
+            "dashboard.new_prompt": "Nouveau Prompt",
+            "dashboard.browse": "Parcourir",
+            "dashboard.configure": "Configurer",
+            "dashboard.recent_prompts": "Prompts Récents",
+            "dashboard.view_all": "Voir tout",
+            "dashboard.recently_created": "Créé récemment",
+            "stats.total_prompts": "Total Prompts",
+            "stats.templates": "Modèles",
+            "tips.title": "Conseils pour Commencer",
+            "tips.create_title": "Créer Votre Premier Prompt",
+            "tips.create_desc": (
+                "Commencez par créer un prompt pour votre tâche IA la plus courante"
+            ),
+            "tips.templates_title": "Utiliser les Modèles",
+            "tips.templates_desc": (
+                "Parcourez notre bibliothèque de modèles avec des patterns éprouvés"
+            ),
+            "tips.test_title": "Tester et Optimiser",
+            "tips.test_desc": "Utilisez nos outils intégrés pour affiner vos prompts",
+            "tips.organize_title": "Organiser avec des Catégories",
+            "tips.organize_desc": (
+                "Gardez vos prompts organisés en utilisant des catégories et des étiquettes"
+            ),
+            "dashboard.no_prompts": "Aucun prompt encore",
+            "dashboard.no_prompts_desc": "Commencez par créer votre premier prompt",
+            "dashboard.create_first": "Créer Votre Premier Prompt",
             # Prompts
             "prompt.name": "Nom",
             "prompt.title": "Titre",
@@ -425,22 +979,29 @@ class I18nManager:
             # Translation
             "translate.to_english": "Traduire en Anglais",
             "translate.status": "Statut de Traduction",
-            "translate.help": "Traduisez votre prompt en anglais pour une meilleure amélioration IA",
+            "translate.help": (
+                "Traduisez votre prompt en anglais pour une meilleure amélioration IA"
+            ),
             # Prompt Builder
             "builder.title": "Constructeur de Prompts",
-            "builder.subtitle": "Combinez des prompts existants pour en créer de nouveaux",
             "builder.available": "Prompts Disponibles",
             "builder.selected": "Prompts Sélectionnés",
             "builder.preview": "Aperçu",
             "builder.template": "Modèle de Combinaison",
             "builder.template.sequential": "Séquentiel",
-            "builder.template.sequential.desc": "Combiner les prompts l'un après l'autre",
+            "builder.template.sequential.desc": (
+                "Combiner les prompts l'un après l'autre"
+            ),
             "builder.template.sections": "Sections",
-            "builder.template.sections.desc": "Combiner les prompts en sections distinctes",
+            "builder.template.sections.desc": (
+                "Combiner les prompts en sections distinctes"
+            ),
             "builder.template.layered": "En Couches",
             "builder.template.layered.desc": "Construire le contexte en couches",
             "builder.template.custom": "Personnalisé",
-            "builder.template.custom.desc": "Utiliser un modèle de formatage personnalisé",
+            "builder.template.custom.desc": (
+                "Utiliser un modèle de formatage personnalisé"
+            ),
             "builder.combine": "Combiner les Prompts",
             "builder.clear": "Effacer la Sélection",
             "builder.edit": "Ouvrir dans l'Éditeur",
@@ -456,6 +1017,48 @@ class I18nManager:
             "builder.search.placeholder": "Rechercher des prompts...",
             "builder.filter.category": "Filtrer par catégorie",
             "builder.filter.all": "Toutes les Catégories",
+            # Templates
+            "template.title": "Modèle",
+            "template.name": "Nom du Modèle",
+            "template.description": "Description",
+            "template.content": "Contenu du Modèle",
+            "template.variables": "Variables",
+            "template.category": "Catégorie",
+            "template.create": "Créer un Modèle",
+            "template.edit": "Modifier le Modèle",
+            "template.delete": "Supprimer le Modèle",
+            "template.use": "Utiliser le Modèle",
+            "template.preview": "Aperçu",
+            "template.validate": "Valider",
+            "template.save": "Sauvegarder le Modèle",
+            "template.cancel": "Annuler",
+            "template.list": "Modèles",
+            "template.custom": "Modèles Personnalisés",
+            "template.builtin": "Modèles Intégrés",
+            "template.new": "Nouveau Modèle",
+            "template.empty": "Aucun modèle trouvé",
+            "template.empty_desc": "Créez votre premier modèle pour commencer",
+            "template.validation_error": "Échec de la validation du modèle",
+            "template.saved_success": "Modèle sauvegardé avec succès",
+            "template.deleted_success": "Modèle supprimé avec succès",
+            "template.name_placeholder": "Entrez le nom du modèle",
+            "template.description_placeholder": "Décrivez à quoi sert ce modèle",
+            "template.content_placeholder": (
+                "Entrez le contenu de votre modèle avec des variables comme {nom_variable}"
+            ),
+            "template.variables_help": (
+                "Les variables trouvées dans votre modèle apparaîtront ici"
+            ),
+            "template.category_help": (
+                "Choisissez une catégorie pour organiser vos modèles"
+            ),
+            # Template categories
+            "template.category.business": "Affaires",
+            "template.category.technical": "Technique",
+            "template.category.creative": "Créatif",
+            "template.category.analytical": "Analytique",
+            "template.category.custom": "Personnalisé",
+            "template.category.general": "Général",
         }
 
     def _get_german_translations(self) -> Dict[str, str]:
@@ -467,9 +1070,12 @@ class I18nManager:
             "app.status.authenticated": "✅ Angemeldet als {user}",
             "app.status.not_authenticated": "❌ Nicht angemeldet",
             # Navigation
+            "nav.home": "Startseite",
             "nav.prompts": "Prompts",
+            "nav.builder": "Builder",
             "nav.library": "Bibliothek",
             "nav.tokens": "Tokens",
+            "nav.services": "Services",
             "nav.settings": "Einstellungen",
             "nav.admin": "Admin",
             # Authentication
@@ -481,6 +1087,43 @@ class I18nManager:
             "auth.sso": "SSO-Anmeldung",
             "auth.welcome": "Willkommen, {name}!",
             "auth.invalid": "Ungültige Anmeldedaten",
+            # Dashboard (basic keys)
+            "dashboard.welcome_back": "Willkommen zurück, {name}!",
+            "dashboard.welcome": "Willkommen bei AI Prompt Manager!",
+            "dashboard.subtitle": (
+                "Bereit, Ihre KI-Prompts zu erstellen und zu verwalten"
+            ),
+            "dashboard.create_new": "Neu Erstellen",
+            "dashboard.new_prompt": "Neuer Prompt",
+            "dashboard.browse": "Durchsuchen",
+            "dashboard.configure": "Konfigurieren",
+            "dashboard.recent_prompts": "Aktuelle Prompts",
+            "dashboard.view_all": "Alle anzeigen",
+            "dashboard.recently_created": "Kürzlich erstellt",
+            "stats.total_prompts": "Prompts Gesamt",
+            "stats.templates": "Vorlagen",
+            "tips.title": "Erste Schritte",
+            "tips.create_title": "Erstellen Sie Ihren Ersten Prompt",
+            "tips.create_desc": (
+                "Beginnen Sie mit einem Prompt für Ihre häufigste KI-Aufgabe"
+            ),
+            "tips.templates_title": "Vorlagen Verwenden",
+            "tips.templates_desc": (
+                "Durchsuchen Sie unsere Vorlagenbibliothek mit bewährten Prompt-Patterns"
+            ),
+            "tips.test_title": "Testen und Optimieren",
+            "tips.test_desc": (
+                "Nutzen Sie unsere integrierten Tools zur Verfeinerung Ihrer Prompts"
+            ),
+            "tips.organize_title": "Mit Kategorien Organisieren",
+            "tips.organize_desc": (
+                "Halten Sie Ihre Prompts mit Kategorien und Tags organisiert"
+            ),
+            "dashboard.no_prompts": "Noch keine Prompts",
+            "dashboard.no_prompts_desc": (
+                "Beginnen Sie mit der Erstellung Ihres ersten Prompts"
+            ),
+            "dashboard.create_first": "Erstellen Sie Ihren Ersten Prompt",
             # Prompts
             "prompt.name": "Name",
             "prompt.title": "Titel",
@@ -541,7 +1184,9 @@ class I18nManager:
             # Translation
             "translate.to_english": "Ins Englische übersetzen",
             "translate.status": "Übersetzungsstatus",
-            "translate.help": "Übersetzen Sie Ihren Prompt ins Englische für bessere KI-Verbesserung",
+            "translate.help": (
+                "Übersetzen Sie Ihren Prompt ins Englische für bessere KI-Verbesserung"
+            ),
             # Prompt Builder
             "builder.title": "Prompt-Builder",
             "builder.subtitle": "Kombinieren Sie vorhandene Prompts zu neuen",
@@ -552,11 +1197,15 @@ class I18nManager:
             "builder.template.sequential": "Sequenziell",
             "builder.template.sequential.desc": "Prompts nacheinander kombinieren",
             "builder.template.sections": "Abschnitte",
-            "builder.template.sections.desc": "Prompts als unterschiedliche Abschnitte kombinieren",
+            "builder.template.sections.desc": (
+                "Prompts als unterschiedliche Abschnitte kombinieren"
+            ),
             "builder.template.layered": "Geschichtet",
             "builder.template.layered.desc": "Kontext in Schichten aufbauen",
             "builder.template.custom": "Benutzerdefiniert",
-            "builder.template.custom.desc": "Benutzerdefinierte Formatierungsvorlage verwenden",
+            "builder.template.custom.desc": (
+                "Benutzerdefinierte Formatierungsvorlage verwenden"
+            ),
             "builder.combine": "Prompts kombinieren",
             "builder.clear": "Auswahl löschen",
             "builder.edit": "Im Editor öffnen",
@@ -583,9 +1232,12 @@ class I18nManager:
             "app.status.authenticated": "✅ 已认证为 {user}",
             "app.status.not_authenticated": "❌ 未认证",
             # Navigation
+            "nav.home": "首页",
             "nav.prompts": "提示",
+            "nav.builder": "构建器",
             "nav.library": "库",
             "nav.tokens": "令牌",
+            "nav.services": "服务",
             "nav.settings": "设置",
             "nav.admin": "管理",
             # Authentication
@@ -597,6 +1249,31 @@ class I18nManager:
             "auth.sso": "SSO登录",
             "auth.welcome": "欢迎，{name}！",
             "auth.invalid": "无效凭据",
+            # Dashboard
+            "dashboard.welcome_back": "欢迎回来，{name}！",
+            "dashboard.welcome": "欢迎使用AI提示管理器！",
+            "dashboard.subtitle": "准备创建和管理您的AI提示",
+            "dashboard.create_new": "创建新的",
+            "dashboard.new_prompt": "新提示",
+            "dashboard.browse": "浏览",
+            "dashboard.configure": "配置",
+            "dashboard.recent_prompts": "最近的提示",
+            "dashboard.view_all": "查看全部",
+            "dashboard.recently_created": "最近创建",
+            "dashboard.no_prompts": "还没有提示",
+            "dashboard.no_prompts_desc": "从创建您的第一个提示开始",
+            "dashboard.create_first": "创建您的第一个提示",
+            "stats.total_prompts": "提示总数",
+            "stats.templates": "模板",
+            "tips.title": "入门提示",
+            "tips.create_title": "创建您的第一个提示",
+            "tips.create_desc": "从为您最常见的AI任务创建提示开始",
+            "tips.templates_title": "使用模板",
+            "tips.templates_desc": "浏览我们的模板库，找到经过验证的提示模式",
+            "tips.test_title": "测试和优化",
+            "tips.test_desc": "使用我们的内置工具来完善您的提示",
+            "tips.organize_title": "用类别组织",
+            "tips.organize_desc": "使用类别和标签保持您的提示有条理",
             # Prompts
             "prompt.name": "名称",
             "prompt.title": "标题",
@@ -660,34 +1337,54 @@ class I18nManager:
             "translate.help": "将您的提示翻译为英文以获得更好的AI增强效果",
             # Prompt Builder
             "builder.title": "提示构建器",
-            "builder.subtitle": "组合现有提示创建新的提示",
-            "builder.available": "可用提示",
-            "builder.selected": "选中的提示",
+            "builder.subtitle": "使用拖放功能组合多个提示以创建复杂工作流",
+            "builder.available_prompts": "可用提示",
+            "builder.selected_prompts": "选中的提示",
+            "builder.selected_prompts_desc": "将提示拖拽到此处或点击选择。拖拽以重新排序。",
+            "builder.combination_template": "组合模板",
+            "builder.combination_template_desc": "选择如何组合您选中的提示",
+            "builder.search_prompts": "搜索提示...",
+            "builder.all_categories": "所有类别",
+            "builder.no_prompts": "没有可用的提示",
+            "builder.create_first_prompt": "创建您的第一个提示",
+            "builder.drag_here": "将提示拖拽到此处以组合它们",
+            "builder.click_to_select": "或点击提示以选择它们",
+            "builder.prompts_selected": "个提示已选择",
+            "builder.prompt_selected": "个提示已选择",
+            "builder.clear_all": "全部清除",
             "builder.preview": "预览",
-            "builder.template": "组合模板",
+            "builder.refresh_preview": "刷新预览",
+            "builder.combine_prompts": "组合提示",
+            "builder.select_prompts_preview": "选择提示以查看预览...",
+            "builder.characters": "字符",
+            "builder.tokens_estimated": "tokens（估计）",
+            "builder.source_prompts": "源提示",
+            "builder.chars": "字符",
+            # Builder Templates
             "builder.template.sequential": "顺序",
-            "builder.template.sequential.desc": "按顺序组合提示",
+            "builder.template.sequential_desc": "按顺序组合提示，清晰分隔",
             "builder.template.sections": "分段",
-            "builder.template.sections.desc": "将提示组合为不同的段落",
+            "builder.template.sections_desc": "为每个提示创建带有标题的不同段落",
             "builder.template.layered": "分层",
-            "builder.template.layered.desc": "分层构建上下文",
+            "builder.template.layered_desc": "以层次构建上下文，包含基础层和附加层",
             "builder.template.custom": "自定义",
-            "builder.template.custom.desc": "使用自定义格式模板",
-            "builder.combine": "组合提示",
-            "builder.clear": "清除选择",
-            "builder.edit": "在编辑器中打开",
-            "builder.error.no_prompts": "未选择提示",
-            "builder.error.min_prompts": "至少选择2个提示",
-            "builder.error.duplicates": "发现重复的提示",
-            "builder.error.too_long": "组合提示过长",
-            "builder.error.combination": "组合失败",
-            "builder.preview.empty": "选择提示以查看预览",
-            "builder.preview.error": "预览错误",
-            "builder.drag.add": "拖拽到此处添加",
-            "builder.drag.reorder": "拖拽重新排序",
-            "builder.search.placeholder": "搜索提示...",
-            "builder.filter.category": "按类别筛选",
-            "builder.filter.all": "所有类别",
+            "builder.template.custom_desc": "使用您自己的格式模板和占位符",
+            # Builder Options
+            "builder.custom_separator": "自定义分隔符",
+            "builder.add_numbers": "添加序列号",
+            "builder.custom_template": "自定义模板",
+            "builder.custom_template_placeholder": (
+                "使用 {content}、{name}、{title}、{category}、{tags} 作为占位符"
+            ),
+            "builder.available_placeholders": (
+                "可用占位符：{content}、{name}、{title}、{category}、{tags}"
+            ),
+            # Builder Actions & Messages
+            "builder.min_prompts_required": "请至少选择2个提示进行组合",
+            "builder.combined_prompt_name": "组合提示（{count}部分）",
+            "builder.combined_category": "组合",
+            "builder.combined_description": "组合提示创建自：{sources}",
+            "builder.combined_tags_suffix": "组合，{count}部分",
         }
 
     def _get_japanese_translations(self) -> Dict[str, str]:
@@ -699,9 +1396,12 @@ class I18nManager:
             "app.status.authenticated": "✅ {user}として認証済み",
             "app.status.not_authenticated": "❌ 未認証",
             # Navigation
+            "nav.home": "ホーム",
             "nav.prompts": "プロンプト",
+            "nav.builder": "ビルダー",
             "nav.library": "ライブラリ",
             "nav.tokens": "トークン",
+            "nav.services": "サービス",
             "nav.settings": "設定",
             "nav.admin": "管理者",
             # Authentication
@@ -713,6 +1413,31 @@ class I18nManager:
             "auth.sso": "SSOログイン",
             "auth.welcome": "ようこそ、{name}さん！",
             "auth.invalid": "無効な認証情報",
+            # Dashboard
+            "dashboard.welcome_back": "おかえりなさい、{name}！",
+            "dashboard.welcome": "AIプロンプトマネージャーへようこそ！",
+            "dashboard.subtitle": "AIプロンプトの作成と管理の準備ができました",
+            "dashboard.create_new": "新規作成",
+            "dashboard.new_prompt": "新しいプロンプト",
+            "dashboard.browse": "参照",
+            "dashboard.configure": "設定",
+            "dashboard.recent_prompts": "最近のプロンプト",
+            "dashboard.view_all": "すべて表示",
+            "dashboard.recently_created": "最近作成",
+            "dashboard.no_prompts": "まだプロンプトがありません",
+            "dashboard.no_prompts_desc": "最初のプロンプトを作成して始めましょう",
+            "dashboard.create_first": "最初のプロンプトを作成",
+            "stats.total_prompts": "プロンプト総数",
+            "stats.templates": "テンプレート",
+            "tips.title": "始め方のヒント",
+            "tips.create_title": "最初のプロンプトを作成",
+            "tips.create_desc": "最も一般的なAIタスクのプロンプトを作成することから始めましょう",
+            "tips.templates_title": "テンプレートを使用",
+            "tips.templates_desc": "実証済みのプロンプトパターンのテンプレートライブラリを参照",
+            "tips.test_title": "テストと最適化",
+            "tips.test_desc": "内蔵ツールを使用してプロンプトを改良",
+            "tips.organize_title": "カテゴリで整理",
+            "tips.organize_desc": "カテゴリとタグを使用してプロンプトを整理",
             # Prompts
             "prompt.name": "名前",
             "prompt.title": "タイトル",
@@ -776,34 +1501,54 @@ class I18nManager:
             "translate.help": "より良いAI強化のためにプロンプトを英語に翻訳してください",
             # Prompt Builder
             "builder.title": "プロンプトビルダー",
-            "builder.subtitle": "既存のプロンプトを組み合わせて新しいものを作成",
-            "builder.available": "利用可能なプロンプト",
-            "builder.selected": "選択されたプロンプト",
+            "builder.subtitle": "ドラッグ&ドロップで複数のプロンプトを組み合わせて高度なワークフローを作成",
+            "builder.available_prompts": "利用可能なプロンプト",
+            "builder.selected_prompts": "選択されたプロンプト",
+            "builder.selected_prompts_desc": "プロンプトをここにドラッグするかクリックして選択。ドラッグして並び替え。",
+            "builder.combination_template": "組み合わせテンプレート",
+            "builder.combination_template_desc": "選択したプロンプトの組み合わせ方法を選択",
+            "builder.search_prompts": "プロンプトを検索...",
+            "builder.all_categories": "全カテゴリ",
+            "builder.no_prompts": "利用可能なプロンプトがありません",
+            "builder.create_first_prompt": "最初のプロンプトを作成",
+            "builder.drag_here": "プロンプトをここにドラッグして組み合わせ",
+            "builder.click_to_select": "またはプロンプトをクリックして選択",
+            "builder.prompts_selected": "個のプロンプトが選択済み",
+            "builder.prompt_selected": "個のプロンプトが選択済み",
+            "builder.clear_all": "すべてクリア",
             "builder.preview": "プレビュー",
-            "builder.template": "組み合わせテンプレート",
+            "builder.refresh_preview": "プレビューを更新",
+            "builder.combine_prompts": "プロンプトを組み合わせる",
+            "builder.select_prompts_preview": "プレビューを見るためにプロンプトを選択してください...",
+            "builder.characters": "文字",
+            "builder.tokens_estimated": "トークン（推定）",
+            "builder.source_prompts": "ソースプロンプト",
+            "builder.chars": "文字",
+            # Builder Templates
             "builder.template.sequential": "順次",
-            "builder.template.sequential.desc": "プロンプトを順番に組み合わせる",
+            "builder.template.sequential_desc": "プロンプトを順番に明確に分離して組み合わせる",
             "builder.template.sections": "セクション",
-            "builder.template.sections.desc": "プロンプトを異なるセクションとして組み合わせる",
+            "builder.template.sections_desc": "各プロンプトにヘッダー付きの異なるセクションを作成",
             "builder.template.layered": "階層",
-            "builder.template.layered.desc": "階層でコンテキストを構築",
+            "builder.template.layered_desc": "ベース層と追加層でコンテキストを階層的に構築",
             "builder.template.custom": "カスタム",
-            "builder.template.custom.desc": "カスタムフォーマットテンプレートを使用",
-            "builder.combine": "プロンプトを組み合わせる",
-            "builder.clear": "選択をクリア",
-            "builder.edit": "エディターで開く",
-            "builder.error.no_prompts": "プロンプトが選択されていません",
-            "builder.error.min_prompts": "少なくとも2つのプロンプトを選択してください",
-            "builder.error.duplicates": "重複したプロンプトが見つかりました",
-            "builder.error.too_long": "組み合わせたプロンプトが長すぎます",
-            "builder.error.combination": "組み合わせに失敗しました",
-            "builder.preview.empty": "プレビューを見るためにプロンプトを選択してください",
-            "builder.preview.error": "プレビューエラー",
-            "builder.drag.add": "追加するためにここにドラッグ",
-            "builder.drag.reorder": "並び替えるためにドラッグ",
-            "builder.search.placeholder": "プロンプトを検索...",
-            "builder.filter.category": "カテゴリでフィルター",
-            "builder.filter.all": "全カテゴリ",
+            "builder.template.custom_desc": "プレースホルダー付きの独自フォーマットテンプレートを使用",
+            # Builder Options
+            "builder.custom_separator": "カスタム区切り文字",
+            "builder.add_numbers": "シーケンス番号を追加",
+            "builder.custom_template": "カスタムテンプレート",
+            "builder.custom_template_placeholder": (
+                "{content}、{name}、{title}、{category}、{tags}をプレースホルダーとして使用"
+            ),
+            "builder.available_placeholders": (
+                "利用可能なプレースホルダー：{content}、{name}、{title}、{category}、{tags}"
+            ),
+            # Builder Actions & Messages
+            "builder.min_prompts_required": "組み合わせるには少なくとも2つのプロンプトを選択してください",
+            "builder.combined_prompt_name": "組み合わせプロンプト（{count}部分）",
+            "builder.combined_category": "組み合わせ",
+            "builder.combined_description": "組み合わせプロンプトの作成元：{sources}",
+            "builder.combined_tags_suffix": "組み合わせ、{count}部分",
         }
 
     def _get_portuguese_translations(self) -> Dict[str, str]:
@@ -815,9 +1560,12 @@ class I18nManager:
             "app.status.authenticated": "✅ Autenticado como {user}",
             "app.status.not_authenticated": "❌ Não autenticado",
             # Navigation
+            "nav.home": "Início",
             "nav.prompts": "Prompts",
+            "nav.builder": "Construtor",
             "nav.library": "Biblioteca",
             "nav.tokens": "Tokens",
+            "nav.services": "Serviços",
             "nav.settings": "Configurações",
             "nav.admin": "Admin",
             # Authentication
@@ -829,6 +1577,39 @@ class I18nManager:
             "auth.sso": "Login SSO",
             "auth.welcome": "Bem-vindo, {name}!",
             "auth.invalid": "Credenciais inválidas",
+            # Dashboard (basic keys)
+            "dashboard.welcome_back": "Bem-vindo de volta, {name}!",
+            "dashboard.welcome": "Bem-vindo ao AI Prompt Manager!",
+            "dashboard.subtitle": "Pronto para criar e gerenciar seus prompts de IA",
+            "dashboard.create_new": "Criar Novo",
+            "dashboard.new_prompt": "Novo Prompt",
+            "dashboard.browse": "Navegar",
+            "dashboard.configure": "Configurar",
+            "dashboard.recent_prompts": "Prompts Recentes",
+            "dashboard.view_all": "Ver todos",
+            "dashboard.recently_created": "Criado recentemente",
+            "stats.total_prompts": "Total de Prompts",
+            "stats.templates": "Modelos",
+            "tips.title": "Dicas para Começar",
+            "tips.create_title": "Criar Seu Primeiro Prompt",
+            "tips.create_desc": (
+                "Comece criando um prompt para sua tarefa de IA mais comum"
+            ),
+            "tips.templates_title": "Usar Modelos",
+            "tips.templates_desc": (
+                "Navegue em nossa biblioteca de modelos com padrões comprovados"
+            ),
+            "tips.test_title": "Testar e Otimizar",
+            "tips.test_desc": (
+                "Use nossas ferramentas integradas para refinar seus prompts"
+            ),
+            "tips.organize_title": "Organizar com Categorias",
+            "tips.organize_desc": (
+                "Mantenha seus prompts organizados usando categorias e tags"
+            ),
+            "dashboard.no_prompts": "Ainda não há prompts",
+            "dashboard.no_prompts_desc": "Comece criando seu primeiro prompt",
+            "dashboard.create_first": "Criar Seu Primeiro Prompt",
             # Prompts
             "prompt.name": "Nome",
             "prompt.title": "Título",
@@ -889,37 +1670,74 @@ class I18nManager:
             # Translation
             "translate.to_english": "Traduzir para Inglês",
             "translate.status": "Status da Tradução",
-            "translate.help": "Traduza seu prompt para inglês para melhor aprimoramento com IA",
+            "translate.help": (
+                "Traduza seu prompt para inglês para melhor aprimoramento com IA"
+            ),
             # Prompt Builder
             "builder.title": "Construtor de Prompts",
-            "builder.subtitle": "Combine prompts existentes para criar novos",
-            "builder.available": "Prompts Disponíveis",
-            "builder.selected": "Prompts Selecionados",
+            "builder.available_prompts": "Prompts Disponíveis",
+            "builder.selected_prompts": "Prompts Selecionados",
+            "builder.selected_prompts_desc": (
+                "Arraste prompts aqui ou clique para selecionar. Arraste para reordenar."
+            ),
+            "builder.combination_template": "Modelo de Combinação",
+            "builder.combination_template_desc": (
+                "Escolha como combinar seus prompts selecionados"
+            ),
+            "builder.search_prompts": "Buscar prompts...",
+            "builder.all_categories": "Todas as Categorias",
+            "builder.no_prompts": "Nenhum prompt disponível",
+            "builder.create_first_prompt": "Crie seu primeiro prompt",
+            "builder.drag_here": "Arraste prompts aqui para combiná-los",
+            "builder.click_to_select": "Ou clique nos prompts para selecioná-los",
+            "builder.prompts_selected": "prompts selecionados",
+            "builder.prompt_selected": "prompt selecionado",
+            "builder.clear_all": "Limpar Tudo",
             "builder.preview": "Visualização",
-            "builder.template": "Modelo de Combinação",
+            "builder.refresh_preview": "Atualizar Visualização",
+            "builder.combine_prompts": "Combinar Prompts",
+            "builder.select_prompts_preview": (
+                "Selecione prompts para ver a visualização..."
+            ),
+            "builder.characters": "caracteres",
+            "builder.tokens_estimated": "tokens (estimado)",
+            "builder.source_prompts": "prompts fonte",
+            "builder.chars": "caract",
+            # Builder Templates
             "builder.template.sequential": "Sequencial",
-            "builder.template.sequential.desc": "Combinar prompts um após o outro",
+            "builder.template.sequential_desc": (
+                "Combinar prompts um após o outro com separação clara"
+            ),
             "builder.template.sections": "Seções",
-            "builder.template.sections.desc": "Combinar prompts como seções distintas",
+            "builder.template.sections_desc": (
+                "Criar seções distintas com cabeçalhos para cada prompt"
+            ),
             "builder.template.layered": "Em Camadas",
-            "builder.template.layered.desc": "Construir contexto em camadas",
+            "builder.template.layered_desc": (
+                "Construir contexto em camadas com base + camadas adicionais"
+            ),
             "builder.template.custom": "Personalizado",
-            "builder.template.custom.desc": "Usar modelo de formatação personalizado",
-            "builder.combine": "Combinar Prompts",
-            "builder.clear": "Limpar Seleção",
-            "builder.edit": "Abrir no Editor",
-            "builder.error.no_prompts": "Nenhum prompt selecionado",
-            "builder.error.min_prompts": "Selecione pelo menos 2 prompts",
-            "builder.error.duplicates": "Prompts duplicados encontrados",
-            "builder.error.too_long": "Prompt combinado muito longo",
-            "builder.error.combination": "Falha na combinação",
-            "builder.preview.empty": "Selecione prompts para ver a visualização",
-            "builder.preview.error": "Erro de visualização",
-            "builder.drag.add": "Arraste aqui para adicionar",
-            "builder.drag.reorder": "Arraste para reordenar",
-            "builder.search.placeholder": "Buscar prompts...",
-            "builder.filter.category": "Filtrar por categoria",
-            "builder.filter.all": "Todas as Categorias",
+            "builder.template.custom_desc": (
+                "Use seu próprio modelo de formatação com marcadores"
+            ),
+            # Builder Options
+            "builder.custom_separator": "Separador Personalizado",
+            "builder.add_numbers": "Adicionar números de sequência",
+            "builder.custom_template": "Modelo Personalizado",
+            "builder.custom_template_placeholder": (
+                "Use {content}, {name}, {title}, {category}, {tags} como marcadores"
+            ),
+            "builder.available_placeholders": (
+                "Marcadores disponíveis: {content}, {name}, {title}, {category}, {tags}"
+            ),
+            # Builder Actions & Messages
+            "builder.min_prompts_required": (
+                "Por favor selecione pelo menos 2 prompts para combinar"
+            ),
+            "builder.combined_prompt_name": "Prompt Combinado ({count} partes)",
+            "builder.combined_category": "Combinado",
+            "builder.combined_description": "Prompt combinado criado de: {sources}",
+            "builder.combined_tags_suffix": "combinado, {count}-partes",
         }
 
     def _get_russian_translations(self) -> Dict[str, str]:
@@ -931,9 +1749,12 @@ class I18nManager:
             "app.status.authenticated": "✅ Аутентифицирован как {user}",
             "app.status.not_authenticated": "❌ Не аутентифицирован",
             # Navigation
+            "nav.home": "Главная",
             "nav.prompts": "Промпты",
+            "nav.builder": "Построитель",
             "nav.library": "Библиотека",
             "nav.tokens": "Токены",
+            "nav.services": "Сервисы",
             "nav.settings": "Настройки",
             "nav.admin": "Админ",
             # Authentication
@@ -945,6 +1766,39 @@ class I18nManager:
             "auth.sso": "Вход через SSO",
             "auth.welcome": "Добро пожаловать, {name}!",
             "auth.invalid": "Неверные учетные данные",
+            # Dashboard
+            "dashboard.welcome_back": "Добро пожаловать, {name}!",
+            "dashboard.welcome": "Добро пожаловать в AI Менеджер Промптов!",
+            "dashboard.subtitle": "Готовы создавать и управлять вашими AI промптами",
+            "dashboard.create_new": "Создать новый",
+            "dashboard.new_prompt": "Новый промпт",
+            "dashboard.browse": "Просмотр",
+            "dashboard.configure": "Настроить",
+            "dashboard.recent_prompts": "Недавние промпты",
+            "dashboard.view_all": "Показать все",
+            "dashboard.recently_created": "Недавно создано",
+            "dashboard.no_prompts": "Пока нет промптов",
+            "dashboard.no_prompts_desc": "Начните с создания вашего первого промпта",
+            "dashboard.create_first": "Создать ваш первый промпт",
+            "stats.total_prompts": "Всего промптов",
+            "stats.templates": "Шаблоны",
+            "tips.title": "Советы для начала",
+            "tips.create_title": "Создайте ваш первый промпт",
+            "tips.create_desc": (
+                "Начните с создания промпта для вашей самой частой AI задачи"
+            ),
+            "tips.templates_title": "Используйте шаблоны",
+            "tips.templates_desc": (
+                "Просмотрите нашу библиотеку шаблонов с проверенными паттернами промптов"
+            ),
+            "tips.test_title": "Тестируйте и оптимизируйте",
+            "tips.test_desc": (
+                "Используйте наши встроенные инструменты для улучшения ваших промптов"
+            ),
+            "tips.organize_title": "Организуйте по категориям",
+            "tips.organize_desc": (
+                "Держите ваши промпты организованными, используя категории и теги"
+            ),
             # Prompts
             "prompt.name": "Имя",
             "prompt.title": "Заголовок",
@@ -1005,37 +1859,77 @@ class I18nManager:
             # Translation
             "translate.to_english": "Перевести на английский",
             "translate.status": "Статус перевода",
-            "translate.help": "Переведите ваш промпт на английский для лучшего улучшения ИИ",
+            "translate.help": (
+                "Переведите ваш промпт на английский для лучшего улучшения ИИ"
+            ),
             # Prompt Builder
             "builder.title": "Конструктор Промптов",
-            "builder.subtitle": "Объедините существующие промпты для создания новых",
-            "builder.available": "Доступные Промпты",
-            "builder.selected": "Выбранные Промпты",
+            "builder.subtitle": (
+                "Объедините несколько промптов с помощью перетаскивания для создания сложных рабочих процессов"
+            ),
+            "builder.available_prompts": "Доступные Промпты",
+            "builder.selected_prompts": "Выбранные Промпты",
+            "builder.selected_prompts_desc": (
+                "Перетащите промпты сюда или нажмите для выбора. Перетащите для изменения порядка."
+            ),
+            "builder.combination_template": "Шаблон Комбинации",
+            "builder.combination_template_desc": (
+                "Выберите, как объединить выбранные промпты"
+            ),
+            "builder.search_prompts": "Поиск промптов...",
+            "builder.all_categories": "Все Категории",
+            "builder.no_prompts": "Нет доступных промптов",
+            "builder.create_first_prompt": "Создайте ваш первый промпт",
+            "builder.drag_here": "Перетащите промпты сюда для их объединения",
+            "builder.click_to_select": "Или нажмите на промпты для их выбора",
+            "builder.prompts_selected": "промптов выбрано",
+            "builder.prompt_selected": "промпт выбран",
+            "builder.clear_all": "Очистить Все",
             "builder.preview": "Предпросмотр",
-            "builder.template": "Шаблон Комбинации",
+            "builder.refresh_preview": "Обновить Предпросмотр",
+            "builder.combine_prompts": "Объединить Промпты",
+            "builder.select_prompts_preview": (
+                "Выберите промпты для просмотра предпросмотра..."
+            ),
+            "builder.characters": "символов",
+            "builder.tokens_estimated": "токенов (оценка)",
+            "builder.source_prompts": "исходных промптов",
+            "builder.chars": "симв",
+            # Builder Templates
             "builder.template.sequential": "Последовательный",
-            "builder.template.sequential.desc": "Объединить промпты один за другим",
+            "builder.template.sequential_desc": (
+                "Объединить промпты один за другим с четким разделением"
+            ),
             "builder.template.sections": "Секции",
-            "builder.template.sections.desc": "Объединить промпты как отдельные секции",
+            "builder.template.sections_desc": (
+                "Создать отдельные секции с заголовками для каждого промпта"
+            ),
             "builder.template.layered": "Слоистый",
-            "builder.template.layered.desc": "Строить контекст послойно",
+            "builder.template.layered_desc": (
+                "Строить контекст слоями с базой + дополнительными слоями"
+            ),
             "builder.template.custom": "Пользовательский",
-            "builder.template.custom.desc": "Использовать пользовательский шаблон форматирования",
-            "builder.combine": "Объединить Промпты",
-            "builder.clear": "Очистить Выбор",
-            "builder.edit": "Открыть в Редакторе",
-            "builder.error.no_prompts": "Промпты не выбраны",
-            "builder.error.min_prompts": "Выберите как минимум 2 промпта",
-            "builder.error.duplicates": "Найдены дублированные промпты",
-            "builder.error.too_long": "Объединенный промпт слишком длинный",
-            "builder.error.combination": "Объединение не удалось",
-            "builder.preview.empty": "Выберите промпты для просмотра предпросмотра",
-            "builder.preview.error": "Ошибка предпросмотра",
-            "builder.drag.add": "Перетащите сюда для добавления",
-            "builder.drag.reorder": "Перетащите для изменения порядка",
-            "builder.search.placeholder": "Поиск промптов...",
-            "builder.filter.category": "Фильтр по категории",
-            "builder.filter.all": "Все Категории",
+            "builder.template.custom_desc": (
+                "Используйте свой собственный шаблон форматирования с заполнителями"
+            ),
+            # Builder Options
+            "builder.custom_separator": "Пользовательский Разделитель",
+            "builder.add_numbers": "Добавить номера последовательности",
+            "builder.custom_template": "Пользовательский Шаблон",
+            "builder.custom_template_placeholder": (
+                "Используйте {content}, {name}, {title}, {category}, {tags} как заполнители"
+            ),
+            "builder.available_placeholders": (
+                "Доступные заполнители: {content}, {name}, {title}, {category}, {tags}"
+            ),
+            # Builder Actions & Messages
+            "builder.min_prompts_required": (
+                "Пожалуйста, выберите как минимум 2 промпта для объединения"
+            ),
+            "builder.combined_prompt_name": "Объединенный Промпт ({count} частей)",
+            "builder.combined_category": "Объединенный",
+            "builder.combined_description": "Объединенный промпт создан из: {sources}",
+            "builder.combined_tags_suffix": "объединенный, {count}-частей",
         }
 
     def _get_arabic_translations(self) -> Dict[str, str]:
@@ -1047,9 +1941,12 @@ class I18nManager:
             "app.status.authenticated": "✅ مصادق عليه كـ {user}",
             "app.status.not_authenticated": "❌ غير مصادق عليه",
             # Navigation
+            "nav.home": "الرئيسية",
             "nav.prompts": "المطالبات",
+            "nav.builder": "المنشئ",
             "nav.library": "المكتبة",
             "nav.tokens": "الرموز",
+            "nav.services": "الخدمات",
             "nav.settings": "الإعدادات",
             "nav.admin": "المدير",
             # Authentication
@@ -1061,6 +1958,37 @@ class I18nManager:
             "auth.sso": "تسجيل دخول SSO",
             "auth.welcome": "مرحباً، {name}!",
             "auth.invalid": "بيانات اعتماد غير صحيحة",
+            # Dashboard
+            "dashboard.welcome_back": "مرحباً بعودتك، {name}!",
+            "dashboard.welcome": "مرحباً بكم في مدير الذكاء الاصطناعي!",
+            "dashboard.subtitle": (
+                "جاهز لإنشاء وإدارة مطالبات الذكاء الاصطناعي الخاصة بك"
+            ),
+            "dashboard.create_new": "إنشاء جديد",
+            "dashboard.new_prompt": "مطالبة جديدة",
+            "dashboard.browse": "تصفح",
+            "dashboard.configure": "تكوين",
+            "dashboard.recent_prompts": "المطالبات الأخيرة",
+            "dashboard.view_all": "عرض الكل",
+            "dashboard.recently_created": "تم إنشاؤها مؤخراً",
+            "dashboard.no_prompts": "لا توجد مطالبات حتى الآن",
+            "dashboard.no_prompts_desc": "ابدأ بإنشاء مطالبتك الأولى",
+            "dashboard.create_first": "إنشاء مطالبتك الأولى",
+            "stats.total_prompts": "إجمالي المطالبات",
+            "stats.templates": "القوالب",
+            "tips.title": "نصائح للبدء",
+            "tips.create_title": "إنشاء مطالبتك الأولى",
+            "tips.create_desc": (
+                "ابدأ بإنشاء مطالبة لمهمة الذكاء الاصطناعي الأكثر شيوعاً لديك"
+            ),
+            "tips.templates_title": "استخدام القوالب",
+            "tips.templates_desc": (
+                "تصفح مكتبة القوالب الخاصة بنا للحصول على أنماط مطالبات مثبتة"
+            ),
+            "tips.test_title": "اختبار وتحسين",
+            "tips.test_desc": "استخدم أدواتنا المدمجة لتحسين مطالباتك",
+            "tips.organize_title": "تنظيم بالفئات",
+            "tips.organize_desc": "احتفظ بمطالباتك منظمة باستخدام الفئات والعلامات",
             # Prompts
             "prompt.name": "الاسم",
             "prompt.title": "العنوان",
@@ -1121,37 +2049,69 @@ class I18nManager:
             # Translation
             "translate.to_english": "ترجمة إلى الإنجليزية",
             "translate.status": "حالة الترجمة",
-            "translate.help": "ترجم موجهك إلى الإنجليزية للحصول على تحسين أفضل للذكاء الاصطناعي",
+            "translate.help": (
+                "ترجم موجهك إلى الإنجليزية للحصول على تحسين أفضل للذكاء الاصطناعي"
+            ),
             # Prompt Builder
             "builder.title": "منشئ المطالبات",
-            "builder.subtitle": "ادمج المطالبات الموجودة لإنشاء مطالبات جديدة",
-            "builder.available": "المطالبات المتاحة",
-            "builder.selected": "المطالبات المحددة",
+            "builder.subtitle": (
+                "ادمج عدة مطالبات باستخدام السحب والإفلات لإنشاء تدفقات عمل معقدة"
+            ),
+            "builder.available_prompts": "المطالبات المتاحة",
+            "builder.selected_prompts": "المطالبات المحددة",
+            "builder.selected_prompts_desc": (
+                "اسحب المطالبات هنا أو انقر للتحديد. اسحب لإعادة الترتيب."
+            ),
+            "builder.combination_template": "قالب الدمج",
+            "builder.combination_template_desc": "اختر كيفية دمج مطالباتك المحددة",
+            "builder.search_prompts": "البحث في المطالبات...",
+            "builder.all_categories": "جميع الفئات",
+            "builder.no_prompts": "لا توجد مطالبات متاحة",
+            "builder.create_first_prompt": "أنشئ مطالبتك الأولى",
+            "builder.drag_here": "اسحب المطالبات هنا لدمجها",
+            "builder.click_to_select": "أو انقر على المطالبات لتحديدها",
+            "builder.prompts_selected": "مطالبات محددة",
+            "builder.prompt_selected": "مطالبة محددة",
+            "builder.clear_all": "مسح الكل",
             "builder.preview": "معاينة",
-            "builder.template": "قالب الدمج",
+            "builder.refresh_preview": "تحديث المعاينة",
+            "builder.combine_prompts": "دمج المطالبات",
+            "builder.select_prompts_preview": "حدد المطالبات لرؤية المعاينة...",
+            "builder.characters": "حرف",
+            "builder.tokens_estimated": "رمز (تقدير)",
+            "builder.source_prompts": "مطالبات المصدر",
+            "builder.chars": "حرف",
+            # Builder Templates
             "builder.template.sequential": "تسلسلي",
-            "builder.template.sequential.desc": "دمج المطالبات واحدة تلو الأخرى",
+            "builder.template.sequential_desc": (
+                "دمج المطالبات واحدة تلو الأخرى مع فصل واضح"
+            ),
             "builder.template.sections": "أقسام",
-            "builder.template.sections.desc": "دمج المطالبات كأقسام منفصلة",
+            "builder.template.sections_desc": "إنشاء أقسام متميزة مع عناوين لكل مطالبة",
             "builder.template.layered": "طبقات",
-            "builder.template.layered.desc": "بناء السياق في طبقات",
+            "builder.template.layered_desc": (
+                "بناء السياق في طبقات مع القاعدة + طبقات إضافية"
+            ),
             "builder.template.custom": "مخصص",
-            "builder.template.custom.desc": "استخدام قالب تنسيق مخصص",
-            "builder.combine": "دمج المطالبات",
-            "builder.clear": "مسح التحديد",
-            "builder.edit": "فتح في المحرر",
-            "builder.error.no_prompts": "لا توجد مطالبات محددة",
-            "builder.error.min_prompts": "حدد على الأقل مطالبتين",
-            "builder.error.duplicates": "تم العثور على مطالبات مكررة",
-            "builder.error.too_long": "المطالبة المدمجة طويلة جداً",
-            "builder.error.combination": "فشل الدمج",
-            "builder.preview.empty": "حدد المطالبات لرؤية المعاينة",
-            "builder.preview.error": "خطأ في المعاينة",
-            "builder.drag.add": "اسحب هنا للإضافة",
-            "builder.drag.reorder": "اسحب لإعادة الترتيب",
-            "builder.search.placeholder": "البحث في المطالبات...",
-            "builder.filter.category": "تصفية حسب الفئة",
-            "builder.filter.all": "جميع الفئات",
+            "builder.template.custom_desc": (
+                "استخدم قالب التنسيق الخاص بك مع العناصر النائبة"
+            ),
+            # Builder Options
+            "builder.custom_separator": "فاصل مخصص",
+            "builder.add_numbers": "إضافة أرقام التسلسل",
+            "builder.custom_template": "قالب مخصص",
+            "builder.custom_template_placeholder": (
+                "استخدم {content}، {name}، {title}، {category}، {tags} كعناصر نائبة"
+            ),
+            "builder.available_placeholders": (
+                "العناصر النائبة المتاحة: {content}، {name}، {title}، {category}، {tags}"
+            ),
+            # Builder Actions & Messages
+            "builder.min_prompts_required": "يرجى تحديد ما لا يقل عن مطالبتين للدمج",
+            "builder.combined_prompt_name": "مطالبة مدمجة ({count} أجزاء)",
+            "builder.combined_category": "مدمج",
+            "builder.combined_description": "مطالبة مدمجة تم إنشاؤها من: {sources}",
+            "builder.combined_tags_suffix": "مدمج، {count}-أجزاء",
         }
 
     def _get_hindi_translations(self) -> Dict[str, str]:
@@ -1163,9 +2123,12 @@ class I18nManager:
             "app.status.authenticated": "✅ {user} के रूप में प्रमाणित",
             "app.status.not_authenticated": "❌ प्रमाणित नहीं",
             # Navigation
+            "nav.home": "होम",
             "nav.prompts": "प्रॉम्प्ट्स",
+            "nav.builder": "बिल्डर",
             "nav.library": "लाइब्रेरी",
             "nav.tokens": "टोकन",
+            "nav.services": "सेवाएं",
             "nav.settings": "सेटिंग्स",
             "nav.admin": "एडमिन",
             # Authentication
@@ -1177,6 +2140,37 @@ class I18nManager:
             "auth.sso": "SSO लॉगिन",
             "auth.welcome": "स्वागत है, {name}!",
             "auth.invalid": "अमान्य क्रेडेंशियल",
+            # Dashboard
+            "dashboard.welcome_back": "वापस स्वागत है, {name}!",
+            "dashboard.welcome": "AI प्रॉम्प्ट मैनेजर में आपका स्वागत है!",
+            "dashboard.subtitle": ("अपने AI प्रॉम्प्ट्स बनाने और प्रबंधित करने के लिए तैयार"),
+            "dashboard.create_new": "नया बनाएं",
+            "dashboard.new_prompt": "नया प्रॉम्प्ट",
+            "dashboard.browse": "ब्राउज़ करें",
+            "dashboard.configure": "कॉन्फ़िगर करें",
+            "dashboard.recent_prompts": "हाल के प्रॉम्प्ट्स",
+            "dashboard.view_all": "सभी देखें",
+            "dashboard.recently_created": "हाल ही में बनाया गया",
+            "dashboard.no_prompts": "अभी तक कोई प्रॉम्प्ट नहीं",
+            "dashboard.no_prompts_desc": "अपना पहला प्रॉम्प्ट बनाकर शुरुआत करें",
+            "dashboard.create_first": "अपना पहला प्रॉम्प्ट बनाएं",
+            "stats.total_prompts": "कुल प्रॉम्प्ट्स",
+            "stats.templates": "टेम्प्लेट्स",
+            "tips.title": "शुरुआत के लिए टिप्स",
+            "tips.create_title": "अपना पहला प्रॉम्प्ट बनाएं",
+            "tips.create_desc": ("अपने सबसे सामान्य AI कार्य के लिए प्रॉम्प्ट बनाकर शुरुआत करें"),
+            "tips.templates_title": "टेम्प्लेट्स का उपयोग करें",
+            "tips.templates_desc": (
+                "सिद्ध प्रॉम्प्ट पैटर्न के लिए हमारी टेम्प्लेट लाइब्रेरी ब्राउज़ करें"
+            ),
+            "tips.test_title": "परीक्षण और अनुकूलन",
+            "tips.test_desc": (
+                "अपने प्रॉम्प्ट्स को परिष्कृत करने के लिए हमारे अंतर्निहित उपकरणों का उपयोग करें"
+            ),
+            "tips.organize_title": "श्रेणियों के साथ व्यवस्थित करें",
+            "tips.organize_desc": (
+                "श्रेणियों और टैग का उपयोग करके अपने प्रॉम्प्ट्स को व्यवस्थित रखें"
+            ),
             # Prompts
             "prompt.name": "नाम",
             "prompt.title": "शीर्षक",
@@ -1237,37 +2231,71 @@ class I18nManager:
             # Translation
             "translate.to_english": "अंग्रेजी में अनुवाद करें",
             "translate.status": "अनुवाद स्थिति",
-            "translate.help": "बेहतर AI सुधार के लिए अपने प्रॉम्प्ट को अंग्रेजी में अनुवाद करें",
+            "translate.help": ("बेहतर AI सुधार के लिए अपने प्रॉम्प्ट को अंग्रेजी में अनुवाद करें"),
             # Prompt Builder
             "builder.title": "प्रॉम्प्ट बिल्डर",
-            "builder.subtitle": "नए प्रॉम्प्ट बनाने के लिए मौजूदा प्रॉम्प्ट्स को जोड़ें",
-            "builder.available": "उपलब्ध प्रॉम्प्ट्स",
-            "builder.selected": "चुने गए प्रॉम्प्ट्स",
+            "builder.subtitle": (
+                "परिष्कृत वर्कफ़्लो बनाने के लिए ड्रैग-एंड-ड्रॉप का उपयोग करके कई प्रॉम्प्ट्स को जोड़ें"
+            ),
+            "builder.available_prompts": "उपलब्ध प्रॉम्प्ट्स",
+            "builder.selected_prompts": "चुने गए प्रॉम्प्ट्स",
+            "builder.selected_prompts_desc": (
+                "प्रॉम्प्ट्स को यहाँ खींचें या चुनने के लिए क्लिक करें। पुनः व्यवस्थित करने के लिए खींचें।"
+            ),
+            "builder.combination_template": "संयोजन टेम्प्लेट",
+            "builder.combination_template_desc": (
+                "चुनें कि आपके चयनित प्रॉम्प्ट्स को कैसे जोड़ा जाए"
+            ),
+            "builder.search_prompts": "प्रॉम्प्ट्स खोजें...",
+            "builder.all_categories": "सभी श्रेणियां",
+            "builder.no_prompts": "कोई प्रॉम्प्ट उपलब्ध नहीं",
+            "builder.create_first_prompt": "अपना पहला प्रॉम्प्ट बनाएं",
+            "builder.drag_here": "प्रॉम्प्ट्स को जोड़ने के लिए यहाँ खींचें",
+            "builder.click_to_select": ("या उन्हें चुनने के लिए प्रॉम्प्ट्स पर क्लिक करें"),
+            "builder.prompts_selected": "प्रॉम्प्ट्स चुने गए",
+            "builder.prompt_selected": "प्रॉम्प्ट चुना गया",
+            "builder.clear_all": "सभी साफ़ करें",
             "builder.preview": "पूर्वावलोकन",
-            "builder.template": "संयोजन टेम्प्लेट",
+            "builder.refresh_preview": "पूर्वावलोकन रिफ्रेश करें",
+            "builder.combine_prompts": "प्रॉम्प्ट्स जोड़ें",
+            "builder.select_prompts_preview": ("पूर्वावलोकन देखने के लिए प्रॉम्प्ट्स चुनें..."),
+            "builder.characters": "अक्षर",
+            "builder.tokens_estimated": "टोकन (अनुमानित)",
+            "builder.source_prompts": "स्रोत प्रॉम्प्ट्स",
+            "builder.chars": "अक्षर",
+            # Builder Templates
             "builder.template.sequential": "क्रमिक",
-            "builder.template.sequential.desc": "प्रॉम्प्ट्स को एक के बाद एक जोड़ें",
+            "builder.template.sequential_desc": (
+                "प्रॉम्प्ट्स को स्पष्ट विभाजन के साथ एक के बाद एक जोड़ें"
+            ),
             "builder.template.sections": "खंड",
-            "builder.template.sections.desc": "प्रॉम्प्ट्स को अलग खंडों के रूप में जोड़ें",
+            "builder.template.sections_desc": (
+                "प्रत्येक प्रॉम्प्ट के लिए शीर्षकों के साथ अलग खंड बनाएं"
+            ),
             "builder.template.layered": "परतदार",
-            "builder.template.layered.desc": "परतों में संदर्भ बनाएं",
+            "builder.template.layered_desc": (
+                "आधार + अतिरिक्त परतों के साथ संदर्भ को परतों में बनाएं"
+            ),
             "builder.template.custom": "कस्टम",
-            "builder.template.custom.desc": "कस्टम फॉर्मेटिंग टेम्प्लेट का उपयोग करें",
-            "builder.combine": "प्रॉम्प्ट्स को जोड़ें",
-            "builder.clear": "चयन साफ़ करें",
-            "builder.edit": "एडिटर में खोलें",
-            "builder.error.no_prompts": "कोई प्रॉम्प्ट चुना नहीं गया",
-            "builder.error.min_prompts": "कम से कम 2 प्रॉम्प्ट्स चुनें",
-            "builder.error.duplicates": "डुप्लिकेट प्रॉम्प्ट्स मिले",
-            "builder.error.too_long": "संयुक्त प्रॉम्प्ट बहुत लंबा है",
-            "builder.error.combination": "संयोजन असफल",
-            "builder.preview.empty": "पूर्वावलोकन देखने के लिए प्रॉम्प्ट्स चुनें",
-            "builder.preview.error": "पूर्वावलोकन त्रुटि",
-            "builder.drag.add": "जोड़ने के लिए यहाँ खींचें",
-            "builder.drag.reorder": "पुनः क्रमबद्ध करने के लिए खींचें",
-            "builder.search.placeholder": "प्रॉम्प्ट्स खोजें...",
-            "builder.filter.category": "श्रेणी के अनुसार फ़िल्टर करें",
-            "builder.filter.all": "सभी श्रेणियां",
+            "builder.template.custom_desc": (
+                "प्लेसहोल्डर के साथ अपना स्वयं का फॉर्मेटिंग टेम्प्लेट उपयोग करें"
+            ),
+            # Builder Options
+            "builder.custom_separator": "कस्टम सेपरेटर",
+            "builder.add_numbers": "अनुक्रम संख्याएं जोड़ें",
+            "builder.custom_template": "कस्टम टेम्प्लेट",
+            "builder.custom_template_placeholder": (
+                "{content}, {name}, {title}, {category}, {tags} को प्लेसहोल्डर के रूप में उपयोग करें"
+            ),
+            "builder.available_placeholders": (
+                "उपलब्ध प्लेसहोल्डर: {content}, {name}, {title}, {category}, {tags}"
+            ),
+            # Builder Actions & Messages
+            "builder.min_prompts_required": ("कृपया जोड़ने के लिए कम से कम 2 प्रॉम्प्ट्स चुनें"),
+            "builder.combined_prompt_name": "संयुक्त प्रॉम्प्ट ({count} भाग)",
+            "builder.combined_category": "संयुक्त",
+            "builder.combined_description": ("संयुक्त प्रॉम्प्ट इससे बनाया गया: {sources}"),
+            "builder.combined_tags_suffix": "संयुक्त, {count}-भाग",
         }
 
 

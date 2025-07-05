@@ -48,9 +48,10 @@ jobs:
 
       - name: Test unified launcher
         run: |
-          # Test launcher help and basic functionality
+          # CRITICAL: Test launcher help and basic functionality using Poetry environment
+          # This ensures dependencies are properly resolved (avoids "Create New Prompt" errors)
           poetry run python run.py --help
-          echo "✅ Launcher help command works"
+          echo "✅ Launcher help command works (using Poetry environment)"
           
           # Test configuration parsing
           poetry run python -c "
@@ -95,14 +96,15 @@ jobs:
       - name: Run comprehensive integration tests
         run: |
           echo "🧪 Running comprehensive integration test suite..."
+          echo "⚠️  CRITICAL: All tests use 'poetry run' to ensure dependency resolution"
           
           # Run all integration tests systematically
           echo "📋 Integration Tests Summary:"
           
-          # Test 1: Modern Web UI Integration (Primary)
-          echo "🌐 Testing modern web UI integration..."
+          # Test 1: FastAPI Web UI Integration (Primary)
+          echo "🌐 Testing FastAPI web UI integration..."
           poetry run python tests/integration/test_web_interface_integration.py
-          echo "✅ Modern web UI integration test completed"
+          echo "✅ FastAPI web UI integration test completed"
           
           # Test 2: Web UI Functionality
           echo "🖥️ Testing web UI functionality..."
@@ -143,6 +145,7 @@ jobs:
       - name: Test new architecture components
         run: |
           echo "🧪 Testing new architecture components..."
+          echo "📝 NOTE: Testing repository fixes and hybrid architecture support"
           
           # Test the new prompt architecture with repository fixes
           poetry run python tests/integration/test_new_prompt_architecture.py
