@@ -21,9 +21,13 @@ packages = [
     { include = "text_translator.py" },
     { include = "i18n.py" },
     { include = "__main__.py" },
-    { include = "src" },
-    { include = "web_templates", format = "sdist" },
-    { include = "templates", format = "sdist" }
+    { include = "src" }
+]
+
+# Include template and static files as data
+include = [
+    "web_templates/**/*",
+    "templates/**/*"
 ]
 
 [tool.pytest.ini_options]
