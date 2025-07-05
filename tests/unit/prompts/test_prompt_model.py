@@ -72,7 +72,7 @@ class TestPromptModel:
         """Test that __post_init__ sets default timestamps."""
         with patch("src.prompts.models.prompt.datetime") as mock_datetime:
             mock_now = datetime(2023, 1, 1, 12, 0, 0)
-            mock_datetime.utcnow.return_value = mock_now
+            mock_datetime.now.return_value = mock_now
 
             prompt = Prompt(
                 tenant_id="tenant-123",
