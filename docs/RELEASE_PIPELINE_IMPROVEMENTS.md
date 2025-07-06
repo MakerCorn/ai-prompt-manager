@@ -10,6 +10,7 @@ The release pipeline has been significantly enhanced to provide secure, multi-pl
 
 #### GitHub Packages Integration
 - **Purpose**: Enterprise package hosting for organizations
+- **Package Name**: Uses repository name (`ai-prompt-manager`) unlike PyPI (`promptman`)
 - **Benefits**: 
   - Private package repositories for organizations
   - Integration with GitHub authentication
@@ -17,7 +18,8 @@ The release pipeline has been significantly enhanced to provide secure, multi-pl
   - Audit logging and compliance
 - **Usage**:
   ```bash
-  pip install --index-url https://pypi.pkg.github.com/makercorn/simple/ promptman
+  # Note: GitHub Packages uses repository name, not PyPI package name
+  pip install --index-url https://pypi.pkg.github.com/makercorn/simple/ ai-prompt-manager
   ```
 
 #### PyPI Trusted Publishing
@@ -116,12 +118,12 @@ graph TB
 
 ## 📊 Publishing Matrix
 
-| Platform | Trigger | Authentication | Audience |
-|----------|---------|----------------|----------|
-| **GitHub Packages** | All releases | GitHub Token | Enterprise/Organizations |
-| **PyPI** | Stable releases only | OIDC Trusted Publishing | Public/End Users |
-| **Docker Registry** | All releases | GitHub Token | Container Users |
-| **GitHub Releases** | All releases | GitHub Token | All Users |
+| Platform | Package Name | Trigger | Authentication | Audience |
+|----------|--------------|---------|----------------|----------|
+| **GitHub Packages** | `ai-prompt-manager` | All releases | GitHub Token | Enterprise/Organizations |
+| **PyPI** | `promptman` | Stable releases only | OIDC Trusted Publishing | Public/End Users |
+| **Docker Registry** | `ai-prompt-manager` | All releases | GitHub Token | Container Users |
+| **GitHub Releases** | N/A | All releases | GitHub Token | All Users |
 
 ## 🎯 Benefits Summary
 
