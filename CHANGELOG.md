@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.6.0] - 2025-01-08
+## [0.5.3] - 2025-07-06
 
 ### 🤖 Enhanced AI Services Configuration System
 
