@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.5.3] - 2025-07-06
+## [0.5.4] - 2025-07-06
 
 ### 🚀 Enhanced Release Pipeline & Publishing
 
