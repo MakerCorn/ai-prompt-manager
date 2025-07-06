@@ -197,6 +197,17 @@ python -m promptman
 # 3️⃣ Open browser to http://localhost:7860
 ```
 
+#### 🏢 From GitHub Packages (Enterprise)
+```bash
+# 1️⃣ Install from GitHub Packages
+pip install --index-url https://pypi.pkg.github.com/makercorn/simple/ promptman
+
+# 2️⃣ Run the application
+python -m promptman
+
+# 3️⃣ Open browser to http://localhost:7860
+```
+
 #### 🔧 From Source (Development)
 ```bash
 # 1️⃣ Clone and install
