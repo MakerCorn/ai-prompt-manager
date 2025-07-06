@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Integration tests for the new Web UI (FastAPI + HTMX + Tailwind)
-Replaces Gradio-based tests with comprehensive web interface testing
+Integration tests for the Web UI (FastAPI + HTMX + Tailwind)
+Comprehensive web interface testing for the modern UI
 """
 
 import os
@@ -257,11 +257,12 @@ class WebUIIntegrationTest(unittest.TestCase):
 
         # Extract prompt ID from the response (look for edit link near our prompt)
         import re
+
         # Find the section containing our prompt name and look for the edit link
         prompt_section_match = re.search(
-            r'Management Test Prompt.*?/prompts/(\d+)/edit',
+            r"Management Test Prompt.*?/prompts/(\d+)/edit",
             prompts_response.text,
-            re.DOTALL
+            re.DOTALL,
         )
         self.assertIsNotNone(
             prompt_section_match, "Could not find edit link for Management Test Prompt"
@@ -270,20 +271,19 @@ class WebUIIntegrationTest(unittest.TestCase):
 
         # Also verify the prompt appears in the list
         self.assertIn(
-            "Management Test Prompt", prompts_response.text,
-            "Created prompt should appear in list"
+            "Management Test Prompt",
+            prompts_response.text,
+            "Created prompt should appear in list",
         )
 
         # Test edit page access
-        response = self.session.get(
-            f"{self.base_url}/prompts/{prompt_id}/edit"
-        )
+        response = self.session.get(f"{self.base_url}/prompts/{prompt_id}/edit")
         self.assertEqual(response.status_code, 200)
         self.assertIn("Edit Prompt", response.text)
         # Check that the content appears in the textarea
         self.assertTrue(
             "Original content" in response.text,
-            "Original content should be present in the edit form"
+            "Original content should be present in the edit form",
         )
 
         # Test prompt update

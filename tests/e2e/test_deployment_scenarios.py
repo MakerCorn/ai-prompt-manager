@@ -68,7 +68,7 @@ class TestDeploymentScenarios(E2ETestBase):
 
         while time.time() - start_time < timeout:
             try:
-                # Check if the main Gradio app is responding
+                # Check if the main web app is responding
                 if not app_ready:
                     response = requests.get(base_url, timeout=5)
                     if response.status_code == 200:

@@ -115,6 +115,59 @@ class PromptDataManager:
                 )
             """
             )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ai_models (
+                    id SERIAL PRIMARY KEY,
+                    tenant_id UUID,
+                    user_id UUID,
+                    name TEXT NOT NULL,
+                    display_name TEXT,
+                    provider TEXT NOT NULL,
+                    model_id TEXT NOT NULL,
+                    description TEXT,
+                    api_key TEXT,
+                    api_endpoint TEXT,
+                    api_version TEXT,
+                    deployment_name TEXT,
+                    max_tokens INTEGER,
+                    temperature DECIMAL(3,2) DEFAULT 0.7,
+                    top_p DECIMAL(3,2) DEFAULT 1.0,
+                    frequency_penalty DECIMAL(3,2) DEFAULT 0.0,
+                    presence_penalty DECIMAL(3,2) DEFAULT 0.0,
+                    cost_per_1k_input_tokens DECIMAL(10,6) DEFAULT 0.0,
+                    cost_per_1k_output_tokens DECIMAL(10,6) DEFAULT 0.0,
+                    max_context_length INTEGER,
+                    supports_streaming BOOLEAN DEFAULT FALSE,
+                    supports_function_calling BOOLEAN DEFAULT FALSE,
+                    supports_vision BOOLEAN DEFAULT FALSE,
+                    supports_json_mode BOOLEAN DEFAULT FALSE,
+                    is_enabled BOOLEAN DEFAULT TRUE,
+                    is_available BOOLEAN DEFAULT FALSE,
+                    last_health_check TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(tenant_id, name)
+                )
+            """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ai_operation_configs (
+                    id SERIAL PRIMARY KEY,
+                    tenant_id UUID,
+                    user_id UUID,
+                    operation_type TEXT NOT NULL,
+                    primary_model TEXT,
+                    fallback_models TEXT,
+                    is_enabled BOOLEAN DEFAULT TRUE,
+                    custom_parameters TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(tenant_id, operation_type)
+                )
+            """
+            )
 
             # Add columns to existing tables if they don't exist
             cursor.execute(
@@ -140,13 +193,22 @@ class PromptDataManager:
                 """
                 DO $$
                 BEGIN
-                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='config' AND column_name='tenant_id') THEN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='config' AND column_name='tenant_id'
+                    ) THEN
                         ALTER TABLE config ADD COLUMN tenant_id UUID;
                     END IF;
-                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='config' AND column_name='user_id') THEN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='config' AND column_name='user_id'
+                    ) THEN
                         ALTER TABLE config ADD COLUMN user_id UUID;
                     END IF;
-                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='config' AND column_name='id') THEN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='config' AND column_name='id'
+                    ) THEN
                         ALTER TABLE config ADD COLUMN id SERIAL PRIMARY KEY;
                     END IF;
                 END $$;
@@ -198,6 +260,59 @@ class PromptDataManager:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(tenant_id, name)
+                )
+            """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ai_models (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT,
+                    user_id TEXT,
+                    name TEXT NOT NULL,
+                    display_name TEXT,
+                    provider TEXT NOT NULL,
+                    model_id TEXT NOT NULL,
+                    description TEXT,
+                    api_key TEXT,
+                    api_endpoint TEXT,
+                    api_version TEXT,
+                    deployment_name TEXT,
+                    max_tokens INTEGER,
+                    temperature REAL DEFAULT 0.7,
+                    top_p REAL DEFAULT 1.0,
+                    frequency_penalty REAL DEFAULT 0.0,
+                    presence_penalty REAL DEFAULT 0.0,
+                    cost_per_1k_input_tokens REAL DEFAULT 0.0,
+                    cost_per_1k_output_tokens REAL DEFAULT 0.0,
+                    max_context_length INTEGER,
+                    supports_streaming BOOLEAN DEFAULT 0,
+                    supports_function_calling BOOLEAN DEFAULT 0,
+                    supports_vision BOOLEAN DEFAULT 0,
+                    supports_json_mode BOOLEAN DEFAULT 0,
+                    is_enabled BOOLEAN DEFAULT 1,
+                    is_available BOOLEAN DEFAULT 0,
+                    last_health_check TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(tenant_id, name)
+                )
+            """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ai_operation_configs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT,
+                    user_id TEXT,
+                    operation_type TEXT NOT NULL,
+                    primary_model TEXT,
+                    fallback_models TEXT,
+                    is_enabled BOOLEAN DEFAULT 1,
+                    custom_parameters TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(tenant_id, operation_type)
                 )
             """
             )
@@ -895,10 +1010,10 @@ class PromptDataManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, description, content, 
+                    SELECT id, tenant_id, user_id, name, description, content,
                            category, variables, is_builtin, created_at, updated_at
-                    FROM templates 
-                    WHERE tenant_id = %s 
+                    FROM templates
+                    WHERE tenant_id = %s
                     ORDER BY created_at DESC
                     """,
                     (self.tenant_id,),
@@ -906,10 +1021,10 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, description, content, 
+                    SELECT id, tenant_id, user_id, name, description, content,
                            category, variables, is_builtin, created_at, updated_at
-                    FROM templates 
-                    WHERE tenant_id = ? 
+                    FROM templates
+                    WHERE tenant_id = ?
                     ORDER BY created_at DESC
                     """,
                     (self.tenant_id,),
@@ -955,9 +1070,9 @@ class PromptDataManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, description, content, 
+                    SELECT id, tenant_id, user_id, name, description, content,
                            category, variables, is_builtin, created_at, updated_at
-                    FROM templates 
+                    FROM templates
                     WHERE id = %s AND tenant_id = %s
                     """,
                     (template_id, self.tenant_id),
@@ -965,9 +1080,9 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, description, content, 
+                    SELECT id, tenant_id, user_id, name, description, content,
                            category, variables, is_builtin, created_at, updated_at
-                    FROM templates 
+                    FROM templates
                     WHERE id = ? AND tenant_id = ?
                     """,
                     (template_id, self.tenant_id),
@@ -1010,9 +1125,9 @@ class PromptDataManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, description, content, 
+                    SELECT id, tenant_id, user_id, name, description, content,
                            category, variables, is_builtin, created_at, updated_at
-                    FROM templates 
+                    FROM templates
                     WHERE name = %s AND tenant_id = %s
                     """,
                     (name, self.tenant_id),
@@ -1020,9 +1135,9 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, description, content, 
+                    SELECT id, tenant_id, user_id, name, description, content,
                            category, variables, is_builtin, created_at, updated_at
-                    FROM templates 
+                    FROM templates
                     WHERE name = ? AND tenant_id = ?
                     """,
                     (name, self.tenant_id),
@@ -1146,7 +1261,7 @@ class PromptDataManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    UPDATE templates 
+                    UPDATE templates
                     SET name = %s, description = %s, content = %s, category = %s, variables = %s, updated_at = %s
                     WHERE id = %s AND tenant_id = %s AND user_id = %s
                     """,
@@ -1165,7 +1280,7 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    UPDATE templates 
+                    UPDATE templates
                     SET name = ?, description = ?, content = ?, category = ?, variables = ?, updated_at = ?
                     WHERE id = ? AND tenant_id = ? AND user_id = ?
                     """,
@@ -1280,3 +1395,451 @@ class PromptDataManager:
                 "Custom",
                 "General",
             ]
+
+    # AI Model Management Methods
+
+    def add_ai_model(self, model_data: Dict) -> bool:
+        """Add a new AI model configuration"""
+        if not self.tenant_id:
+            return False
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    INSERT INTO ai_models (
+                        tenant_id, user_id, name, display_name, provider, model_id, description,
+                        api_key, api_endpoint, api_version, deployment_name, max_tokens,
+                        temperature, top_p, frequency_penalty, presence_penalty,
+                        cost_per_1k_input_tokens, cost_per_1k_output_tokens, max_context_length,
+                        supports_streaming, supports_function_calling, supports_vision, supports_json_mode,
+                        is_enabled, is_available
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    )
+                    """,
+                    (
+                        self.tenant_id,
+                        self.user_id,
+                        model_data.get("name"),
+                        model_data.get("display_name"),
+                        model_data.get("provider"),
+                        model_data.get("model_id"),
+                        model_data.get("description"),
+                        model_data.get("api_key"),
+                        model_data.get("api_endpoint"),
+                        model_data.get("api_version"),
+                        model_data.get("deployment_name"),
+                        model_data.get("max_tokens"),
+                        model_data.get("temperature", 0.7),
+                        model_data.get("top_p", 1.0),
+                        model_data.get("frequency_penalty", 0.0),
+                        model_data.get("presence_penalty", 0.0),
+                        model_data.get("cost_per_1k_input_tokens", 0.0),
+                        model_data.get("cost_per_1k_output_tokens", 0.0),
+                        model_data.get("max_context_length"),
+                        model_data.get("supports_streaming", False),
+                        model_data.get("supports_function_calling", False),
+                        model_data.get("supports_vision", False),
+                        model_data.get("supports_json_mode", False),
+                        model_data.get("is_enabled", True),
+                        model_data.get("is_available", False),
+                    ),
+                )
+            else:
+                cursor.execute(
+                    """
+                    INSERT INTO ai_models (
+                        tenant_id, user_id, name, display_name, provider, model_id, description,
+                        api_key, api_endpoint, api_version, deployment_name, max_tokens,
+                        temperature, top_p, frequency_penalty, presence_penalty,
+                        cost_per_1k_input_tokens, cost_per_1k_output_tokens, max_context_length,
+                        supports_streaming, supports_function_calling, supports_vision, supports_json_mode,
+                        is_enabled, is_available
+                    ) VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    )
+                    """,
+                    (
+                        self.tenant_id,
+                        self.user_id,
+                        model_data.get("name"),
+                        model_data.get("display_name"),
+                        model_data.get("provider"),
+                        model_data.get("model_id"),
+                        model_data.get("description"),
+                        model_data.get("api_key"),
+                        model_data.get("api_endpoint"),
+                        model_data.get("api_version"),
+                        model_data.get("deployment_name"),
+                        model_data.get("max_tokens"),
+                        model_data.get("temperature", 0.7),
+                        model_data.get("top_p", 1.0),
+                        model_data.get("frequency_penalty", 0.0),
+                        model_data.get("presence_penalty", 0.0),
+                        model_data.get("cost_per_1k_input_tokens", 0.0),
+                        model_data.get("cost_per_1k_output_tokens", 0.0),
+                        model_data.get("max_context_length"),
+                        int(model_data.get("supports_streaming", False)),
+                        int(model_data.get("supports_function_calling", False)),
+                        int(model_data.get("supports_vision", False)),
+                        int(model_data.get("supports_json_mode", False)),
+                        int(model_data.get("is_enabled", True)),
+                        int(model_data.get("is_available", False)),
+                    ),
+                )
+
+            conn.commit()
+            conn.close()
+            return True
+        except Exception:
+            conn.close()
+            return False
+
+    def get_ai_models(self) -> List[Dict]:
+        """Get all AI models for the current tenant"""
+        if not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, display_name, provider, model_id, description,
+                           api_key, api_endpoint, api_version, deployment_name, max_tokens,
+                           temperature, top_p, frequency_penalty, presence_penalty,
+                           cost_per_1k_input_tokens, cost_per_1k_output_tokens, max_context_length,
+                           supports_streaming, supports_function_calling, supports_vision, supports_json_mode,
+                           is_enabled, is_available, last_health_check, created_at, updated_at
+                    FROM ai_models WHERE tenant_id = %s ORDER BY name
+                    """,
+                    (self.tenant_id,),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, display_name, provider, model_id, description,
+                           api_key, api_endpoint, api_version, deployment_name, max_tokens,
+                           temperature, top_p, frequency_penalty, presence_penalty,
+                           cost_per_1k_input_tokens, cost_per_1k_output_tokens, max_context_length,
+                           supports_streaming, supports_function_calling, supports_vision, supports_json_mode,
+                           is_enabled, is_available, last_health_check, created_at, updated_at
+                    FROM ai_models WHERE tenant_id = ? ORDER BY name
+                    """,
+                    (self.tenant_id,),
+                )
+
+            models = []
+            for row in cursor.fetchall():
+                if self.db_type == "postgres":
+                    model = dict(row)
+                else:
+                    model = {
+                        "id": row[0],
+                        "tenant_id": row[1],
+                        "user_id": row[2],
+                        "name": row[3],
+                        "display_name": row[4],
+                        "provider": row[5],
+                        "model_id": row[6],
+                        "description": row[7],
+                        "api_key": row[8],
+                        "api_endpoint": row[9],
+                        "api_version": row[10],
+                        "deployment_name": row[11],
+                        "max_tokens": row[12],
+                        "temperature": row[13],
+                        "top_p": row[14],
+                        "frequency_penalty": row[15],
+                        "presence_penalty": row[16],
+                        "cost_per_1k_input_tokens": row[17],
+                        "cost_per_1k_output_tokens": row[18],
+                        "max_context_length": row[19],
+                        "supports_streaming": bool(row[20]),
+                        "supports_function_calling": bool(row[21]),
+                        "supports_vision": bool(row[22]),
+                        "supports_json_mode": bool(row[23]),
+                        "is_enabled": bool(row[24]),
+                        "is_available": bool(row[25]),
+                        "last_health_check": row[26],
+                        "created_at": row[27],
+                        "updated_at": row[28],
+                    }
+                models.append(model)
+
+            conn.close()
+            return models
+        except Exception:
+            conn.close()
+            return []
+
+    def update_ai_model(self, model_name: str, updates: Dict) -> bool:
+        """Update an AI model configuration"""
+        if not self.tenant_id:
+            return False
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            # Build dynamic update query
+            set_clauses = []
+            values = []
+
+            for key, value in updates.items():
+                if key in [
+                    "display_name",
+                    "description",
+                    "api_key",
+                    "api_endpoint",
+                    "api_version",
+                    "deployment_name",
+                    "max_tokens",
+                    "temperature",
+                    "top_p",
+                    "frequency_penalty",
+                    "presence_penalty",
+                    "cost_per_1k_input_tokens",
+                    "cost_per_1k_output_tokens",
+                    "max_context_length",
+                    "supports_streaming",
+                    "supports_function_calling",
+                    "supports_vision",
+                    "supports_json_mode",
+                    "is_enabled",
+                    "is_available",
+                    "last_health_check",
+                ]:
+                    set_clauses.append(
+                        f"{key} = {'%s' if self.db_type == 'postgres' else '?'}"
+                    )
+                    if key.startswith("supports_") or key in [
+                        "is_enabled",
+                        "is_available",
+                    ]:
+                        values.append(
+                            value if self.db_type == "postgres" else int(value)
+                        )
+                    else:
+                        values.append(value)
+
+            if not set_clauses:
+                # No valid fields to update, but this is not an error
+                conn.close()
+                return True
+
+            # Add updated_at
+            set_clauses.append(
+                f"updated_at = {'CURRENT_TIMESTAMP' if self.db_type == 'postgres' else 'CURRENT_TIMESTAMP'}"
+            )
+
+            # Add WHERE clause values
+            values.extend([self.tenant_id, model_name])
+
+            # set_clauses and WHERE params are controlled, not user input  # nosec B608
+            query = f"""
+                UPDATE ai_models
+                SET {', '.join(set_clauses)}
+                WHERE tenant_id = {'%s' if self.db_type == 'postgres' else '?'} AND name = {'%s' if self.db_type == 'postgres' else '?'}
+            """
+
+            cursor.execute(query, values)
+            conn.commit()
+            conn.close()
+            return cursor.rowcount > 0
+        except Exception:
+            conn.close()
+            return False
+
+    def delete_ai_model(self, model_name: str) -> bool:
+        """Delete an AI model configuration"""
+        if not self.tenant_id:
+            return False
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    "DELETE FROM ai_models WHERE tenant_id = %s AND name = %s",
+                    (self.tenant_id, model_name),
+                )
+            else:
+                cursor.execute(
+                    "DELETE FROM ai_models WHERE tenant_id = ? AND name = ?",
+                    (self.tenant_id, model_name),
+                )
+
+            conn.commit()
+            conn.close()
+            return cursor.rowcount > 0
+        except Exception:
+            conn.close()
+            return False
+
+    def get_ai_operation_configs(self) -> List[Dict]:
+        """Get all AI operation configurations for the current tenant"""
+        if not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, operation_type, primary_model, fallback_models,
+                           is_enabled, custom_parameters, created_at, updated_at
+                    FROM ai_operation_configs WHERE tenant_id = %s ORDER BY operation_type
+                    """,
+                    (self.tenant_id,),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, operation_type, primary_model, fallback_models,
+                           is_enabled, custom_parameters, created_at, updated_at
+                    FROM ai_operation_configs WHERE tenant_id = ? ORDER BY operation_type
+                    """,
+                    (self.tenant_id,),
+                )
+
+            configs = []
+            for row in cursor.fetchall():
+                if self.db_type == "postgres":
+                    config = dict(row)
+                else:
+                    config = {
+                        "id": row[0],
+                        "tenant_id": row[1],
+                        "user_id": row[2],
+                        "operation_type": row[3],
+                        "primary_model": row[4],
+                        "fallback_models": row[5],
+                        "is_enabled": bool(row[6]),
+                        "custom_parameters": row[7],
+                        "created_at": row[8],
+                        "updated_at": row[9],
+                    }
+                configs.append(config)
+
+            conn.close()
+            return configs
+        except Exception:
+            conn.close()
+            return []
+
+    def update_ai_operation_config(
+        self, operation_type: str, config_data: Dict
+    ) -> bool:
+        """Update or create an AI operation configuration"""
+        if not self.tenant_id:
+            return False
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            # Check if config exists
+            if self.db_type == "postgres":
+                cursor.execute(
+                    "SELECT id FROM ai_operation_configs WHERE tenant_id = %s AND operation_type = %s",
+                    (self.tenant_id, operation_type),
+                )
+            else:
+                cursor.execute(
+                    "SELECT id FROM ai_operation_configs WHERE tenant_id = ? AND operation_type = ?",
+                    (self.tenant_id, operation_type),
+                )
+
+            exists = cursor.fetchone() is not None
+
+            if exists:
+                # Update existing config
+                if self.db_type == "postgres":
+                    cursor.execute(
+                        """
+                        UPDATE ai_operation_configs
+                        SET primary_model = %s, fallback_models = %s, is_enabled = %s,
+                            custom_parameters = %s, updated_at = CURRENT_TIMESTAMP
+                        WHERE tenant_id = %s AND operation_type = %s
+                        """,
+                        (
+                            config_data.get("primary_model"),
+                            config_data.get("fallback_models"),
+                            config_data.get("is_enabled", True),
+                            config_data.get("custom_parameters"),
+                            self.tenant_id,
+                            operation_type,
+                        ),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        UPDATE ai_operation_configs
+                        SET primary_model = ?, fallback_models = ?, is_enabled = ?,
+                            custom_parameters = ?, updated_at = CURRENT_TIMESTAMP
+                        WHERE tenant_id = ? AND operation_type = ?
+                        """,
+                        (
+                            config_data.get("primary_model"),
+                            config_data.get("fallback_models"),
+                            int(config_data.get("is_enabled", True)),
+                            config_data.get("custom_parameters"),
+                            self.tenant_id,
+                            operation_type,
+                        ),
+                    )
+            else:
+                # Create new config
+                if self.db_type == "postgres":
+                    cursor.execute(
+                        """
+                        INSERT INTO ai_operation_configs (
+                            tenant_id, user_id, operation_type, primary_model, fallback_models,
+                            is_enabled, custom_parameters
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (
+                            self.tenant_id,
+                            self.user_id,
+                            operation_type,
+                            config_data.get("primary_model"),
+                            config_data.get("fallback_models"),
+                            config_data.get("is_enabled", True),
+                            config_data.get("custom_parameters"),
+                        ),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        INSERT INTO ai_operation_configs (
+                            tenant_id, user_id, operation_type, primary_model, fallback_models,
+                            is_enabled, custom_parameters
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            self.tenant_id,
+                            self.user_id,
+                            operation_type,
+                            config_data.get("primary_model"),
+                            config_data.get("fallback_models"),
+                            int(config_data.get("is_enabled", True)),
+                            config_data.get("custom_parameters"),
+                        ),
+                    )
+
+            conn.commit()
+            conn.close()
+            return True
+        except Exception:
+            conn.close()
+            return False

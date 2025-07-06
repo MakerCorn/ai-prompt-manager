@@ -57,17 +57,17 @@ def test_endpoints():
         print(f"❌ API docs test error: {e}")
         return False
 
-    # Test 4: Gradio web interface
-    print("\n4. Testing Gradio web interface...")
+    # Test 4: Web interface
+    print("\n4. Testing web interface...")
     try:
         response = requests.get(base_url, timeout=5)
         if response.status_code == 200:
-            print("✅ Gradio web interface accessible")
+            print("✅ Web interface accessible")
         else:
-            print(f"❌ Gradio interface failed: {response.status_code}")
+            print(f"❌ Web interface failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"❌ Gradio interface test error: {e}")
+        print(f"❌ Web interface test error: {e}")
         return False
 
     print("\n🎉 All API tests passed!")

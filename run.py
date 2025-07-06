@@ -219,7 +219,7 @@ def main():
     # Update display for API integration
     if config["enable_api"]:
         print("🔗 API Integration: Unified server approach")
-        print(f"   📊 API Endpoints: Same port as Gradio app ({config['port']})")
+        print(f"   📊 API Endpoints: Same port as web app ({config['port']})")
         print(f"   🌐 API Base URL: http://{config['host']}:{config['port']}/api")
         print()
 

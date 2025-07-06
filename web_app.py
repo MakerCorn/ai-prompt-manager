@@ -5,7 +5,7 @@ Non-Commercial License
 Copyright (c) 2025 MakerCorn
 
 AI Prompt Manager Web Application
-FastAPI-based web interface replacing Gradio
+FastAPI-based web interface with modern UI components
 
 This software is licensed for non-commercial use only.
 See LICENSE file for details.
@@ -28,6 +28,14 @@ from i18n import i18n
 from langwatch_optimizer import langwatch_optimizer
 from prompt_data_manager import PromptDataManager
 from text_translator import text_translator
+
+# Import enhanced AI services API
+try:
+    from api_endpoints_enhanced import get_ai_models_router
+
+    AI_MODELS_API_AVAILABLE = True
+except ImportError:
+    AI_MODELS_API_AVAILABLE = False
 from token_calculator import token_calculator
 
 
@@ -77,6 +85,14 @@ class WebApp:
                 self.app.mount(
                     "/static", StaticFiles(directory=static_dir), name="static"
                 )
+
+        # Include AI models router if available
+        if AI_MODELS_API_AVAILABLE:
+            try:
+                ai_models_router = get_ai_models_router()
+                self.app.include_router(ai_models_router)
+            except Exception as e:
+                print(f"Warning: Could not include AI models router: {e}")
 
         # Set up routes
         self._setup_routes()
@@ -1208,6 +1224,20 @@ class WebApp:
             return self.templates.TemplateResponse(
                 "ai_services/config.html",
                 self.get_template_context(request, user, page_title="AI Services"),
+            )
+
+        # Enhanced AI Services Configuration
+        @self.app.get("/ai-services/enhanced", response_class=HTMLResponse)
+        async def enhanced_ai_services_page(request: Request):
+            user = await self.get_current_user(request)
+            if not user:
+                return RedirectResponse(url="/login", status_code=302)
+
+            return self.templates.TemplateResponse(
+                "ai_services/enhanced_config.html",
+                self.get_template_context(
+                    request, user, page_title="AI Model Configuration"
+                ),
             )
 
         @self.app.post("/ai-services/test")

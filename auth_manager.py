@@ -150,7 +150,8 @@ class AuthManager:
                     password_hash TEXT,
                     first_name TEXT NOT NULL,
                     last_name TEXT NOT NULL,
-                    role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'user', 'readonly')),
+                    role TEXT DEFAULT 'user'
+                        CHECK (role IN ('admin', 'user', 'readonly')),
                     is_active BOOLEAN DEFAULT TRUE,
                     sso_id TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -198,7 +199,8 @@ class AuthManager:
                     password_hash TEXT,
                     first_name TEXT NOT NULL,
                     last_name TEXT NOT NULL,
-                    role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'user', 'readonly')),
+                    role TEXT DEFAULT 'user'
+                        CHECK (role IN ('admin', 'user', 'readonly')),
                     is_active BOOLEAN DEFAULT 1,
                     sso_id TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -266,7 +268,8 @@ class AuthManager:
                 if self.db_type == "postgres":
                     cursor.execute(
                         """
-                        INSERT INTO users (id, tenant_id, email, password_hash, first_name, last_name, role, is_active)
+                        INSERT INTO users (id, tenant_id, email, password_hash,
+                                         first_name, last_name, role, is_active)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                         (
@@ -283,7 +286,8 @@ class AuthManager:
                 else:
                     cursor.execute(
                         """
-                        INSERT INTO users (id, tenant_id, email, password_hash, first_name, last_name, role, is_active)
+                        INSERT INTO users (id, tenant_id, email, password_hash,
+                                         first_name, last_name, role, is_active)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                         (
@@ -436,7 +440,8 @@ class AuthManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    INSERT INTO users (id, tenant_id, email, password_hash, first_name, last_name, role, is_active, sso_id)
+                    INSERT INTO users (id, tenant_id, email, password_hash,
+                                     first_name, last_name, role, is_active, sso_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                     (
@@ -454,7 +459,8 @@ class AuthManager:
             else:
                 cursor.execute(
                     """
-                    INSERT INTO users (id, tenant_id, email, password_hash, first_name, last_name, role, is_active, sso_id)
+                    INSERT INTO users (id, tenant_id, email, password_hash,
+                                     first_name, last_name, role, is_active, sso_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
@@ -493,7 +499,8 @@ class AuthManager:
                         SELECT u.*, t.name as tenant_name, t.subdomain
                         FROM users u
                         JOIN tenants t ON u.tenant_id = t.id
-                        WHERE u.email = %s AND t.subdomain = %s AND u.is_active = TRUE AND t.is_active = TRUE
+                        WHERE u.email = %s AND t.subdomain = %s
+                          AND u.is_active = TRUE AND t.is_active = TRUE
                     """,
                         (email, subdomain),
                     )
@@ -503,7 +510,8 @@ class AuthManager:
                         SELECT u.*, t.name as tenant_name, t.subdomain
                         FROM users u
                         JOIN tenants t ON u.tenant_id = t.id
-                        WHERE u.email = ? AND t.subdomain = ? AND u.is_active = 1 AND t.is_active = 1
+                        WHERE u.email = ? AND t.subdomain = ?
+                          AND u.is_active = 1 AND t.is_active = 1
                     """,
                         (email, subdomain),
                     )
@@ -591,6 +599,7 @@ class AuthManager:
             try:
                 conn.close()
             except Exception:
+                # Silent rollback failure is acceptable here  # nosec B110
                 pass
             return False, None, f"Authentication error: {str(e)}"
 
@@ -621,7 +630,8 @@ class AuthManager:
         if self.db_type == "postgres":
             cursor.execute(
                 """
-                INSERT INTO user_sessions (id, user_id, token_hash, expires_at, ip_address, user_agent)
+                INSERT INTO user_sessions (id, user_id, token_hash, expires_at,
+                                          ip_address, user_agent)
                 VALUES (%s, %s, %s, %s, %s, %s)
             """,
                 (session_id, user_id, token_hash, expires_at, ip_address, user_agent),
@@ -629,7 +639,8 @@ class AuthManager:
         else:
             cursor.execute(
                 """
-                INSERT INTO user_sessions (id, user_id, token_hash, expires_at, ip_address, user_agent)
+                INSERT INTO user_sessions (id, user_id, token_hash, expires_at,
+                                          ip_address, user_agent)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
                 (

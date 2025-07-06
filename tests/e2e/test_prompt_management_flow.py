@@ -27,7 +27,7 @@ class TestPromptManagementFlow(E2ETestBase):
 
         page.wait_for_timeout(3000)  # Give UI more time to load
 
-        # Try multiple selectors that Gradio might use for text inputs
+        # Try multiple selectors that the web UI might use for text inputs
         email_selectors = [
             "input[type='email']",
             "input[type='text']",

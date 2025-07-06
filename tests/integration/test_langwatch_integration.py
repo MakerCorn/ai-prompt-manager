@@ -8,7 +8,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from langwatch_optimizer import PromptOptimizer, prompt_optimizer  # noqa: F401
+# flake8: noqa: E402
+from langwatch_optimizer import PromptOptimizer, prompt_optimizer
 
 
 def test_langwatch_optimization():

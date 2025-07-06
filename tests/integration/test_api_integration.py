@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Test script for API integration
-Tests the combined Gradio + FastAPI application
+Tests the combined FastAPI web application with API endpoints
 """
 
 import os

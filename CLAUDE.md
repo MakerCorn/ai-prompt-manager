@@ -44,6 +44,13 @@ poetry run python tests/integration/test_new_architecture_integration.py # New a
 poetry run python tests/integration/test_langwatch_integration.py        # AI optimization
 poetry run python tests/integration/test_api_integration.py              # API integration
 
+# Testing - Enhanced AI Services
+poetry run python tests/unit/test_ai_model_config.py                     # AI model configuration unit tests
+poetry run python tests/unit/test_ai_model_manager.py                    # AI model manager unit tests
+poetry run python tests/integration/test_ai_services_api_integration.py  # AI services API integration
+poetry run python tests/integration/test_ai_database_integration.py      # AI database operations
+poetry run python tests/e2e/test_enhanced_ai_services_e2e.py            # Enhanced AI services E2E tests
+
 # Docker testing
 ./scripts/docker-test.sh          # Full Docker validation
 docker-compose up -d              # Development stack
@@ -84,6 +91,7 @@ This project now uses a **modern web interface** as the default, built with Fast
 - `token_calculator.py` - AI model cost estimation and token calculation
 - `langwatch_optimizer.py` - AI-powered prompt optimization services
 - `api_endpoints.py` - REST API implementation with FastAPI
+- `api_endpoints_enhanced.py` - Enhanced AI services REST API with 14 endpoints
 - `api_token_manager.py` - Secure API token generation and validation
 - `__main__.py` - Package entry point for `python -m promptman` execution
 
@@ -102,7 +110,8 @@ web_templates/
 │   ├── builder.html               # Drag-and-drop prompt builder
 │   └── _list_partial.html         # HTMX partial for dynamic updates
 ├── ai_services/
-│   └── config.html                # AI service configuration and testing
+│   ├── config.html                # Legacy AI service configuration
+│   └── enhanced_config.html       # Enhanced AI services with multi-model support
 ├── settings/
 │   ├── index.html                 # Settings hub
 │   ├── profile.html               # User profile management
@@ -133,9 +142,12 @@ web_templates/
 **Modular Architecture (src/):**
 ```
 src/
-├── core/                          # Infrastructure layer (for future expansion)
+├── core/                          # Infrastructure layer with AI services
 │   ├── base/                      # Base classes (DatabaseManager, ServiceBase)
-│   ├── config/                    # Type-safe configuration
+│   ├── config/                    # Type-safe configuration including AI models
+│   │   └── ai_model_config.py     # AI model and provider configuration system
+│   ├── services/                  # Core business services
+│   │   └── ai_model_manager.py    # AI model management and health checking
 │   └── exceptions/                # Structured exception hierarchy
 ├── auth/                          # Authentication module (experimental)
 ├── prompts/                       # Prompt management services
@@ -162,6 +174,112 @@ src/
 - **Visual Design**: Consistent color scheme and typography
 - **Accessibility**: Proper focus management and screen reader support
 - **Mobile Optimization**: Touch-friendly interface elements
+
+## Enhanced AI Services Configuration
+
+### Multi-Model Architecture
+The application now features a comprehensive AI services configuration system that allows users to configure different models and providers for different operations:
+
+**Core AI Services Components:**
+- `src/core/config/ai_model_config.py` - AI model configuration system with provider definitions
+- `src/core/services/ai_model_manager.py` - AI model management service with health checking
+- `api_endpoints_enhanced.py` - Enhanced API endpoints for AI model management
+- `web_templates/ai_services/enhanced_config.html` - Modern tabbed UI for AI configuration
+
+### Supported AI Providers
+```python
+# 10+ AI Providers supported
+AIProvider.OPENAI           # OpenAI GPT models
+AIProvider.AZURE_OPENAI     # Azure OpenAI enterprise models
+AIProvider.ANTHROPIC        # Claude 3 models (Opus, Sonnet, Haiku)
+AIProvider.GOOGLE           # Gemini Pro, Gemini Ultra
+AIProvider.OLLAMA           # Local Ollama models
+AIProvider.LM_STUDIO        # LM Studio local deployment
+AIProvider.LLAMA_CPP        # llama.cpp GGUF models
+AIProvider.HUGGINGFACE      # Hugging Face Hub models
+AIProvider.COHERE           # Cohere Command models
+AIProvider.TOGETHER_AI      # Together AI hosted models
+```
+
+### Operation Types
+```python
+# 11 Operation Types for model specialization
+OperationType.DEFAULT                # General purpose operations (primary fallback)
+OperationType.PROMPT_ENHANCEMENT     # Improving prompt quality and structure
+OperationType.PROMPT_OPTIMIZATION    # Performance and cost optimization
+OperationType.PROMPT_TESTING         # Testing and validation (prefer cheap models)
+OperationType.MODEL_COMBINING        # Ensemble operations with multiple models
+OperationType.TRANSLATION           # Language translation and localization
+OperationType.SUMMARIZATION         # Content summarization and condensing
+OperationType.CONVERSATION          # Chat and dialogue interactions
+OperationType.QUESTION_ANSWERING    # Q&A and information retrieval
+OperationType.CONTENT_GENERATION    # Creative writing and content creation
+OperationType.CODE_GENERATION       # Programming and code assistance
+```
+
+### AI Model Configuration Features
+- **Multi-Provider Support**: Configure models from 10+ different AI providers
+- **Operation-Specific Models**: Set different models for different types of operations
+- **Health Monitoring**: Automatic health checks and availability tracking
+- **Intelligent Selection**: Automatic model selection with fallback chains
+- **Usage Analytics**: Comprehensive tracking of token usage, costs, and performance
+- **API Integration**: RESTful API with 14 endpoints for programmatic management
+- **Import/Export**: Configuration backup and migration capabilities
+
+### Database Schema Extensions
+```sql
+-- New AI Services tables
+ai_models(
+    id, tenant_id, user_id, name, display_name, provider, model_id,
+    description, api_key, api_endpoint, deployment_name, api_version,
+    cost_per_1k_input_tokens, cost_per_1k_output_tokens, max_context_length,
+    temperature, max_tokens, top_p, frequency_penalty, presence_penalty,
+    supports_streaming, supports_function_calling, supports_vision, supports_json_mode,
+    is_enabled, is_available, last_health_check, created_at, updated_at
+)
+
+ai_operation_configs(
+    id, tenant_id, user_id, operation_type, primary_model, fallback_models,
+    is_enabled, custom_parameters, created_at, updated_at
+)
+```
+
+### Testing Coverage
+- **Unit Tests**: Complete coverage for AI model configuration and manager services
+- **Integration Tests**: Database operations and API endpoint testing
+- **E2E Tests**: Browser automation testing for the enhanced AI services UI
+- **Multi-Provider Testing**: Health check validation for all supported providers
+
+### API Endpoints
+The enhanced AI services provide 14 comprehensive API endpoints:
+
+```bash
+# Core model management
+GET    /api/ai-models/                    # List all models
+POST   /api/ai-models/                    # Add new model
+PUT    /api/ai-models/{name}              # Update model
+DELETE /api/ai-models/{name}              # Delete model
+
+# Model operations
+POST   /api/ai-models/{name}/test         # Test model health
+POST   /api/ai-models/health-check        # Check all models
+
+# Configuration management
+GET    /api/ai-models/operations          # Get operation configs
+PUT    /api/ai-models/operations/{type}   # Update operation config
+
+# System information
+GET    /api/ai-models/providers           # List supported providers
+GET    /api/ai-models/operation-types     # List operation types
+
+# Analytics and recommendations
+GET    /api/ai-models/usage-stats         # Usage statistics
+GET    /api/ai-models/recommendations/{type} # Model recommendations
+
+# Import/Export
+POST   /api/ai-models/export              # Export configuration
+POST   /api/ai-models/import              # Import configuration
+```
 
 ## Multi-Tenant Security Model
 

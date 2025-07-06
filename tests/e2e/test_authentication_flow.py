@@ -24,9 +24,9 @@ class TestAuthenticationFlow(E2ETestBase):
                 # Navigate to application
                 page.goto(test_config["base_url"])
 
-                # Wait for page to load (use domcontentloaded instead of networkidle for Gradio apps)
+                # Wait for page to load (use domcontentloaded for web apps)
                 page.wait_for_load_state("domcontentloaded")
-                page.wait_for_timeout(5000)  # Give Gradio time to render
+                page.wait_for_timeout(5000)  # Give web UI time to render
 
                 page_content = page.content()
 

@@ -64,6 +64,7 @@ graph LR
 - [⚙️ Configuration](#️-configuration) - Setup and customization
 
 ### 🎯 Core Features  
+- [🤖 Enhanced AI Services Configuration](#-enhanced-ai-services-configuration) - Multi-model AI setup
 - [📝 Prompt Management](#-prompt-management) - Create, organize, and manage prompts
 - [🧮 Token Calculator](#-token-calculator) - Real-time cost estimation
 - [🚀 AI-Powered Optimization](#-ai-powered-optimization) - Improve prompt quality
@@ -628,6 +629,355 @@ ai-prompt-manager/
 - 🐛 **Bug Reports**: Report translation issues on GitHub
 - 💡 **Feature Requests**: Suggest new languages or improvements
 - 🌍 **Community**: Join discussions about localization
+
+---
+
+## 🤖 Enhanced AI Services Configuration
+
+Instruere features a comprehensive AI services configuration system that allows users to set different models and providers for different functions, providing unprecedented flexibility and control over AI operations.
+
+### 🚀 Multi-Model Architecture Overview
+
+The enhanced AI services system supports **10+ AI providers** and **11 operation types**, enabling you to optimize each AI function with the best-suited model:
+
+```mermaid
+graph TB
+    A[🎯 Operation Types] --> B[📝 Default Operations]
+    A --> C[🚀 Prompt Enhancement]
+    A --> D[⚡ Optimization]
+    A --> E[🧪 Testing]
+    A --> F[🔄 Translation]
+    
+    B --> G[🤖 AI Models]
+    C --> G
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> H[☁️ Cloud Providers<br/>OpenAI • Azure • Anthropic]
+    G --> I[🏠 Local Models<br/>Ollama • LM Studio • llama.cpp]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style G fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style H fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style I fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+```
+
+### 🎯 Supported AI Providers
+
+| Provider | Models | Features | Use Case |
+|----------|--------|----------|----------|
+| **🤖 OpenAI** | GPT-4, GPT-3.5-turbo, GPT-4-turbo | Streaming, Function Calling, Vision | General purpose, coding, analysis |
+| **☁️ Azure OpenAI** | Enterprise GPT models | Enhanced security, compliance | Enterprise deployments |
+| **🧠 Anthropic** | Claude-3 (Opus, Sonnet, Haiku) | Large context, safety | Research, writing, reasoning |
+| **🔍 Google** | Gemini Pro, Gemini Ultra | Multimodal, fast inference | Search, analysis, creativity |
+| **🏠 Ollama** | Llama 2/3, Mistral, CodeLlama | Local deployment, privacy | On-premises, data sensitivity |
+| **🖥️ LM Studio** | Various open models | Local GUI, easy setup | Development, experimentation |
+| **⚡ llama.cpp** | GGUF models | Optimized inference | Resource-constrained environments |
+| **🤗 Hugging Face** | Thousands of models | Open source, diverse | Specialized tasks, research |
+| **🔬 Cohere** | Command, Embed models | Enterprise APIs | Business applications |
+| **🚀 Together AI** | Various open models | Hosted inference | Scalable deployments |
+
+### 🎯 Operation Types & Use Cases
+
+Configure different models for each type of AI operation:
+
+| Operation | Purpose | Recommended Models | Configuration |
+|-----------|---------|-------------------|---------------|
+| **📝 Default** | General prompt processing | GPT-4, Claude-3-Sonnet | High-quality, balanced |
+| **🚀 Prompt Enhancement** | Improving prompt quality | GPT-4, Claude-3-Opus | Advanced reasoning |
+| **⚡ Prompt Optimization** | Performance optimization | GPT-3.5-turbo, Gemini Pro | Fast, cost-effective |
+| **🧪 Prompt Testing** | Testing and validation | GPT-3.5-turbo, local models | Cheap, quick feedback |
+| **🔄 Model Combining** | Ensemble operations | Multiple models | Diversity, reliability |
+| **🌐 Translation** | Language translation | GPT-4, specialized models | Accuracy, cultural context |
+| **📊 Summarization** | Content summarization | Claude-3-Haiku, Gemini Pro | Concise, structured |
+| **💬 Conversation** | Chat and dialogue | GPT-3.5-turbo, Claude-3 | Natural, engaging |
+| **📖 Question Answering** | Q&A tasks | GPT-4, knowledge models | Accurate, comprehensive |
+| **🎨 Content Generation** | Creative writing | Claude-3, creative models | Original, stylistic |
+| **🔧 Code Generation** | Programming assistance | GPT-4, CodeLlama, StarCoder | Technical, accurate |
+
+### 🏗️ Modern Tabbed Interface
+
+Access the enhanced AI services configuration through the intuitive **tabbed interface**:
+
+#### **🤖 Models Tab**
+- **Add Models**: Configure new AI models with complete settings
+- **Model Cards**: Visual representation of each model with status indicators
+- **Health Monitoring**: Real-time availability and performance metrics
+- **Quick Actions**: Enable/disable, test, and configure models instantly
+
+#### **⚙️ Operations Tab** 
+- **Operation Configuration**: Set primary and fallback models for each operation type
+- **Drag & Drop**: Intuitive model assignment with visual feedback
+- **Smart Recommendations**: AI-powered suggestions for optimal model selection
+- **Batch Configuration**: Configure multiple operations simultaneously
+
+#### **🔌 Providers Tab**
+- **Provider Setup**: Configure API keys and endpoints for each provider
+- **Connection Testing**: Validate credentials and connectivity
+- **Provider Cards**: Visual status and configuration overview
+- **Batch Operations**: Configure multiple providers efficiently
+
+#### **📊 Health & Usage Tab**
+- **Health Dashboard**: Real-time model availability and performance
+- **Usage Statistics**: Token consumption, costs, and request metrics
+- **Performance Monitoring**: Response times and success rates
+- **Cost Analysis**: Detailed breakdown by model and operation
+
+### 🚀 Quick Setup Guide
+
+#### **1. Access AI Services Configuration**
+```bash
+# Navigate to AI Services in the web interface
+http://localhost:7860/ai-services/enhanced
+```
+
+#### **2. Add Your First Model**
+1. **Click "Add Model"** in the Models tab
+2. **Fill model details**:
+   ```
+   Name: my-gpt-4
+   Provider: OpenAI
+   Model ID: gpt-4
+   API Key: your-openai-api-key
+   Display Name: My GPT-4 Model
+   ```
+3. **Configure features**: Streaming, function calling, vision support
+4. **Set cost limits**: Input/output token costs for budget control
+5. **Save and test** the model connection
+
+#### **3. Configure Operations**
+1. **Switch to Operations tab**
+2. **Select operation type** (e.g., Prompt Enhancement)
+3. **Set primary model**: Choose your preferred model
+4. **Add fallback models**: Configure backup options
+5. **Enable the operation** and save configuration
+
+#### **4. Verify Configuration**
+1. **Check Health tab** for model status
+2. **Run test operations** to validate setup
+3. **Monitor usage** and adjust as needed
+
+### 🔧 Advanced Configuration
+
+#### **Model Health Checking**
+The system continuously monitors model availability:
+
+```python
+# Health check results example
+{
+    "model_name": "my-gpt-4",
+    "healthy": True,
+    "status": "Healthy",
+    "response_time": 1.2,
+    "last_check": "2025-01-08T10:30:00Z",
+    "success_rate": 99.5
+}
+```
+
+#### **Intelligent Model Selection**
+The system automatically selects the best available model:
+
+1. **Primary Model**: First choice for the operation
+2. **Fallback Chain**: Automatic failover to backup models
+3. **Health-Based**: Skips unhealthy or unavailable models
+4. **Requirement Matching**: Filters by capabilities (vision, streaming, etc.)
+5. **Cost Optimization**: Considers cost constraints and budgets
+
+#### **Usage Statistics & Analytics**
+Comprehensive tracking of AI service usage:
+
+```json
+{
+    "total_requests": 1250,
+    "total_tokens": 450000,
+    "total_cost": 12.50,
+    "average_response_time": 1.8,
+    "models": {
+        "my-gpt-4": {
+            "requests": 800,
+            "tokens": 320000,
+            "cost": 9.60,
+            "avg_response_time": 2.1,
+            "success_rate": 99.2
+        }
+    }
+}
+```
+
+### 🌐 API Integration
+
+The enhanced AI services provide a comprehensive REST API:
+
+#### **Core Endpoints**
+```bash
+# Get all configured models
+GET /api/ai-models/
+
+# Add new model
+POST /api/ai-models/
+{
+    "name": "claude-3-opus",
+    "provider": "anthropic",
+    "model_id": "claude-3-opus-20240229",
+    "api_key": "your-api-key"
+}
+
+# Update model configuration
+PUT /api/ai-models/{model_name}
+{
+    "display_name": "Updated Claude Opus",
+    "is_enabled": true
+}
+
+# Test model health
+POST /api/ai-models/{model_name}/test
+{
+    "test_prompt": "Hello, test the model connectivity"
+}
+
+# Get operation configurations
+GET /api/ai-models/operations
+
+# Update operation configuration
+PUT /api/ai-models/operations/{operation_type}
+{
+    "primary_model": "claude-3-opus",
+    "fallback_models": ["gpt-4", "gemini-pro"]
+}
+```
+
+#### **Advanced Endpoints**
+```bash
+# Get model recommendations for operation
+GET /api/ai-models/recommendations/{operation_type}
+
+# Export complete configuration
+POST /api/ai-models/export
+
+# Import configuration
+POST /api/ai-models/import
+
+# Get usage statistics
+GET /api/ai-models/usage-stats
+
+# Run health checks on all models
+POST /api/ai-models/health-check
+```
+
+### 💡 Best Practices
+
+#### **Model Selection Strategy**
+- **Cost-Conscious**: Use cheaper models (GPT-3.5-turbo, Claude-3-Haiku) for testing and iteration
+- **Quality-First**: Deploy premium models (GPT-4, Claude-3-Opus) for production operations
+- **Local Privacy**: Use local models (Ollama, LM Studio) for sensitive data
+- **Hybrid Approach**: Combine cloud and local models for optimal balance
+
+#### **Operation Configuration**
+- **Default Operations**: Configure with your most reliable, balanced model
+- **Enhancement**: Use advanced reasoning models for prompt improvements
+- **Testing**: Use fast, cheap models for validation and debugging
+- **Translation**: Use models specifically trained for multilingual tasks
+
+#### **Performance Optimization**
+- **Health Monitoring**: Enable automatic health checks for proactive issue detection
+- **Fallback Chains**: Configure multiple fallback models for high availability
+- **Cost Budgets**: Set spending limits and alerts for budget control
+- **Usage Analytics**: Monitor patterns to optimize model selection
+
+#### **Security & Compliance**
+- **API Key Management**: Rotate keys regularly and use environment variables
+- **Data Privacy**: Use local models for sensitive information processing
+- **Audit Trails**: Monitor usage logs for compliance requirements
+- **Access Control**: Configure user permissions and rate limiting
+
+### 🚨 Troubleshooting
+
+#### **Common Issues**
+
+**Model Not Responding:**
+```bash
+# Check model health
+GET /api/ai-models/{model_name}/test
+
+# Common fixes:
+- Verify API key is valid and active
+- Check API quota and rate limits
+- Ensure model ID matches provider's format
+- Test network connectivity to provider
+```
+
+**Configuration Not Saving:**
+```bash
+# Verify database connectivity
+# Check browser console for JavaScript errors
+# Ensure all required fields are completed
+# Try refreshing the page and reconfiguring
+```
+
+**High API Costs:**
+```bash
+# Monitor usage statistics
+GET /api/ai-models/usage-stats
+
+# Optimization strategies:
+- Switch to cheaper models for testing operations
+- Implement token limits and cost controls
+- Use local models for development
+- Configure fallback chains with cost-effective options
+```
+
+#### **Performance Issues**
+- **Slow Response Times**: Check model health and provider status
+- **Failed Requests**: Verify API credentials and rate limits
+- **Missing Features**: Ensure selected models support required capabilities
+- **Database Errors**: Check SQLite/PostgreSQL connectivity and permissions
+
+### 🔗 Integration Examples
+
+#### **Python Integration**
+```python
+import requests
+
+# Add model via API
+model_config = {
+    "name": "production-gpt-4",
+    "provider": "openai",
+    "model_id": "gpt-4",
+    "api_key": "your-api-key",
+    "max_context_length": 8192,
+    "cost_per_1k_input_tokens": 0.01,
+    "cost_per_1k_output_tokens": 0.03
+}
+
+response = requests.post(
+    "http://localhost:7860/api/ai-models/",
+    json=model_config
+)
+
+# Configure operation
+operation_config = {
+    "primary_model": "production-gpt-4",
+    "fallback_models": ["gpt-3.5-turbo"],
+    "is_enabled": True
+}
+
+requests.put(
+    "http://localhost:7860/api/ai-models/operations/default",
+    json=operation_config
+)
+```
+
+#### **Configuration Backup**
+```bash
+# Export configuration for backup
+curl -X POST http://localhost:7860/api/ai-models/export > ai_config_backup.json
+
+# Import configuration from backup
+curl -X POST http://localhost:7860/api/ai-models/import \
+     -H "Content-Type: application/json" \
+     -d @ai_config_backup.json
+```
 
 ---
 

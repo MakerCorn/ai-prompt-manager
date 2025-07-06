@@ -1,5 +1,124 @@
 # Changelog
 
+## [0.6.0] - 2025-01-08
+
+### 🤖 Enhanced AI Services Configuration System
+
+#### **Multi-Model Architecture Implementation**
+- **Comprehensive AI Provider Support**: Added support for 10+ AI providers including OpenAI, Azure OpenAI, Anthropic, Google, Ollama, LM Studio, llama.cpp, Hugging Face, Cohere, and Together AI
+  - **Provider Enumeration**: Complete `AIProvider` enum with all major cloud and local AI providers
+  - **Model Configuration**: Detailed model configuration with provider-specific settings (API keys, endpoints, deployment names)
+  - **Feature Support**: Model capability tracking (streaming, function calling, vision, JSON mode)
+  - **Cost Management**: Built-in cost tracking with input/output token pricing
+- **Operation-Specific Model Configuration**: Introduced 11 operation types for specialized AI model usage
+  - **Default Operations**: General purpose operations with fallback chain support
+  - **Prompt Enhancement**: Advanced reasoning models for prompt quality improvement
+  - **Prompt Optimization**: Performance and cost optimization with fast, efficient models
+  - **Testing & Validation**: Cheap models for development and testing workflows
+  - **Specialized Operations**: Content generation, code generation, translation, summarization, conversation, Q&A
+
+#### **Advanced AI Model Management Service**
+- **AI Model Manager**: Complete service architecture for model lifecycle management
+  - **Health Checking**: Automatic model availability monitoring with response time tracking
+  - **Intelligent Selection**: Smart model selection with fallback chains and requirement matching
+  - **Usage Analytics**: Comprehensive tracking of requests, tokens, costs, and performance metrics
+  - **Global Manager Pattern**: Singleton pattern for application-wide model management
+- **Model Health Monitoring**: Real-time health checking for all configured models
+  - **Provider-Specific Health Checks**: Tailored health validation for OpenAI, Azure OpenAI, Anthropic, Google, and local providers
+  - **Availability Tracking**: Automatic model availability updates based on health status
+  - **Performance Metrics**: Response time tracking and success rate monitoring
+- **Configuration Management**: Import/export capabilities for model configurations
+  - **Backup & Restore**: Complete configuration export/import with version tracking
+  - **Batch Operations**: Efficient bulk model configuration and management
+
+#### **Modern Tabbed Web Interface**
+- **Enhanced AI Services UI**: Complete redesign of AI services configuration interface
+  - **Four-Tab Architecture**: Models, Operations, Providers, and Health & Usage tabs
+  - **Model Cards**: Visual representation of each model with status indicators and quick actions
+  - **Drag & Drop Configuration**: Intuitive operation configuration with visual feedback
+  - **Real-time Testing**: Built-in model testing with immediate feedback
+- **Interactive Configuration**: Modern UI components for seamless model management
+  - **Modal Forms**: Clean modal dialogs for adding and editing models
+  - **Toggle Controls**: Easy enable/disable functionality with visual feedback
+  - **Status Indicators**: Real-time health and availability status display
+  - **Responsive Design**: Mobile-optimized interface with touch-friendly controls
+
+#### **Comprehensive REST API Extension**
+- **14 New API Endpoints**: Complete RESTful API for programmatic AI model management
+  - **CRUD Operations**: Full Create, Read, Update, Delete for models and configurations
+  - **Health Monitoring**: API endpoints for model health checking and status retrieval
+  - **Analytics**: Usage statistics and performance metrics via API
+  - **Recommendations**: AI-powered model recommendations for specific operations
+  - **Configuration Management**: Import/export endpoints for configuration backup/restore
+- **Enhanced API Architecture**: Integration with existing FastAPI application
+  - **Type-Safe Validation**: Pydantic models for request/response validation
+  - **Error Handling**: Comprehensive error responses with detailed messages
+  - **Authentication Integration**: Seamless integration with existing authentication system
+  - **OpenAPI Documentation**: Auto-generated API documentation and testing interface
+
+#### **Database Schema Extensions**
+- **New AI Services Tables**: Complete database schema for AI model management
+  - **ai_models Table**: Comprehensive model storage with 25+ configuration fields
+  - **ai_operation_configs Table**: Operation-specific model configuration with fallback chains
+  - **Tenant Isolation**: Full multi-tenant support with complete data separation
+  - **Migration Support**: Automatic table creation and schema updates
+- **Data Persistence**: Robust storage and retrieval of model configurations
+  - **JSON Field Support**: Complex configuration storage with proper serialization
+  - **Indexing**: Optimized queries with proper database indexing
+  - **Constraint Management**: Database-level constraints for data integrity
+
+#### **Comprehensive Testing Suite**
+- **Unit Test Coverage**: Complete unit test suite for all AI services components
+  - **Configuration Testing**: Full coverage of AI model configuration classes and methods
+  - **Manager Service Testing**: Comprehensive testing of AI model manager functionality
+  - **Mock Integration**: Proper mocking for external API dependencies
+  - **Edge Case Handling**: Testing of error conditions and edge cases
+- **Integration Testing**: Database and API integration test coverage
+  - **Database Operations**: Testing of all CRUD operations with both SQLite and PostgreSQL
+  - **API Endpoint Testing**: Complete test coverage for all 14 new API endpoints
+  - **Multi-tenant Testing**: Verification of proper tenant isolation
+  - **Health Check Integration**: Testing of model health monitoring functionality
+- **End-to-End Testing**: Browser automation testing for the enhanced UI
+  - **Playwright Integration**: Modern browser automation with comprehensive UI testing
+  - **Complete Workflow Testing**: Testing of entire user workflows from model addition to configuration
+  - **Responsive Design Testing**: Validation of mobile and desktop interfaces
+  - **Accessibility Testing**: Basic accessibility validation for enhanced interface
+
+#### **Documentation & Architecture Updates**
+- **README.md Enhancement**: Added comprehensive Enhanced AI Services Configuration section
+  - **Provider Documentation**: Complete documentation of all supported AI providers
+  - **Operation Type Guide**: Detailed guide for operation-specific model configuration
+  - **API Documentation**: Complete API reference with examples and use cases
+  - **Best Practices**: Detailed guidelines for optimal model selection and configuration
+- **CLAUDE.md Updates**: Enhanced architecture documentation with AI services details
+  - **Component Documentation**: Complete documentation of new architecture components
+  - **Testing Instructions**: Updated testing commands for new AI services test suites
+  - **Database Schema**: Updated schema documentation with new AI services tables
+
+#### **Technical Improvements & Code Quality**
+- **Type Safety**: Complete type annotations throughout the AI services codebase
+  - **Pydantic Models**: Type-safe configuration models with validation
+  - **Enum Definitions**: Comprehensive enums for providers and operations
+  - **Generic Types**: Proper typing for collections and async operations
+- **Error Handling**: Comprehensive exception handling with custom exception hierarchy
+  - **Configuration Exceptions**: Specific exceptions for AI configuration errors
+  - **Service Exceptions**: Proper error handling in AI model manager service
+  - **API Error Responses**: Detailed error responses with proper HTTP status codes
+- **Performance Optimization**: Efficient implementation with caching and connection pooling
+  - **Async Operations**: Full async/await implementation for API calls
+  - **Connection Management**: Proper HTTP client management with connection pooling
+  - **Caching**: Intelligent caching of model configurations and health status
+
+#### **Security & Compliance**
+- **API Key Management**: Secure storage and handling of API keys
+  - **Environment Variable Support**: API keys stored in environment variables
+  - **Database Encryption**: Secure storage of sensitive configuration data
+  - **Access Control**: Proper authentication and authorization for AI services endpoints
+- **Tenant Isolation**: Complete multi-tenant security for AI model configurations
+  - **Data Separation**: All AI model data properly isolated by tenant
+  - **User Permissions**: Proper user-level access control for model management
+  - **Audit Trails**: Comprehensive logging of AI model configuration changes
+
 ## [0.5.2] - 2025-07-05
 
 ### 🎭 Web UI E2E Testing & Code Quality Improvements

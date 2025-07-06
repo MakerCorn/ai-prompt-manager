@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Complete integration test for the new Web UI architecture
-Replaces Gradio-based integration tests
+Complete integration test for the Web UI architecture
+FastAPI-based web interface integration testing
 """
 
 import os

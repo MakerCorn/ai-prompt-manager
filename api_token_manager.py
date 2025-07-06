@@ -188,7 +188,8 @@ class APITokenManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    INSERT INTO api_tokens (id, user_id, tenant_id, name, token_prefix, token_hash, expires_at)
+                    INSERT INTO api_tokens (id, user_id, tenant_id, name,
+                                           token_prefix, token_hash, expires_at)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """,
                     (
@@ -204,7 +205,8 @@ class APITokenManager:
             else:
                 cursor.execute(
                     """
-                    INSERT INTO api_tokens (id, user_id, tenant_id, name, token_prefix, token_hash, expires_at)
+                    INSERT INTO api_tokens (id, user_id, tenant_id, name,
+                                           token_prefix, token_hash, expires_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
@@ -508,7 +510,8 @@ class APITokenManager:
                     SELECT
                         COUNT(*) as total_active,
                         COUNT(CASE WHEN expires_at IS NULL THEN 1 END) as never_expire,
-                        COUNT(CASE WHEN expires_at IS NOT NULL AND expires_at > %s THEN 1 END) as will_expire,
+                        COUNT(CASE WHEN expires_at IS NOT NULL
+                                   AND expires_at > %s THEN 1 END) as will_expire,
                         COUNT(CASE WHEN last_used IS NOT NULL THEN 1 END) as used_tokens
                     FROM api_tokens
                     WHERE user_id = %s AND is_active = TRUE
@@ -521,7 +524,8 @@ class APITokenManager:
                     SELECT
                         COUNT(*) as total_active,
                         COUNT(CASE WHEN expires_at IS NULL THEN 1 END) as never_expire,
-                        COUNT(CASE WHEN expires_at IS NOT NULL AND expires_at > ? THEN 1 END) as will_expire,
+                        COUNT(CASE WHEN expires_at IS NOT NULL
+                                   AND expires_at > ? THEN 1 END) as will_expire,
                         COUNT(CASE WHEN last_used IS NOT NULL THEN 1 END) as used_tokens
                     FROM api_tokens
                     WHERE user_id = ? AND is_active = 1

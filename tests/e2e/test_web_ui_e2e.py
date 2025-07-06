@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-End-to-End tests for the new Web UI (FastAPI + HTMX + Tailwind)
-Replaces Gradio E2E tests with modern web interface testing using Playwright
+End-to-End tests for the Web UI (FastAPI + HTMX + Tailwind)
+Modern web interface testing using Playwright for comprehensive UI validation
 """
 
 import os
