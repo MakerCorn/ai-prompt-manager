@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "promptman"
 version = "0.5.5"
-description = "Modern AI Prompt Management System with FastAPI Web UI, Multi-Language Support, and AI-Powered Optimization"
+description = "Modern AI Prompt Management System with FastAPI Web UI, Dynamic Multi-Language Support, and AI-Powered Optimization"
 authors = ["MakerCorn <corn.mendoza@outlook.com>"]
 license = "Non-Commercial"
 readme = "README.md"
@@ -20,6 +20,7 @@ packages = [
     { include = "token_calculator.py" },
     { include = "text_translator.py" },
     { include = "i18n.py" },
+    { include = "language_manager.py" },
     { include = "__main__.py" },
     { include = "src" }
 ]
@@ -27,7 +28,8 @@ packages = [
 # Include template and static files as data
 include = [
     "web_templates/**/*",
-    "templates/**/*"
+    "templates/**/*",
+    "languages/**/*"
 ]
 
 [tool.pytest.ini_options]

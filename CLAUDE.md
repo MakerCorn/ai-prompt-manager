@@ -341,21 +341,23 @@ tests/
 ├── unit/                          # Unit tests for individual components
 │   ├── core/                      # Core infrastructure tests
 │   ├── auth/                      # Authentication tests
-│   └── api/                       # API endpoint tests
+│   ├── api/                       # API endpoint tests
+│   └── test_language_manager.py   # Language management system unit tests
 ├── integration/                   # Integration and system tests
 │   ├── test_mt_install.py         # Multi-tenant setup validation
 │   ├── test_new_architecture_integration.py  # Modern architecture tests
 │   ├── test_langwatch_integration.py         # AI optimization features
-│   ├── test_api_integration.py               # Complete API test suite
+│   ├── test_api_integration.py               # Complete API test suite with language endpoints
 │   ├── test_web_interface_integration.py     # Web interface integration
-│   └── test_web_ui_integration.py            # Web UI functionality
+│   ├── test_web_ui_integration.py            # Web UI functionality
+│   └── test_language_system_integration.py  # Language system integration tests
 ├── e2e/                          # End-to-end browser automation tests
 │   ├── conftest.py               # E2E test fixtures and configuration
 │   ├── test_authentication_flow.py          # Login/logout workflows
 │   ├── test_prompt_management_flow.py       # Prompt creation/management
 │   ├── test_api_workflow.py                # API testing scenarios
 │   ├── test_deployment_scenarios.py        # Deployment configuration tests
-│   └── test_web_ui_e2e.py                  # FastAPI Web UI automation tests
+│   └── test_web_ui_e2e.py                  # FastAPI Web UI automation tests (with language features)
 └── fixtures/                      # Test data and fixtures
 ```
 
@@ -364,6 +366,11 @@ tests/
 # Test specific components (CRITICAL: Use Poetry environment)
 poetry run python tests/integration/test_mt_install.py
 poetry run python tests/integration/test_new_architecture_integration.py
+
+# Test language management system
+poetry run pytest tests/unit/test_language_manager.py -v              # Unit tests
+poetry run pytest tests/integration/test_language_system_integration.py -v  # Integration tests
+poetry run python tests/integration/test_api_integration.py           # API tests with language endpoints
 
 # Test Docker deployment
 ./scripts/docker-test.sh
@@ -395,6 +402,16 @@ from src.prompts.services.prompt_service import PromptService
 from src.core.config.settings import AppConfig
 print('✅ New architecture working')
 "
+
+# Test language management system functionality (CRITICAL: Use Poetry environment)
+poetry run python -c "
+from language_manager import get_language_manager, t
+manager = get_language_manager()
+print('✅ Language manager working')
+print(f'Available languages: {list(manager.get_available_languages().keys())}')
+print(f'Translation test: {t(\"app.title\")}')
+print('✅ Language system operational')
+"
 ```
 
 ## Key Features and Components
@@ -411,11 +428,25 @@ print('✅ New architecture working')
 - **Built-in Templates**: Default, Business, Technical, Creative, Analytical
 - **Template Service**: `src/prompts/services/template_service.py`
 
-### Multi-Language Support
-- **10 Languages**: EN, ES, FR, DE, ZH, JA, PT, RU, AR, HI
-- **Real-time Switching**: Language selector in UI
-- **Translation Integration**: Automatic translation for optimization
-- **Internationalization**: `i18n.py` with embedded translations
+### Advanced Multi-Language Support
+- **File-Based Language System**: Dynamic loading from individual JSON files in `languages/` directory
+- **Lazy Loading**: Languages loaded only when first selected for optimal performance
+- **Default Language**: English (en) as fallback, configurable via `DEFAULT_LANGUAGE` environment variable
+- **Language Editor**: Comprehensive web-based editor for creating and managing translations
+- **Auto-Translation**: Integration with translation services for automatic translation generation
+- **Validation System**: Complete validation ensuring all UI elements are translated
+- **Caching**: Thread-safe LRU caching for translation lookups
+- **Hot-Reloading**: Dynamic language file reloading without application restart
+
+### Language Management Features
+- **Language Editor UI**: Full-featured web interface at `/settings/language/{code}`
+- **Translation Progress**: Visual progress indicators and completion statistics
+- **Missing Key Detection**: Automatic identification of untranslated elements  
+- **Bulk Translation**: Auto-translate all missing keys using configured translation service
+- **Template Generation**: Create new language files with proper structure
+- **File Validation**: Comprehensive validation against default language structure
+- **Export/Import**: JSON-based language file management with metadata
+- **Version Control**: Language file versioning and update tracking
 
 ### Prompt Builder
 - **Drag-and-drop Interface**: Visual prompt combination

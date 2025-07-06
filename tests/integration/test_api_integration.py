@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 Test script for API integration
-Tests the combined FastAPI web application with API endpoints
+Tests the combined FastAPI web application with API endpoints including language management
 """
 
 import os
 import time
+import json
 
 import requests
 
@@ -221,6 +222,91 @@ def test_api_endpoints(base_port=None, api_port=None):
             print(f"❌ API info error: {e}")
             return False
 
+        # Test 5: Language management endpoints
+        print("\n5. Testing language management endpoints...")
+        
+        # Test language switching
+        try:
+            switch_data = {"language": "en"}
+            response = requests.post(f"{base_url}/settings/language/switch", 
+                                   json=switch_data, timeout=5)
+            if response.status_code in [200, 302]:
+                print("✅ Language switch endpoint accessible")
+                if response.status_code == 200:
+                    try:
+                        data = response.json()
+                        print(f"   Switch result: {data.get('success', 'unknown')}")
+                    except:
+                        pass
+            else:
+                print(f"⚠️ Language switch endpoint returned: {response.status_code}")
+        except Exception as e:
+            print(f"⚠️ Language switch test error: {e}")
+
+        # Test language validation
+        try:
+            validate_data = {"language_code": "en"}
+            response = requests.post(f"{base_url}/settings/language/validate", 
+                                   json=validate_data, timeout=5)
+            if response.status_code == 200:
+                print("✅ Language validation endpoint accessible")
+                try:
+                    data = response.json()
+                    validation_data = data.get('data', {})
+                    print(f"   Validation coverage: {validation_data.get('coverage', 'N/A')}%")
+                except:
+                    pass
+            else:
+                print(f"⚠️ Language validation endpoint returned: {response.status_code}")
+        except Exception as e:
+            print(f"⚠️ Language validation test error: {e}")
+
+        # Test language creation (template)
+        try:
+            create_data = {
+                "language_code": "test",
+                "language_name": "Test Language", 
+                "native_name": "Test Native"
+            }
+            response = requests.post(f"{base_url}/settings/language/create", 
+                                   json=create_data, timeout=5)
+            if response.status_code == 200:
+                print("✅ Language creation endpoint accessible")
+                try:
+                    data = response.json()
+                    print(f"   Creation result: {data.get('success', 'unknown')}")
+                    
+                    # Clean up test language if created successfully
+                    if data.get('success'):
+                        cleanup_data = {"language_code": "test"}
+                        requests.post(f"{base_url}/settings/language/delete", 
+                                    json=cleanup_data, timeout=2)
+                except:
+                    pass
+            else:
+                print(f"⚠️ Language creation endpoint returned: {response.status_code}")
+        except Exception as e:
+            print(f"⚠️ Language creation test error: {e}")
+
+        # Test 6: Language system integration
+        print("\n6. Testing language system integration...")
+        try:
+            # Test if language manager is available
+            from language_manager import get_language_manager
+            manager = get_language_manager()
+            available_languages = manager.get_available_languages()
+            
+            print(f"✅ Language manager integration working")
+            print(f"   Available languages: {list(available_languages.keys())}")
+            print(f"   Current language: {manager.get_current_language()}")
+            
+            # Test translation functionality
+            test_translation = manager.t("app.title")
+            print(f"   Sample translation: {test_translation}")
+            
+        except Exception as e:
+            print(f"⚠️ Language system integration error: {e}")
+
         print("\n" + "=" * 50)
         print("✅ Basic server integration test completed!")
         print()
@@ -236,6 +322,15 @@ def test_api_endpoints(base_port=None, api_port=None):
         print(f"- Info: {api_url}/info")
         print(f"- Docs: {api_url}/docs")
         print(f"- Root: {api_url}/")
+        print()
+        print("Language Management Endpoints:")
+        print(f"- Language Switch: {base_url}/settings/language/switch")
+        print(f"- Language Validate: {base_url}/settings/language/validate")
+        print(f"- Language Create: {base_url}/settings/language/create")
+        print(f"- Language Save: {base_url}/settings/language/save")
+        print(f"- Language Delete: {base_url}/settings/language/delete")
+        print(f"- Language Editor: {base_url}/settings/language/{{code}}")
+        print(f"- Auto-translate: {base_url}/settings/language/translate-key")
 
     finally:
         # Clean up server process

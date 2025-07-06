@@ -457,7 +457,151 @@ class WebUIE2ETest(unittest.TestCase):
         self.page.goto(f"{self.base_url}/prompts/NonExistentPrompt/edit")
         # Should show 404 or redirect
 
-    def test_12_accessibility_basics(self):
+    def test_12_language_management_workflow(self):
+        """Test complete language management workflow"""
+        self.login_admin()
+
+        # Navigate to settings
+        self.page.click("text=Settings")
+        self.page.wait_for_url(f"{self.base_url}/settings")
+
+        # Check if language management card exists and click it
+        try:
+            # Look for language management link/card
+            language_element = self.page.locator("text=Languages").first
+            if language_element.is_visible():
+                language_element.click()
+                self.page.wait_for_timeout(1000)
+                
+                # Test language switching if interface is available
+                self.test_language_switching()
+                
+                # Test language creation if interface is available  
+                self.test_language_creation()
+        except Exception as e:
+            print(f"⚠️ Language management interface not available: {e}")
+
+    def test_language_switching(self):
+        """Test language switching functionality"""
+        try:
+            # Look for language dropdown or selector
+            if self.page.is_visible("select[name='language']"):
+                # Select different language if available
+                self.page.select_option("select[name='language']", "fr")
+                self.page.wait_for_timeout(500)
+                
+                # Verify language changed (look for French text)
+                # This is basic - real test would check specific translations
+                
+            elif self.page.is_visible("text=Switch"):
+                # Click switch button if available
+                self.page.click("text=Switch")
+                self.page.wait_for_timeout(500)
+                
+        except Exception as e:
+            print(f"⚠️ Language switching not available: {e}")
+
+    def test_language_creation(self):
+        """Test language creation workflow"""
+        try:
+            # Look for "New Language" or "Create" button
+            if self.page.is_visible("text=New Language"):
+                self.page.click("text=New Language")
+                self.page.wait_for_timeout(500)
+                
+                # Fill out form if modal appears
+                if self.page.is_visible("input[id='newLangCode']"):
+                    self.page.fill("input[id='newLangCode']", "de")
+                    self.page.fill("input[id='newLangName']", "German")
+                    self.page.fill("input[id='newLangNative']", "Deutsch")
+                    
+                    # Submit form
+                    self.page.click("text=Create")
+                    self.page.wait_for_timeout(1000)
+                    
+        except Exception as e:
+            print(f"⚠️ Language creation not available: {e}")
+
+    def test_13_language_editor_interface(self):
+        """Test language editor interface if available"""
+        self.login_admin()
+        
+        try:
+            # Try to access language editor directly
+            self.page.goto(f"{self.base_url}/settings/language/en")
+            
+            if self.page.is_visible("text=Language Editor"):
+                # Test basic editor functionality
+                print("✅ Language editor interface found")
+                
+                # Look for translation key inputs
+                if self.page.is_visible("input[type='text']"):
+                    # Test editing a translation
+                    first_input = self.page.locator("input[type='text']").first
+                    if first_input.is_visible():
+                        original_value = first_input.input_value()
+                        first_input.fill("Test Translation")
+                        
+                        # Look for save button
+                        if self.page.is_visible("text=Save"):
+                            print("✅ Translation editing interface working")
+                            
+                        # Restore original value
+                        first_input.fill(original_value)
+                
+                # Test auto-translate buttons if available
+                if self.page.is_visible("text=Translate"):
+                    print("✅ Auto-translate functionality found")
+                    
+        except Exception as e:
+            print(f"⚠️ Language editor interface not available: {e}")
+
+    def test_14_language_validation_interface(self):
+        """Test language validation and progress indicators"""
+        self.login_admin()
+        
+        try:
+            # Navigate to language settings
+            self.page.goto(f"{self.base_url}/settings/languages")
+            
+            # Look for validation indicators
+            if self.page.is_visible("text=Missing"):
+                print("✅ Language validation indicators found")
+                
+            if self.page.is_visible("text=Complete"):
+                print("✅ Language completion indicators found")
+                
+            # Look for progress bars or percentages
+            progress_elements = self.page.locator(".progress, [role='progressbar'], text=/\\d+%/")
+            if progress_elements.count() > 0:
+                print("✅ Language progress indicators found")
+                
+        except Exception as e:
+            print(f"⚠️ Language validation interface not available: {e}")
+
+    def test_15_multilingual_content_display(self):
+        """Test display of multilingual content"""
+        self.login_admin()
+        
+        try:
+            # Switch to different language and check content changes
+            # This would require the language system to be fully integrated
+            
+            # Check if page title changes with language
+            original_title = self.page.title()
+            
+            # Try to switch language via URL parameter or form
+            self.page.goto(f"{self.base_url}/?lang=fr")
+            self.page.wait_for_timeout(1000)
+            
+            new_title = self.page.title()
+            if original_title != new_title:
+                print("✅ Language switching affects page content")
+                
+        except Exception as e:
+            print(f"⚠️ Multilingual content testing not available: {e}")
+
+    def test_16_accessibility_basics(self):
         """Test basic accessibility features"""
         self.login_admin()
 

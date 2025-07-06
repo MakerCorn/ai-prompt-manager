@@ -51,8 +51,29 @@
                         <i class="fas fa-robot text-2xl text-purple-600"></i>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">{{ i18n.t('settings.ai_services') }}</h3>
-                        <p class="text-sm text-gray-500">{{ i18n.t('settings.ai_services_desc') }}</p>
+                        <h3 class="text-lg font-medium text-gray-900">{{ t('services.title') }}</h3>
+                        <p class="text-sm text-gray-500">Configure AI models and services</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Language Management -->
+        <a href="/settings/language/{{ current_language }}" class="block bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-language text-2xl text-orange-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">{{ t('settings.languages') }}</h3>
+                        <p class="text-sm text-gray-500">Manage interface languages and translations</p>
+                        <div class="mt-2 flex items-center text-xs text-gray-400">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                {{ available_languages|length }} {{ t('settings.languages') }}
+                            </span>
+                            <span class="ml-2">{{ t('settings.current_language') }}: {{ available_languages[current_language]['native_name'] }}</span>
+                        </div>
                     </div>
                 </div>
             </div>

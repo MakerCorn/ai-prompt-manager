@@ -724,40 +724,318 @@ jobs:
         generate_release_notes: false
 
   notify-success:
-    name: Notify Release Success
+    name: 🎉 Release Success Notification
     runs-on: ubuntu-latest
     needs: [version-bump, build-python-package, build-docker-image, create-github-release, publish-to-github-packages, publish-to-pypi]
-    if: always() && needs.build-python-package.result == 'success' && needs.build-docker-image.result == 'success'
+    if: always() && needs.create-github-release.result == 'success'
 
     steps:
+    - name: Set repository info
+      id: repo
+      run: |
+        echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+        echo "owner=${{ github.repository_owner }}" >> $GITHUB_OUTPUT
+
     - name: Success notification
       run: |
-        echo "🎉 Release v${{ needs.version-bump.outputs.new_version }} completed successfully!"
-        echo "📦 Python package: ${{ needs.build-python-package.outputs.package-name }} v${{ needs.build-python-package.outputs.package-version }}"
-        echo "🐳 Docker image: ghcr.io/${{ needs.build-docker-image.outputs.image-name }}:v${{ needs.version-bump.outputs.new_version }}"
-        echo "📋 Release notes: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.version-bump.outputs.new_version }}"
+        VERSION="${{ needs.version-bump.outputs.new_version }}"
+        PACKAGE_NAME="${{ needs.build-python-package.outputs.package-name }}"
+        DOCKER_IMAGE="ghcr.io/${{ steps.repo.outputs.name }}"
         
-        # Check GitHub Packages publishing
-        if [[ "${{ needs.publish-to-github-packages.result }}" == "success" ]]; then
-          echo "📦 GitHub Packages: https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/packages"
-          echo "✅ Package successfully published to GitHub Packages!"
-        elif [[ "${{ needs.publish-to-github-packages.result }}" == "failure" ]]; then
-          echo "⚠️ GitHub Packages publishing failed - this is often due to first-time setup requirements"
-          echo "📋 Manual setup may be needed: https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/packages"
-          echo "💡 See job logs for detailed troubleshooting steps"
-        fi
+        echo "🎉 AI Prompt Manager v$VERSION Release Completed Successfully!"
+        echo ""
+        echo "═══════════════════════════════════════════════════════════════"
+        echo "                    📋 RELEASE SUMMARY"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo ""
+        echo "🏷️  Version: v$VERSION"
+        echo "📅 Released: $(date '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "🌟 Release URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v$VERSION"
+        echo ""
+        echo "───────────────────────────────────────────────────────────────"
+        echo "                    📦 PACKAGE DISTRIBUTION"
+        echo "───────────────────────────────────────────────────────────────"
+        echo ""
         
-        # Check if PyPI publishing was attempted
+        # PyPI Status
         if [[ "${{ github.event.inputs.prerelease }}" == "false" && "${{ github.event.inputs.draft }}" == "false" ]]; then
           if [[ "${{ needs.publish-to-pypi.result }}" == "success" ]]; then
-            echo "📦 PyPI: https://pypi.org/project/${{ needs.build-python-package.outputs.package-name }}/${{ needs.build-python-package.outputs.package-version }}/"
-            echo "✅ Package successfully published to PyPI using Trusted Publishing!"
+            echo "✅ PyPI Publishing: SUCCESS"
+            echo "   📦 Package: $PACKAGE_NAME v${{ needs.build-python-package.outputs.package-version }}"
+            echo "   🔗 URL: https://pypi.org/project/$PACKAGE_NAME/${{ needs.build-python-package.outputs.package-version }}/"
+            echo "   📥 Install: pip install $PACKAGE_NAME==${{ needs.build-python-package.outputs.package-version }}"
           elif [[ "${{ needs.publish-to-pypi.result }}" == "failure" ]]; then
-            echo "❌ PyPI publishing failed - check the publish-to-pypi job logs"
+            echo "❌ PyPI Publishing: FAILED"
+            echo "   💡 Check publish-to-pypi job logs for details"
           fi
         else
-          echo "⏭️ PyPI publishing skipped (pre-release or draft mode)"
+          echo "⏭️  PyPI Publishing: SKIPPED (pre-release/draft mode)"
+        fi
+        echo ""
+        
+        # GitHub Packages Status
+        if [[ "${{ needs.publish-to-github-packages.result }}" == "success" ]]; then
+          echo "✅ GitHub Packages: SUCCESS"
+          echo "   📦 Package: ai-prompt-manager v${{ needs.build-python-package.outputs.package-version }}"
+          echo "   🔗 URL: https://github.com/${{ steps.repo.outputs.owner }}/${{ github.event.repository.name }}/packages"
+          echo "   📥 Install: pip install --index-url https://pypi.pkg.github.com/${{ steps.repo.outputs.owner }}/simple/ ai-prompt-manager==${{ needs.build-python-package.outputs.package-version }}"
+        elif [[ "${{ needs.publish-to-github-packages.result }}" == "failure" ]]; then
+          echo "⚠️  GitHub Packages: FAILED (Common for first-time setup)"
+          echo "   💡 Manual setup may be required"
+          echo "   🔗 Packages URL: https://github.com/${{ steps.repo.outputs.owner }}/${{ github.event.repository.name }}/packages"
+          echo "   📖 See job logs for detailed troubleshooting steps"
+        fi
+        echo ""
+        
+        # Docker Status
+        if [[ "${{ needs.build-docker-image.result }}" == "success" ]]; then
+          echo "✅ Docker Images: SUCCESS"
+          echo "   🐳 Image: $DOCKER_IMAGE:v$VERSION"
+          echo "   🏷️  Tags: latest, stable, v$VERSION"
+          echo "   🔗 Registry: https://github.com/${{ github.repository }}/pkgs/container/${{ github.event.repository.name }}"
+          echo "   📥 Pull: docker pull $DOCKER_IMAGE:v$VERSION"
+        fi
+        echo ""
+        
+        echo "───────────────────────────────────────────────────────────────"
+        echo "                    🚀 QUICK START COMMANDS"
+        echo "───────────────────────────────────────────────────────────────"
+        echo ""
+        if [[ "${{ needs.publish-to-pypi.result }}" == "success" ]]; then
+          echo "🐍 Python Package (Recommended):"
+          echo "   pip install $PACKAGE_NAME==${{ needs.build-python-package.outputs.package-version }}"
+          echo "   python -m promptman"
+          echo ""
+        fi
+        
+        if [[ "${{ needs.build-docker-image.result }}" == "success" ]]; then
+          echo "🐳 Docker Container:"
+          echo "   docker run -p 7860:7860 $DOCKER_IMAGE:v$VERSION"
+          echo ""
+        fi
+        
+        echo "📖 Manual Installation:"
+        echo "   git clone ${{ github.server_url }}/${{ github.repository }}.git"
+        echo "   cd ai-prompt-manager && git checkout v$VERSION"
+        echo "   poetry install && poetry run python run.py"
+        echo ""
+        
+        echo "───────────────────────────────────────────────────────────────"
+        echo "                    📊 DISTRIBUTION SUMMARY"
+        echo "───────────────────────────────────────────────────────────────"
+        echo ""
+        
+        success_count=0
+        total_channels=0
+        
+        # Count successful distributions
+        if [[ "${{ needs.publish-to-pypi.result }}" == "success" ]]; then
+          success_count=$((success_count + 1))
+        fi
+        if [[ "${{ github.event.inputs.prerelease }}" != "false" || "${{ github.event.inputs.draft }}" != "false" ]]; then
+          total_channels=$((total_channels - 1))  # PyPI not attempted
+        fi
+        total_channels=$((total_channels + 1))  # PyPI channel
+        
+        if [[ "${{ needs.publish-to-github-packages.result }}" == "success" ]]; then
+          success_count=$((success_count + 1))
+        fi
+        total_channels=$((total_channels + 1))  # GitHub Packages channel
+        
+        if [[ "${{ needs.build-docker-image.result }}" == "success" ]]; then
+          success_count=$((success_count + 1))
+        fi
+        total_channels=$((total_channels + 1))  # Docker channel
+        
+        echo "✅ Successfully distributed to $success_count/$total_channels channels"
+        echo "🎯 Release Status: COMPLETED"
+        
+        if [[ $success_count -eq $total_channels ]]; then
+          echo "🏆 Perfect Release: All distribution channels successful!"
+        elif [[ $success_count -gt 0 ]]; then
+          echo "✅ Partial Success: Core distributions completed successfully"
         fi
         
         echo ""
-        echo "✅ All release tasks completed!"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo "🤖 Generated with Claude Code"
+        echo "Co-Authored-By: Claude <noreply@anthropic.com>"
+        echo "═══════════════════════════════════════════════════════════════"
+
+  # Handle failures and provide comprehensive debugging information
+  notify-failure:
+    name: ❌ Release Failure Notification
+    runs-on: ubuntu-latest
+    needs: [version-bump, build-python-package, build-docker-image, publish-to-github-packages, publish-to-pypi, create-github-release]
+    if: failure()
+
+    steps:
+    - name: Set repository info
+      id: repo
+      run: |
+        echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+        echo "owner=${{ github.repository_owner }}" >> $GITHUB_OUTPUT
+
+    - name: Failure analysis and notification
+      run: |
+        VERSION="${{ needs.version-bump.outputs.new_version }}"
+        
+        echo "❌ AI Prompt Manager v$VERSION Release Failed!"
+        echo ""
+        echo "═══════════════════════════════════════════════════════════════"
+        echo "                    🔍 FAILURE ANALYSIS"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo ""
+        echo "📅 Failed at: $(date '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "🏷️  Attempted version: v$VERSION"
+        echo "🔗 Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo ""
+        echo "───────────────────────────────────────────────────────────────"
+        echo "                    📊 JOB STATUS BREAKDOWN"
+        echo "───────────────────────────────────────────────────────────────"
+        echo ""
+        
+        # Version Bump Status
+        if [[ "${{ needs.version-bump.result }}" == "success" ]]; then
+          echo "✅ Version Bump: SUCCESS"
+        elif [[ "${{ needs.version-bump.result }}" == "failure" ]]; then
+          echo "❌ Version Bump: FAILED"
+          echo "   💡 Check for version conflicts or git issues"
+        else
+          echo "⏭️  Version Bump: ${{ needs.version-bump.result }}"
+        fi
+        
+        # Python Package Build Status
+        if [[ "${{ needs.build-python-package.result }}" == "success" ]]; then
+          echo "✅ Python Package Build: SUCCESS"
+        elif [[ "${{ needs.build-python-package.result }}" == "failure" ]]; then
+          echo "❌ Python Package Build: FAILED"
+          echo "   💡 Check for Poetry configuration or dependency issues"
+        else
+          echo "⏭️  Python Package Build: ${{ needs.build-python-package.result }}"
+        fi
+        
+        # Docker Build Status
+        if [[ "${{ needs.build-docker-image.result }}" == "success" ]]; then
+          echo "✅ Docker Image Build: SUCCESS"
+        elif [[ "${{ needs.build-docker-image.result }}" == "failure" ]]; then
+          echo "❌ Docker Image Build: FAILED"
+          echo "   💡 Check Dockerfile or build context issues"
+        else
+          echo "⏭️  Docker Image Build: ${{ needs.build-docker-image.result }}"
+        fi
+        
+        # GitHub Packages Status
+        if [[ "${{ needs.publish-to-github-packages.result }}" == "success" ]]; then
+          echo "✅ GitHub Packages: SUCCESS"
+        elif [[ "${{ needs.publish-to-github-packages.result }}" == "failure" ]]; then
+          echo "❌ GitHub Packages: FAILED"
+          echo "   💡 Common causes: Package name mismatch, permissions, first-time setup"
+        else
+          echo "⏭️  GitHub Packages: ${{ needs.publish-to-github-packages.result }}"
+        fi
+        
+        # PyPI Status
+        if [[ "${{ needs.publish-to-pypi.result }}" == "success" ]]; then
+          echo "✅ PyPI Publishing: SUCCESS"
+        elif [[ "${{ needs.publish-to-pypi.result }}" == "failure" ]]; then
+          echo "❌ PyPI Publishing: FAILED"
+          echo "   💡 Check trusted publishing configuration or package conflicts"
+        elif [[ "${{ needs.publish-to-pypi.result }}" == "skipped" ]]; then
+          echo "⏭️  PyPI Publishing: SKIPPED (pre-release/draft mode)"
+        else
+          echo "⏭️  PyPI Publishing: ${{ needs.publish-to-pypi.result }}"
+        fi
+        
+        # GitHub Release Status
+        if [[ "${{ needs.create-github-release.result }}" == "success" ]]; then
+          echo "✅ GitHub Release: SUCCESS"
+        elif [[ "${{ needs.create-github-release.result }}" == "failure" ]]; then
+          echo "❌ GitHub Release: FAILED"
+          echo "   💡 Check permissions or release content issues"
+        else
+          echo "⏭️  GitHub Release: ${{ needs.create-github-release.result }}"
+        fi
+        
+        echo ""
+        echo "───────────────────────────────────────────────────────────────"
+        echo "                    🛠️  TROUBLESHOOTING STEPS"
+        echo "───────────────────────────────────────────────────────────────"
+        echo ""
+        
+        # Provide specific troubleshooting based on what failed
+        if [[ "${{ needs.version-bump.result }}" == "failure" ]]; then
+          echo "🔧 Version Bump Issues:"
+          echo "   • Check if the version already exists as a tag"
+          echo "   • Verify git permissions and branch protection rules"
+          echo "   • Ensure GITHUB_TOKEN has write permissions"
+          echo ""
+        fi
+        
+        if [[ "${{ needs.build-python-package.result }}" == "failure" ]]; then
+          echo "🔧 Python Package Build Issues:"
+          echo "   • Check pyproject.toml syntax and dependencies"
+          echo "   • Verify Poetry version compatibility"
+          echo "   • Review package structure and included files"
+          echo ""
+        fi
+        
+        if [[ "${{ needs.build-docker-image.result }}" == "failure" ]]; then
+          echo "🔧 Docker Build Issues:"
+          echo "   • Check Dockerfile syntax and base image availability"
+          echo "   • Verify all COPY paths exist in build context"
+          echo "   • Review multi-platform build compatibility"
+          echo ""
+        fi
+        
+        if [[ "${{ needs.publish-to-github-packages.result }}" == "failure" ]]; then
+          echo "🔧 GitHub Packages Issues:"
+          echo "   • Package name: PyPI uses 'promptman', GitHub needs 'ai-prompt-manager'"
+          echo "   • Enable GitHub Packages for this repository"
+          echo "   • Check packages: write permission in workflow"
+          echo "   • For first-time publishing, manual package creation may be needed"
+          echo ""
+        fi
+        
+        if [[ "${{ needs.publish-to-pypi.result }}" == "failure" ]]; then
+          echo "🔧 PyPI Publishing Issues:"
+          echo "   • Configure PyPI trusted publishing in repository settings"
+          echo "   • Create 'pypi' environment with proper protection rules"
+          echo "   • Verify package name 'promptman' is available"
+          echo "   • Check id-token: write permission is set"
+          echo ""
+        fi
+        
+        if [[ "${{ needs.create-github-release.result }}" == "failure" ]]; then
+          echo "🔧 GitHub Release Issues:"
+          echo "   • Check contents: write permission"
+          echo "   • Verify tag creation was successful"
+          echo "   • Review release notes formatting"
+          echo ""
+        fi
+        
+        echo "───────────────────────────────────────────────────────────────"
+        echo "                    🔄 RECOVERY ACTIONS"
+        echo "───────────────────────────────────────────────────────────────"
+        echo ""
+        echo "📋 Manual Recovery Steps:"
+        echo ""
+        echo "1. 🏷️  Clean up failed release artifacts:"
+        echo "   git tag -d v$VERSION  # Remove local tag if created"
+        echo "   git push origin :v$VERSION  # Remove remote tag if pushed"
+        echo ""
+        echo "2. 🔧 Fix identified issues (see troubleshooting above)"
+        echo ""
+        echo "3. 🚀 Retry release:"
+        echo "   • Go to Actions tab: ${{ github.server_url }}/${{ github.repository }}/actions"
+        echo "   • Select 'Semantic Version Release' workflow"
+        echo "   • Click 'Run workflow' with same parameters"
+        echo ""
+        echo "4. 🆘 If issues persist:"
+        echo "   • Check workflow logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo "   • Review each failed job's detailed logs"
+        echo "   • Consider creating a pre-release for testing"
+        echo ""
+        echo "═══════════════════════════════════════════════════════════════"
+        echo "❌ Release Failed - Manual Intervention Required"
+        echo "═══════════════════════════════════════════════════════════════"
