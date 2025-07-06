@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.5.6] - 2025-01-06
+## [0.5.6] - 2025-07-06
 
 ### 🌐 Advanced Language Management System
 
