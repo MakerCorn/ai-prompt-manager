@@ -41,6 +41,21 @@ def _run_web_test_server(db_path, port):
 class WebUIE2ETest(unittest.TestCase):
     """End-to-end tests using Playwright for browser automation"""
 
+    # Class attributes for type checking
+    test_db: str
+    base_url: str
+    port: int
+    headless: bool
+    slow_mo: int
+    auth_manager: any
+    test_tenant_id: str
+    test_user_id: str
+    playwright: any
+    browser: any
+    context: any
+    page: any
+    server_process: any
+
     @classmethod
     def setUpClass(cls):
         """Set up test environment"""

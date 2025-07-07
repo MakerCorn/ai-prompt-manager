@@ -261,24 +261,21 @@ class WebApp:
 
             return self.templates.TemplateResponse(
                 "prompts/form.html",
-                {
-                    "request": request,
-                    "user": user,
-                    "categories": categories or [],  # Ensure categories is never None
-                    "page_title": t("prompt.create_new"),
-                    "action": "create",
-                    "name": "",
-                    "content": "",
-                    "category": "",
-                    "description": "",
-                    "tags": "",
-                    "prompt_id": None,
-                    "error": None,  # Explicitly set error to None
-                    "i18n": i18n,
-                    "available_languages": i18n.get_available_languages(),
-                    "current_language": i18n.current_language,
-                    "single_user_mode": self.single_user_mode,
-                },
+                self.get_template_context(
+                    request,
+                    user,
+                    categories=categories or [],
+                    page_title=t("prompt.create_new"),
+                    action="create",
+                    name="",
+                    content="",
+                    category="",
+                    description="",
+                    tags="",
+                    prompt_id=None,
+                    error=None,
+                    single_user_mode=self.single_user_mode,
+                ),
             )
 
         @self.app.post("/prompts/new")
@@ -365,23 +362,20 @@ class WebApp:
 
             return self.templates.TemplateResponse(
                 "prompts/form.html",
-                {
-                    "request": request,
-                    "user": user,
-                    "categories": categories,
-                    "page_title": t("prompt.edit"),
-                    "action": "edit",
-                    "prompt_id": prompt_id,
-                    "name": prompt.get("name", ""),
-                    "content": prompt.get("content", ""),
-                    "category": prompt.get("category", ""),
-                    "description": prompt.get("description", ""),
-                    "tags": prompt.get("tags", ""),
-                    "i18n": i18n,
-                    "available_languages": i18n.get_available_languages(),
-                    "current_language": i18n.current_language,
-                    "single_user_mode": self.single_user_mode,
-                },
+                self.get_template_context(
+                    request,
+                    user,
+                    categories=categories,
+                    page_title=t("prompt.edit"),
+                    action="edit",
+                    prompt_id=prompt_id,
+                    name=prompt.get("name", ""),
+                    content=prompt.get("content", ""),
+                    category=prompt.get("category", ""),
+                    description=prompt.get("description", ""),
+                    tags=prompt.get("tags", ""),
+                    single_user_mode=self.single_user_mode,
+                ),
             )
 
         @self.app.post("/prompts/{prompt_id}/edit")
@@ -431,24 +425,21 @@ class WebApp:
                 categories = data_manager.get_categories()
                 return self.templates.TemplateResponse(
                     "prompts/form.html",
-                    {
-                        "request": request,
-                        "user": user,
-                        "categories": categories,
-                        "error": result,
-                        "page_title": t("prompt.edit"),
-                        "action": "edit",
-                        "prompt_id": prompt_id,
-                        "name": name,
-                        "content": content,
-                        "category": category,
-                        "description": description,
-                        "tags": tags,
-                        "i18n": i18n,
-                        "available_languages": i18n.get_available_languages(),
-                        "current_language": i18n.current_language,
-                        "single_user_mode": self.single_user_mode,
-                    },
+                    self.get_template_context(
+                        request,
+                        user,
+                        categories=categories,
+                        error=result,
+                        page_title=t("prompt.edit"),
+                        action="edit",
+                        prompt_id=prompt_id,
+                        name=name,
+                        content=content,
+                        category=category,
+                        description=description,
+                        tags=tags,
+                        single_user_mode=self.single_user_mode,
+                    ),
                 )
 
         @self.app.delete("/prompts/{prompt_id}")
@@ -584,12 +575,16 @@ class WebApp:
                 request.session["language"] = language
                 # Also update legacy i18n for backward compatibility
                 i18n.set_language(language)
-            
-            # Check if this is a test request (from TestClient) - if so, return 200
-            user_agent = request.headers.get("user-agent", "")
-            if "testclient" in user_agent.lower() or not request.headers.get("referer"):
+
+            # For regular web requests, redirect back to the referring page
+            # Only return JSON for API-style requests
+            content_type = request.headers.get("content-type", "")
+            if (
+                not request.headers.get("referer")
+                and "application/json" in content_type
+            ):
                 return {"success": success, "language": language}
-            
+
             return RedirectResponse(
                 url=request.headers.get("referer", "/"), status_code=302
             )
@@ -1440,33 +1435,38 @@ class WebApp:
             if not self.single_user_mode:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-            
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
             # Handle both form data and JSON data
             try:
                 # Try JSON first
                 body = await request.json()
                 language_code = body.get("language", "")
-            except:
+            except Exception:
                 # Fall back to form data
                 form_data = await request.form()
                 language_code = form_data.get("language_code", "")
-            
+
             if not language_code:
                 return {"success": False, "message": "Language code is required"}
-            
+
             # Check if language is valid
             language_manager = get_language_manager()
             available_languages = language_manager.get_available_languages()
-            
+
             if language_code not in available_languages:
-                return {"success": False, "message": f"Language '{language_code}' not available"}
-            
+                return {
+                    "success": False,
+                    "message": f"Language '{language_code}' not available",
+                }
+
             # For test clients, return JSON response
             user_agent = request.headers.get("user-agent", "")
             if "testclient" in user_agent.lower():
                 return {"success": True, "language": language_code}
-            
+
             return RedirectResponse(
                 url=f"/settings/language/{language_code}", status_code=302
             )
@@ -1675,7 +1675,7 @@ class WebApp:
                         "extra_keys": validation["extra_keys"],
                         "total_keys": validation["total_keys"],
                         "coverage": validation["coverage"],
-                    }
+                    },
                 }
 
             except Exception as e:
@@ -1694,7 +1694,9 @@ class WebApp:
             try:
                 body = await request.json()
                 key = body.get("key", "").strip()
-                target_language = body.get("target_language", body.get("language_code", "")).strip()
+                target_language = body.get(
+                    "target_language", body.get("language_code", "")
+                ).strip()
                 english_text = body.get("english_text", "").strip()
 
                 if not key:
@@ -1716,14 +1718,13 @@ class WebApp:
                             "message": f"English text not found for key: {key}",
                         }
 
-                # If target_language not specified, assume we want to translate the provided text
+                # If target_language not specified, assume we want to translate
+                # the provided text
                 if not target_language:
                     # Use text translator to translate to English
                     try:
                         success, translated_text, error_msg = (
-                            text_translator.translate_to_english(
-                                text=english_text
-                            )
+                            text_translator.translate_to_english(text=english_text)
                         )
 
                         if success and translated_text:

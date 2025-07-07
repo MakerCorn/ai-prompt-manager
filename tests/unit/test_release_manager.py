@@ -412,13 +412,14 @@ Initial release with basic functionality.
         # Test first release details
         release_2_1 = next((r for r in releases if r["version"] == "2.1.0"), None)
         self.assertIsNotNone(release_2_1)
-        self.assertEqual(release_2_1["title"], "Release 2.1.0")
-        # Description parsing may vary - just check that we have a description
-        self.assertIsNotNone(release_2_1["description"])
+        if release_2_1 is not None:
+            self.assertEqual(release_2_1["title"], "Release 2.1.0")
+            # Description parsing may vary - just check that we have a description
+            self.assertIsNotNone(release_2_1["description"])
 
-        # Test date parsing
-        expected_date = datetime(2024, 1, 20)
-        self.assertEqual(release_2_1["date"], expected_date)
+            # Test date parsing
+            expected_date = datetime(2024, 1, 20)
+            self.assertEqual(release_2_1["date"], expected_date)
 
     def test_changelog_file_not_found(self):
         """Test handling of missing changelog file"""

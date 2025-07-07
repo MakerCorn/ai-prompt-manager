@@ -9,7 +9,6 @@ import os
 import sys
 import time
 import unittest
-from unittest.mock import Mock, patch
 
 # Add project root to path for imports
 sys.path.insert(
@@ -17,7 +16,7 @@ sys.path.insert(
 )
 
 try:
-    from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
+    from playwright.sync_api import sync_playwright
 
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
@@ -30,6 +29,18 @@ from prompt_data_manager import PromptDataManager
 @unittest.skipUnless(PLAYWRIGHT_AVAILABLE, "Playwright not available")
 class TestTaggingSystemE2E(unittest.TestCase):
     """End-to-end tests for the tagging system."""
+
+    # Class attributes for type checking
+    headless: bool
+    slow_mo: int
+    playwright: any
+    browser: any
+    context: any
+    page: any
+    test_port: int
+    base_url: str
+    server_process: any
+    temp_db: any
 
     @classmethod
     def setUpClass(cls):

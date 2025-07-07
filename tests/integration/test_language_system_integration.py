@@ -16,7 +16,6 @@ from fastapi.testclient import TestClient
 # Import components to test
 from language_manager import LanguageManager
 from text_translator import TextTranslator
-from web_app import create_web_app
 
 
 class TestLanguageSystemIntegration:
@@ -76,7 +75,10 @@ class TestLanguageSystemIntegration:
                 "error": "Authentication error",
                 "organization": "Organization",
                 "organization_placeholder": "Organization subdomain",
-                "organization_help": "Enter your organization subdomain (use 'localhost' for local development)",
+                "organization_help": (
+                    "Enter your organization subdomain "
+                    "(use 'localhost' for local development)"
+                ),
                 "email_placeholder": "you@example.com",
                 "password_placeholder": "Enter your password",
                 "remember_me": "Remember me",

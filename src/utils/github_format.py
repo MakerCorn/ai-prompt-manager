@@ -50,7 +50,7 @@ class GitHubFormatHandler:
         except (yaml.YAMLError, IOError, KeyError):
             return False
 
-    def validate_github_format(self, data: Dict[str, Any]) -> Tuple[bool, str]:
+    def validate_github_format(self, data: Any) -> Tuple[bool, str]:
         """
         Validate GitHub format data structure.
 

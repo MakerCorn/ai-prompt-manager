@@ -33,6 +33,13 @@ def _run_web_test_server(db_path, port):
 class WebUIIntegrationTest(unittest.TestCase):
     """Comprehensive integration tests for the modern web UI"""
 
+    # Class attributes for type checking
+    test_db: str
+    base_url: str
+    port: int
+    auth_manager: any
+    server_process: any
+
     @classmethod
     def setUpClass(cls):
         """Set up test environment"""

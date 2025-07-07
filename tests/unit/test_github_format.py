@@ -239,7 +239,11 @@ ASSISTANT: I'll help you create an Azure Logic App."""
             for i in range(3):
                 file_path = os.path.join(temp_dir, f"prompt_{i}.yml")
                 sample_data = self.sample_github_data.copy()
-                sample_data["messages"][1]["content"] = f"Test prompt {i}"
+                if isinstance(sample_data, dict) and "messages" in sample_data:
+                    messages = sample_data["messages"]
+                    if isinstance(messages, list) and len(messages) > 1:
+                        if isinstance(messages[1], dict):
+                            messages[1]["content"] = f"Test prompt {i}"
 
                 with open(file_path, "w") as f:
                     yaml.dump(sample_data, f)

@@ -837,7 +837,7 @@ async def get_tag_statistics(
 ) -> TagStatisticsResponse:
     """Get comprehensive tag usage statistics."""
     try:
-        statistics = data_manager.get_tag_statistics()
+        statistics: Dict[str, Any] = data_manager.get_tag_statistics()
         popular_tags = data_manager.get_popular_tags(entity_type="all", limit=10)
 
         return TagStatisticsResponse(
@@ -895,7 +895,7 @@ async def analyze_tags(
 ) -> Dict[str, Any]:
     """Get comprehensive tag analysis with insights."""
     try:
-        statistics = data_manager.get_tag_statistics()
+        statistics: Dict[str, Any] = data_manager.get_tag_statistics()
         popular_tags = data_manager.get_popular_tags(entity_type="all", limit=20)
 
         # Calculate insights
