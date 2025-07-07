@@ -8,7 +8,6 @@ Release Announcement Management System
 This software is licensed for non-commercial use only. See LICENSE file for details.
 """
 
-import hashlib
 import json
 import os
 import re
@@ -17,9 +16,7 @@ import tempfile
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Union
-from urllib.parse import urljoin
-from urllib.request import Request, urlopen
+from typing import Dict, List, Optional, Tuple
 
 import requests
 from dotenv import load_dotenv
@@ -137,7 +134,8 @@ class ReleaseManager:
                 CREATE TABLE IF NOT EXISTS user_release_views (
                     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                     user_id UUID NOT NULL,
-                    release_id UUID REFERENCES release_announcements(id) ON DELETE CASCADE,
+                    release_id UUID REFERENCES release_announcements(id)
+                        ON DELETE CASCADE,
                     viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     is_dismissed BOOLEAN DEFAULT FALSE,
                     UNIQUE(user_id, release_id)
@@ -181,7 +179,8 @@ class ReleaseManager:
                 CREATE TABLE IF NOT EXISTS user_release_views (
                     id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
-                    release_id TEXT REFERENCES release_announcements(id) ON DELETE CASCADE,
+                    release_id TEXT REFERENCES release_announcements(id)
+                        ON DELETE CASCADE,
                     viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     is_dismissed BOOLEAN DEFAULT 0,
                     UNIQUE(user_id, release_id)
@@ -223,12 +222,15 @@ class ReleaseManager:
             release_id = str(uuid.uuid4())
             release_date = release_date or datetime.now()
 
+            # Truncate description to prevent overly long entries
+            description = description[:1000] if description else ""
+
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    INSERT INTO release_announcements 
-                    (id, version, title, description, release_date, is_major, is_featured,
-                     changelog_url, download_url, github_release_id)
+                    INSERT INTO release_announcements
+                    (id, version, title, description, release_date, is_major,
+                     is_featured, changelog_url, download_url, github_release_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                     (
@@ -247,9 +249,9 @@ class ReleaseManager:
             else:
                 cursor.execute(
                     """
-                    INSERT INTO release_announcements 
-                    (id, version, title, description, release_date, is_major, is_featured,
-                     changelog_url, download_url, github_release_id)
+                    INSERT INTO release_announcements
+                    (id, version, title, description, release_date, is_major,
+                     is_featured, changelog_url, download_url, github_release_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
@@ -296,10 +298,11 @@ class ReleaseManager:
                 if self.db_type == "postgres":
                     cursor.execute(
                         """
-                        SELECT r.*, 
-                               CASE WHEN urv.viewed_at IS NOT NULL THEN TRUE ELSE FALSE END as is_viewed
+                        SELECT r.*,
+                               CASE WHEN urv.viewed_at IS NOT NULL
+                                   THEN TRUE ELSE FALSE END as is_viewed
                         FROM release_announcements r
-                        LEFT JOIN user_release_views urv ON r.id = urv.release_id 
+                        LEFT JOIN user_release_views urv ON r.id = urv.release_id
                             AND urv.user_id = %s AND urv.is_dismissed = FALSE
                         WHERE (urv.is_dismissed IS NULL OR urv.is_dismissed = FALSE)
                         ORDER BY r.release_date DESC, r.is_featured DESC
@@ -310,10 +313,11 @@ class ReleaseManager:
                 else:
                     cursor.execute(
                         """
-                        SELECT r.*, 
-                               CASE WHEN urv.viewed_at IS NOT NULL THEN 1 ELSE 0 END as is_viewed
+                        SELECT r.*,
+                               CASE WHEN urv.viewed_at IS NOT NULL
+                                   THEN 1 ELSE 0 END as is_viewed
                         FROM release_announcements r
-                        LEFT JOIN user_release_views urv ON r.id = urv.release_id 
+                        LEFT JOIN user_release_views urv ON r.id = urv.release_id
                             AND urv.user_id = ? AND urv.is_dismissed = 0
                         WHERE (urv.is_dismissed IS NULL OR urv.is_dismissed = 0)
                         ORDER BY r.release_date DESC, r.is_featured DESC
@@ -408,9 +412,10 @@ class ReleaseManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    INSERT INTO user_release_views (id, user_id, release_id, is_dismissed)
+                    INSERT INTO user_release_views
+                    (id, user_id, release_id, is_dismissed)
                     VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (user_id, release_id) 
+                    ON CONFLICT (user_id, release_id)
                     DO UPDATE SET viewed_at = CURRENT_TIMESTAMP, is_dismissed = %s
                 """,
                     (view_id, user_id, release_id, is_dismissed, is_dismissed),
@@ -418,7 +423,7 @@ class ReleaseManager:
             else:
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO user_release_views 
+                    INSERT OR REPLACE INTO user_release_views
                     (id, user_id, release_id, is_dismissed, viewed_at)
                     VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """,
@@ -550,8 +555,9 @@ class ReleaseManager:
                 cursor.execute(
                     """
                     SELECT COUNT(*) FROM release_announcements r
-                    LEFT JOIN user_release_views urv ON r.id = urv.release_id AND urv.user_id = %s
-                    WHERE urv.viewed_at IS NULL OR urv.is_dismissed = FALSE
+                    LEFT JOIN user_release_views urv ON r.id = urv.release_id
+                        AND urv.user_id = %s
+                    WHERE urv.viewed_at IS NULL
                 """,
                     (user_id,),
                 )
@@ -559,8 +565,9 @@ class ReleaseManager:
                 cursor.execute(
                     """
                     SELECT COUNT(*) FROM release_announcements r
-                    LEFT JOIN user_release_views urv ON r.id = urv.release_id AND urv.user_id = ?
-                    WHERE urv.viewed_at IS NULL OR urv.is_dismissed = 0
+                    LEFT JOIN user_release_views urv ON r.id = urv.release_id
+                        AND urv.user_id = ?
+                    WHERE urv.viewed_at IS NULL
                 """,
                     (user_id,),
                 )
@@ -700,9 +707,9 @@ class ReleaseManager:
                 )
                 current_description = []
 
-            elif current_version and line.strip():
-                # Add to current description
-                current_description.append(line)
+            elif current_version and line.strip() and not line.startswith("#"):
+                # Add to current description (skip empty lines and headers)
+                current_description.append(line.strip())
 
         # Add final release
         if current_version:
@@ -727,7 +734,7 @@ class ReleaseManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT cache_data FROM release_cache 
+                    SELECT cache_data FROM release_cache
                     WHERE cache_key = %s AND expires_at > %s
                 """,
                     (cache_key, datetime.now()),
@@ -735,7 +742,7 @@ class ReleaseManager:
             else:
                 cursor.execute(
                     """
-                    SELECT cache_data FROM release_cache 
+                    SELECT cache_data FROM release_cache
                     WHERE cache_key = ? AND expires_at > ?
                 """,
                     (cache_key, datetime.now().isoformat()),
@@ -772,7 +779,7 @@ class ReleaseManager:
                     """
                     INSERT INTO release_cache (cache_key, cache_data, expires_at)
                     VALUES (%s, %s, %s)
-                    ON CONFLICT (cache_key) 
+                    ON CONFLICT (cache_key)
                     DO UPDATE SET cache_data = %s, expires_at = %s
                 """,
                     (cache_key, cache_data, expires_at, cache_data, expires_at),
@@ -780,7 +787,8 @@ class ReleaseManager:
             else:
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO release_cache (cache_key, cache_data, expires_at)
+                    INSERT OR REPLACE INTO release_cache
+                    (cache_key, cache_data, expires_at)
                     VALUES (?, ?, ?)
                 """,
                     (cache_key, cache_data, expires_at.isoformat()),

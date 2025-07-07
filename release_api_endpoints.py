@@ -8,7 +8,6 @@ Release Management API Endpoints
 This software is licensed for non-commercial use only. See LICENSE file for details.
 """
 
-import json
 import os
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -17,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api_token_manager import APITokenManager
-from release_manager import ReleaseAnnouncement, ReleaseManager
+from release_manager import ReleaseManager
 
 
 class ReleaseCreateRequest(BaseModel):

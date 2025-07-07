@@ -22,16 +22,16 @@ sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
+from auth_manager import AuthManager
+from release_api_endpoints import create_admin_release_router, create_release_router
+from release_manager import ReleaseManager
+
 try:
     from fastapi.testclient import TestClient
 
     FASTAPI_AVAILABLE = True
 except ImportError:
     FASTAPI_AVAILABLE = False
-
-from auth_manager import AuthManager
-from release_api_endpoints import create_admin_release_router, create_release_router
-from release_manager import ReleaseManager
 
 
 @unittest.skipUnless(FASTAPI_AVAILABLE, "FastAPI not available")
@@ -319,9 +319,7 @@ class TestReleaseAPIIntegration(unittest.TestCase):
         # Create multiple releases
         for i in range(15):
             self.release_manager.create_release_announcement(
-                version=f"1.{i}.0",
-                title=f"Release {i}",
-                description=f"Description {i}"
+                version=f"1.{i}.0", title=f"Release {i}", description=f"Description {i}"
             )
 
         # Test default limit
@@ -330,9 +328,7 @@ class TestReleaseAPIIntegration(unittest.TestCase):
         self.assertEqual(len(releases), 10)  # Default limit
 
         # Test custom limit
-        response = self.client.get(
-            "/api/releases/?limit=5", headers=self.auth_headers
-        )
+        response = self.client.get("/api/releases/?limit=5", headers=self.auth_headers)
         releases = response.json()
         self.assertEqual(len(releases), 5)
 
