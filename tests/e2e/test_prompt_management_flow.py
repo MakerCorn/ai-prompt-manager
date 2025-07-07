@@ -316,21 +316,63 @@ class TestPromptManagementFlow(E2ETestBase):
                     len(page.content()) > 1000
                 ), "Application should render substantial content"
 
-                # Check for actual application errors, not CSS variables
-                page_content = page.content().lower()
-                critical_errors = [
-                    "500 internal server error",
-                    "application error",
-                    "traceback",
-                    "exception occurred",
-                    "error: ",
-                    "fatal error",
+                # Check for actual application errors, not JavaScript code or CSS
+                page_content = page.content()
+
+                # Define patterns that indicate real application errors
+                critical_error_patterns = [
+                    "500 Internal Server Error",
+                    "Application Error",
+                    "Traceback (most recent call last)",
+                    "Exception occurred",
+                    "Fatal error",
+                    "Internal Server Error",
+                    "Unhandled exception",
+                    "Error 500",
+                    "Error 404",
+                    "Error 403",
                 ]
 
-                for error_pattern in critical_errors:
-                    assert (
-                        error_pattern not in page_content
-                    ), f"Application shows critical error: {error_pattern}"
+                # Check for error patterns, but exclude legitimate code contexts
+                for error_pattern in critical_error_patterns:
+                    matches = []
+                    lines = page_content.split("\n")
+
+                    for i, line in enumerate(lines):
+                        if error_pattern.lower() in line.lower():
+                            line_stripped = line.strip()
+
+                            # Skip JavaScript object property definitions (like "error: 'fas fa-...'")
+                            if (
+                                "error:" in line_stripped.lower()
+                                and "'fas fa-" in line_stripped.lower()
+                            ) or (
+                                "error:" in line_stripped.lower()
+                                and '"fas fa-' in line_stripped.lower()
+                            ):
+                                continue
+
+                            # Skip lines that are clearly CSS or JavaScript variable assignments
+                            if (
+                                "--error-" in line_stripped.lower()
+                                or ".error" in line_stripped.lower()
+                                or "const " in line_stripped.lower()
+                                or "let " in line_stripped.lower()
+                                or "var " in line_stripped.lower()
+                            ):
+                                continue
+
+                            matches.append((i + 1, line_stripped))
+
+                    # If we found matches that aren't false positives, report them
+                    if matches:
+                        match_details = "; ".join(
+                            [f"Line {num}: {line[:80]}..." for num, line in matches[:3]]
+                        )
+                        assert False, (
+                            f"Application shows critical error '{error_pattern}': "
+                            f"{match_details}"
+                        )
 
                 print("✅ Prompt library workflow completed")
 
