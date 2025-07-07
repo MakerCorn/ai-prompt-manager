@@ -3,16 +3,16 @@
 {% block main_content %}
 <!-- Enhanced Page Header -->
 {% set breadcrumbs = [
-    {"name": i18n.t('nav.settings'), "url": "/settings", "icon": "fas fa-cog"},
-    {"name": i18n.t('settings.api_tokens'), "icon": "fas fa-key"}
+    {"name": t('nav.settings'), "url": "/settings", "icon": "fas fa-cog"},
+    {"name": t('settings.api_tokens'), "icon": "fas fa-key"}
 ] %}
-{% set header_title = i18n.t('settings.api_tokens') %}
-{% set header_subtitle = i18n.t('tokens.title') %}
+{% set header_title = t('settings.api_tokens') %}
+{% set header_subtitle = t('tokens.title') %}
 {% set header_icon = "fas fa-key" %}
 {% set header_actions = [
     {
         "type": "button",
-        "text": i18n.t('tokens.generate'),
+        "text": t('tokens.generate'),
         "url": "#",
         "icon": "fas fa-plus",
         "style": "primary",

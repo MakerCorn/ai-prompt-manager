@@ -3,11 +3,11 @@
 {% block main_content %}
 <!-- Enhanced Page Header -->
 {% set breadcrumbs = [
-    {"name": i18n.t('nav.settings'), "url": "/settings", "icon": "fas fa-cog"},
-    {"name": i18n.t('settings.profile'), "icon": "fas fa-user"}
+    {"name": t('nav.settings'), "url": "/settings", "icon": "fas fa-cog"},
+    {"name": t('settings.profile'), "icon": "fas fa-user"}
 ] %}
-{% set header_title = i18n.t('settings.profile') %}
-{% set header_subtitle = i18n.t('settings.profile') %}
+{% set header_title = t('settings.profile') %}
+{% set header_subtitle = t('settings.profile') %}
 {% set header_icon = "fas fa-user" %}
 {% include "components/page_header.html" %}
 

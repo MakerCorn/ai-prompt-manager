@@ -12,25 +12,25 @@
                 <div class="flex-1">
                     <h1 class="text-3xl font-bold text-gray-900">
                         {% if user %}
-                            {{ i18n.t('dashboard.welcome_back', name=user.first_name) }}
+                            {{ t('dashboard.welcome_back', name=user.first_name) }}
                         {% else %}
-                            {{ i18n.t('dashboard.welcome') }}
+                            {{ t('dashboard.welcome') }}
                         {% endif %}
                     </h1>
                     <p class="text-lg mt-2 text-secondary">
-                        {{ i18n.t('dashboard.subtitle') }}
+                        {{ t('dashboard.subtitle') }}
                     </p>
                 </div>
                 <div class="hidden lg:block">
                     <div class="flex items-center space-x-4">
                         <div class="text-center">
                             <div class="text-2xl font-bold text-blue-600">{{ prompts|length }}</div>
-                            <div class="text-sm text-tertiary">Total Prompts</div>
+                            <div class="text-sm text-tertiary">{{ t('dashboard.total_prompts') }}</div>
                         </div>
                         <div class="w-px h-12 bg-gray-200"></div>
                         <div class="text-center">
                             <div class="text-2xl font-bold text-green-600">✓</div>
-                            <div class="text-sm text-tertiary">Ready to Go</div>
+                            <div class="text-sm text-tertiary">{{ t('dashboard.ready_to_go') }}</div>
                         </div>
                     </div>
                 </div>
@@ -47,11 +47,11 @@
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
                         <i class="fas fa-plus-circle text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ i18n.t('prompt.create_new') }}</h3>
-                    <p class="text-sm text-secondary">{{ i18n.t('prompt.create_desc') }}</p>
+                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ t('prompts.new') }}</h3>
+                    <p class="text-sm text-secondary">{{ t('dashboard.create_desc') }}</p>
                     <div class="mt-4">
                         <span class="btn btn-success btn-sm">
-                            <i class="fas fa-arrow-right mr-2"></i>{{ i18n.t('dashboard.get_started') }}
+                            <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.get_started') }}
                         </span>
                     </div>
                 </div>
@@ -65,11 +65,11 @@
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center">
                         <i class="fas fa-file-text text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ i18n.t('nav.library') }}</h3>
+                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ t('nav.library') }}</h3>
                     <p class="text-sm text-secondary">{{ prompts|length }} saved prompts</p>
                     <div class="mt-4">
                         <span class="btn btn-primary btn-sm">
-                            <i class="fas fa-arrow-right mr-2"></i>{{ i18n.t('dashboard.explore') }}
+                            <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.explore') }}
                         </span>
                     </div>
                 </div>
@@ -83,11 +83,11 @@
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center">
                         <i class="fas fa-layer-group text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ i18n.t('template.list') }}</h3>
-                    <p class="text-sm text-secondary">{{ i18n.t('template.list_desc') }}</p>
+                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ t('nav.library') }}</h3>
+                    <p class="text-sm text-secondary">{{ t('dashboard.templates_desc') }}</p>
                     <div class="mt-4">
                         <span class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-right mr-2"></i>{{ i18n.t('dashboard.browse') }}
+                            <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.browse') }}
                         </span>
                     </div>
                 </div>
@@ -101,11 +101,11 @@
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center">
                         <i class="fas fa-cog text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ i18n.t('nav.settings') }}</h3>
-                    <p class="text-sm text-secondary">{{ i18n.t('settings.customize_desc') }}</p>
+                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ t('nav.settings') }}</h3>
+                    <p class="text-sm text-secondary">{{ t('dashboard.settings_desc') }}</p>
                     <div class="mt-4">
                         <span class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-right mr-2"></i>{{ i18n.t('dashboard.configure') }}
+                            <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.configure') }}
                         </span>
                     </div>
                 </div>
@@ -119,7 +119,7 @@
             <div class="flex items-center justify-between">
                 <h3 class="text-lg leading-6 font-medium text-primary">
                     <i class="fas fa-bullhorn mr-2 text-tertiary"></i>
-                    What's New
+                    {{ t('dashboard.whats_new') }}
                 </h3>
                 <div class="flex items-center space-x-2">
                     <span id="unread-count-badge" class="hidden px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">0</span>
@@ -132,7 +132,7 @@
         <div class="card-body">
             <div id="releases-loading" class="text-center py-8">
                 <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
-                <p class="text-gray-600">Loading latest updates...</p>
+                <p class="text-gray-600">{{ t('dashboard.loading_updates') }}</p>
             </div>
             
             <div id="releases-container" class="space-y-4 hidden">
@@ -141,8 +141,8 @@
             
             <div id="no-releases" class="text-center py-8 hidden">
                 <i class="fas fa-info-circle text-4xl text-gray-300 mb-4"></i>
-                <h4 class="text-lg font-medium text-gray-800 mb-2">You're all caught up!</h4>
-                <p class="text-gray-600">No new releases to show.</p>
+                <h4 class="text-lg font-medium text-gray-800 mb-2">{{ t('dashboard.all_caught_up') }}</h4>
+                <p class="text-gray-600">{{ t('dashboard.no_new_releases') }}</p>
             </div>
         </div>
     </div>
@@ -153,10 +153,10 @@
             <div class="flex items-center justify-between">
                 <h3 class="text-lg leading-6 font-medium text-primary">
                     <i class="fas fa-clock mr-2 text-tertiary"></i>
-                    {{ i18n.t('dashboard.recent_prompts') }}
+                    {{ t('dashboard.recent_prompts') }}
                 </h3>
                 <a href="/prompts" class="text-sm font-medium text-primary-600 hover:text-primary-500">
-                    {{ i18n.t('dashboard.view_all') }} <i class="fas fa-arrow-right ml-1"></i>
+                    {{ t('dashboard.view_all') }} <i class="fas fa-arrow-right ml-1"></i>
                 </a>
             </div>
         </div>
@@ -179,7 +179,7 @@
                                 </p>
                                 <div class="mt-2 flex items-center text-xs text-slate-400">
                                     <i class="fas fa-calendar mr-1"></i>
-                                    {{ i18n.t('dashboard.recently_created') }}
+                                    {{ t('prompts.recently_created') }}
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
@@ -198,11 +198,11 @@
             {% else %}
                 <div class="text-center py-12">
                     <i class="fas fa-file-text text-4xl text-gray-300 mb-4"></i>
-                    <h3 class="text-lg font-medium text-slate-800 mb-2">{{ i18n.t('dashboard.no_prompts') }}</h3>
-                    <p class="text-slate-500 mb-6">{{ i18n.t('dashboard.no_prompts_desc') }}</p>
+                    <h3 class="text-lg font-medium text-slate-800 mb-2">{{ t('dashboard.no_prompts') }}</h3>
+                    <p class="text-slate-500 mb-6">{{ t('dashboard.no_prompts_desc') }}</p>
                     <a href="/prompts/new" class="btn-primary">
                         <i class="fas fa-plus mr-2"></i>
-                        {{ i18n.t('dashboard.create_first') }}
+                        {{ t('prompts.create_first') }}
                     </a>
                 </div>
             {% endif %}
@@ -214,7 +214,7 @@
         <div class="px-4 py-5 sm:p-6">
             <h3 class="text-lg leading-6 font-medium text-slate-800 mb-4">
                 <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
-                {{ i18n.t('tips.title') }}
+                {{ t('dashboard.tips_title') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex items-start">
@@ -224,8 +224,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-slate-800">{{ i18n.t('tips.create_title') }}</h4>
-                        <p class="text-sm text-slate-600">{{ i18n.t('tips.create_desc') }}</p>
+                        <h4 class="text-sm font-medium text-slate-800">{{ t('dashboard.tip1_title') }}</h4>
+                        <p class="text-sm text-slate-600">{{ t('dashboard.tip1_desc') }}</p>
                     </div>
                 </div>
                 <div class="flex items-start">
@@ -235,8 +235,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-slate-800">{{ i18n.t('tips.templates_title') }}</h4>
-                        <p class="text-sm text-slate-600">{{ i18n.t('tips.templates_desc') }}</p>
+                        <h4 class="text-sm font-medium text-slate-800">{{ t('dashboard.tip2_title') }}</h4>
+                        <p class="text-sm text-slate-600">{{ t('dashboard.tip2_desc') }}</p>
                     </div>
                 </div>
                 <div class="flex items-start">
@@ -246,8 +246,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-slate-800">{{ i18n.t('tips.test_title') }}</h4>
-                        <p class="text-sm text-slate-600">{{ i18n.t('tips.test_desc') }}</p>
+                        <h4 class="text-sm font-medium text-slate-800">{{ t('dashboard.tip3_title') }}</h4>
+                        <p class="text-sm text-slate-600">{{ t('dashboard.tip3_desc') }}</p>
                     </div>
                 </div>
                 <div class="flex items-start">
@@ -257,8 +257,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-slate-800">{{ i18n.t('tips.organize_title') }}</h4>
-                        <p class="text-sm text-slate-600">{{ i18n.t('tips.organize_desc') }}</p>
+                        <h4 class="text-sm font-medium text-slate-800">{{ t('dashboard.tip4_title') }}</h4>
+                        <p class="text-sm text-slate-600">{{ t('dashboard.tip4_desc') }}</p>
                     </div>
                 </div>
             </div>

@@ -23,7 +23,7 @@
                                             {% endfor %}
                                             {% if tag_list|length > 3 %}
                                                 <span class="ml-2 text-xs text-gray-500">
-                                                    +{{ tag_list|length - 3 }} {{ i18n.t('prompt.more_tags') }}
+                                                    +{{ tag_list|length - 3 }} {{ t('prompt.more_tags') }}
                                                 </span>
                                             {% endif %}
                                         {% endif %}
@@ -36,37 +36,37 @@
                                     <div class="mt-2 flex items-center text-xs text-gray-500">
                                         <div class="flex items-center">
                                             <i class="fas fa-calendar mr-1"></i>
-                                            {{ i18n.t('dashboard.recently_created') }}
+                                            {{ t('dashboard.recently_created') }}
                                         </div>
                                         <div class="ml-4 flex items-center">
                                             <i class="fas fa-edit mr-1"></i>
-                                            {{ i18n.t('dashboard.recently') }}
+                                            {{ t('dashboard.recently') }}
                                         </div>
                                         <div class="ml-4 flex items-center">
                                             <i class="fas fa-align-left mr-1"></i>
-                                            {{ (prompt.content|length if prompt.content else 0) }} {{ i18n.t('prompt.characters') }}
+                                            {{ (prompt.content|length if prompt.content else 0) }} {{ t('prompt.characters') }}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2 ml-4">
                                 <button class="text-gray-400 hover:text-blue-600 transition-colors duration-200"
-                                        title="{{ i18n.t('action.preview') }}"
+                                        title="{{ t('action.preview') }}"
                                         onclick="showPreview({{ prompt.id }}, '{{ prompt.name }}', `{{ prompt.content|replace('`', '\\`')|replace('\n', '\\n') if prompt.content else '' }}`)">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <a href="/prompts/{{ prompt.id }}/execute" 
                                    class="text-gray-400 hover:text-green-600 transition-colors duration-200"
-                                   title="{{ i18n.t('prompt.execute') }}">
+                                   title="{{ t('prompt.execute') }}">
                                     <i class="fas fa-play"></i>
                                 </a>
                                 <a href="/prompts/{{ prompt.id }}/edit" 
                                    class="text-gray-400 hover:text-yellow-600 transition-colors duration-200"
-                                   title="{{ i18n.t('action.edit') }}">
+                                   title="{{ t('action.edit') }}">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <button class="text-gray-400 hover:text-red-600 transition-colors duration-200"
-                                        title="{{ i18n.t('action.delete') }}"
+                                        title="{{ t('action.delete') }}"
                                         onclick="confirmDelete({{ prompt.id }}, '{{ prompt.name }}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -82,27 +82,27 @@
     <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-lg">
         <div class="flex-1 flex justify-between sm:hidden">
             <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                {{ i18n.t('action.previous') }}
+                {{ t('action.previous') }}
             </a>
             <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                {{ i18n.t('action.next') }}
+                {{ t('action.next') }}
             </a>
         </div>
         <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
                 <p class="text-sm text-gray-700">
-                    {{ i18n.t('prompt.showing') }} <span class="font-medium">1</span> {{ i18n.t('prompt.to') }} <span class="font-medium">{{ prompts|length }}</span> {{ i18n.t('prompt.of') }} <span class="font-medium">{{ prompts|length }}</span> {{ i18n.t('prompt.results') }}
+                    {{ t('prompt.showing') }} <span class="font-medium">1</span> {{ t('prompt.to') }} <span class="font-medium">{{ prompts|length }}</span> {{ t('prompt.of') }} <span class="font-medium">{{ prompts|length }}</span> {{ t('prompt.results') }}
                 </p>
             </div>
             <div>
                 <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                     <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        <span class="sr-only">{{ i18n.t('action.previous') }}</span>
+                        <span class="sr-only">{{ t('action.previous') }}</span>
                         <i class="fas fa-chevron-left"></i>
                     </a>
                     <a href="#" class="bg-primary-50 border-primary-500 text-primary-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</a>
                     <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        <span class="sr-only">{{ i18n.t('action.next') }}</span>
+                        <span class="sr-only">{{ t('action.next') }}</span>
                         <i class="fas fa-chevron-right"></i>
                     </a>
                 </nav>
@@ -113,11 +113,11 @@
     <div class="bg-white shadow rounded-lg">
         <div class="text-center py-12">
             <i class="fas fa-file-text text-4xl text-gray-300 mb-4"></i>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">{{ i18n.t('prompt.no_prompts') }}</h3>
-            <p class="text-gray-500 mb-6">{{ i18n.t('prompt.no_prompts_search_desc') }}</p>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">{{ t('prompt.no_prompts') }}</h3>
+            <p class="text-gray-500 mb-6">{{ t('prompt.no_prompts_search_desc') }}</p>
             <a href="/prompts/new" class="btn-primary">
                 <i class="fas fa-plus mr-2"></i>
-                {{ i18n.t('prompt.create_new') }}
+                {{ t('prompt.create_new') }}
             </a>
         </div>
     </div>

@@ -311,22 +311,59 @@ body {
 
 /* Theme-aware component updates */
 
-/* Enhanced Button System */
-.btn {
+/* Enhanced Button System - Higher specificity to override template styles */
+button.btn, a.btn, .btn, 
+button[class*="btn"], a[class*="btn"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-md) var(--space-lg);
     font-size: var(--text-sm);
     font-weight: 600;
-    border-radius: var(--radius-lg);
-    border: none;
+    border-radius: var(--radius-xl);
+    border: 2px solid transparent !important;
     cursor: pointer;
     transition: all var(--transition-normal);
-    text-decoration: none;
+    text-decoration: none !important;
     position: relative;
     overflow: hidden;
-    min-height: 2.5rem;
+    min-height: 2.5rem !important;
+    background-clip: padding-box;
+    box-sizing: border-box !important;
+    /* Enhanced scaling support for browser zoom */
+    zoom: 1;
+    transform: scale(1);
+    /* Better visual consistency */
+    font-family: inherit;
+    line-height: 1.5;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+    /* Focus accessibility */
+    outline: none;
+    /* Enhanced rendering for all zoom levels */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    /* Better button shape at all sizes */
+    border-style: solid;
+    /* Improved text rendering */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Button Icon Spacing */
+.btn i:first-child:not(:last-child) {
+    margin-right: 0.5rem;
+}
+
+.btn i:last-child:not(:first-child) {
+    margin-left: 0.5rem;
+}
+
+/* Button Gap for Flex Items */
+.btn {
+    gap: 0.5rem;
 }
 
 .btn:disabled {
@@ -335,8 +372,26 @@ body {
     transform: none !important;
 }
 
+.btn:focus {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.btn-outline-primary:focus {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.btn-outline-danger:focus {
+    outline: 2px solid var(--error-500);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
 /* Primary Button */
-.btn-primary {
+button.btn-primary, a.btn-primary, .btn-primary {
     background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
     color: var(--text-inverse);
     box-shadow: var(--shadow-md);
@@ -354,11 +409,11 @@ body {
 }
 
 /* Secondary Button */
-.btn-secondary {
-    background-color: var(--surface-primary);
-    color: var(--text-primary);
-    border: 2px solid var(--border-light);
-    box-shadow: var(--shadow-sm);
+button.btn-secondary, a.btn-secondary, .btn-secondary {
+    background-color: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--border-light) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -409,15 +464,114 @@ body {
 
 /* Button Sizes */
 .btn-sm {
-    padding: var(--space-xs) var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
     font-size: var(--text-xs);
     min-height: 2rem;
 }
 
 .btn-lg {
-    padding: var(--space-md) var(--space-xl);
+    padding: var(--space-lg) var(--space-2xl);
     font-size: var(--text-lg);
     min-height: 3rem;
+    border-radius: var(--radius-2xl);
+}
+
+/* Outline Button */
+.btn-outline {
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 2px solid var(--border-medium);
+    box-shadow: none;
+}
+
+.btn-outline:hover:not(:disabled) {
+    background-color: var(--surface-hover);
+    border-color: var(--primary-500);
+    color: var(--primary-600);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Outline Primary Button */
+.btn-outline-primary {
+    background-color: transparent;
+    color: var(--primary-600);
+    border: 2px solid var(--primary-500);
+    box-shadow: none;
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+    background-color: var(--primary-50);
+    border-color: var(--primary-600);
+    color: var(--primary-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Outline Danger Button */
+.btn-outline-danger {
+    background-color: transparent;
+    color: var(--error-600);
+    border: 2px solid var(--error-500);
+    box-shadow: none;
+}
+
+.btn-outline-danger:hover:not(:disabled) {
+    background-color: var(--error-50);
+    border-color: var(--error-600);
+    color: var(--error-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Ghost Button */
+.btn-ghost {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 2px solid transparent;
+    box-shadow: none;
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background-color: var(--surface-hover);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+/* Button Groups */
+.btn-group {
+    display: inline-flex;
+    gap: 0.5rem;
+}
+
+.btn-group .btn {
+    flex: none;
+}
+
+/* Full Width Button */
+.btn-full {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Override Tailwind and ensure our button styling takes precedence */
+button.btn, a.btn, .btn, 
+button[class*="btn"], a[class*="btn"] {
+    padding: var(--space-md) var(--space-lg) !important;
+    border-radius: var(--radius-xl) !important;
+    font-weight: 600 !important;
+}
+
+/* Make sure small buttons maintain their proportions */
+.btn-sm {
+    padding: var(--space-sm) var(--space-md) !important;
+    border-radius: var(--radius-lg) !important;
+}
+
+/* Make sure large buttons maintain their proportions */
+.btn-lg {
+    padding: var(--space-lg) var(--space-2xl) !important;
+    border-radius: var(--radius-2xl) !important;
 }
 
 /* Enhanced Form Controls */
@@ -1013,6 +1167,11 @@ body {
         padding: var(--space-xs) var(--space-sm);
         font-size: var(--text-xs);
         min-height: 2rem;
+        /* Better touch targets on mobile */
+        min-width: 44px;
+        /* Improved mobile scaling */
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
     }
     
     .modal-content {

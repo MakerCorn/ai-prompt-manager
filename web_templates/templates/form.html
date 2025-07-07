@@ -3,16 +3,16 @@
 {% block main_content %}
 <!-- Enhanced Page Header -->
 {% set breadcrumbs = [
-    {"name": i18n.t('template.list'), "url": "/templates", "icon": "fas fa-layer-group"},
-    {"name": i18n.t('template.create') if action == 'create' else i18n.t('template.edit'), "icon": "fas fa-" + ('plus' if action == 'create' else 'edit')}
+    {"name": t('template.list'), "url": "/templates", "icon": "fas fa-layer-group"},
+    {"name": t('template.create') if action == 'create' else t('template.edit'), "icon": "fas fa-" + ('plus' if action == 'create' else 'edit')}
 ] %}
-{% set header_title = i18n.t('template.create') if action == 'create' else i18n.t('template.edit') %}
-{% set header_subtitle = i18n.t('template.create_desc') if action == 'create' else i18n.t('template.edit_desc') %}
+{% set header_title = t('template.create') if action == 'create' else t('template.edit') %}
+{% set header_subtitle = t('template.create_desc') if action == 'create' else t('template.edit_desc') %}
 {% set header_icon = "fas fa-" + ('plus' if action == 'create' else 'edit') %}
 {% set header_actions = [
     {
         "type": "button",
-        "text": i18n.t('action.cancel'),
+        "text": t('action.cancel'),
         "url": "/templates",
         "icon": "fas fa-arrow-left",
         "style": "secondary"
@@ -31,7 +31,7 @@
             </div>
             <div class="ml-3">
                 <h3 class="text-sm font-medium text-red-800">
-                    {{ i18n.t('template.validation_error') }}
+                    {{ t('template.validation_error') }}
                 </h3>
                 <div class="mt-2 text-sm text-red-700">
                     <p>{{ error }}</p>
@@ -52,7 +52,7 @@
                 <!-- Template Name -->
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700">
-                        {{ i18n.t('template.name') }} 
+                        {{ t('template.name') }} 
                         <span class="text-red-500">*</span>
                     </label>
                     <div class="mt-1">
@@ -61,7 +61,7 @@
                                id="name" 
                                required
                                value="{{ name or '' }}"
-                               placeholder="{{ i18n.t('template.name_placeholder') }}"
+                               placeholder="{{ t('template.name_placeholder') }}"
                                class="form-input">
                     </div>
                 </div>
@@ -69,20 +69,20 @@
                 <!-- Category -->
                 <div>
                     <label for="category" class="block text-sm font-medium text-gray-700">
-                        {{ i18n.t('template.category') }}
+                        {{ t('template.category') }}
                     </label>
                     <div class="mt-1">
                         <select name="category" id="category" class="form-select">
                             {% for cat in categories %}
                                 <option value="{{ cat }}" 
                                         {% if cat == category %}selected{% endif %}>
-                                    {{ i18n.t('template.category.' + cat.lower()) or cat }}
+                                    {{ t('template.category.' + cat.lower()) or cat }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
                     <p class="mt-1 text-sm text-gray-500">
-                        {{ i18n.t('template.category_help') }}
+                        {{ t('template.category_help') }}
                     </p>
                 </div>
             </div>
@@ -90,14 +90,14 @@
             <!-- Description -->
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-700">
-                    {{ i18n.t('template.description') }}
+                    {{ t('template.description') }}
                 </label>
                 <div class="mt-1">
                     <input type="text" 
                            name="description" 
                            id="description"
                            value="{{ description or '' }}"
-                           placeholder="{{ i18n.t('template.description_placeholder') }}"
+                           placeholder="{{ t('template.description_placeholder') }}"
                            class="form-input">
                 </div>
             </div>
@@ -105,7 +105,7 @@
             <!-- Template Content -->
             <div>
                 <label for="content" class="block text-sm font-medium text-gray-700">
-                    {{ i18n.t('template.content') }} 
+                    {{ t('template.content') }} 
                     <span class="text-red-500">*</span>
                 </label>
                 <div class="mt-1">
@@ -113,12 +113,12 @@
                               id="content" 
                               rows="12" 
                               required
-                              placeholder="{{ i18n.t('template.content_placeholder') }}"
+                              placeholder="{{ t('template.content_placeholder') }}"
                               class="form-textarea"
                               oninput="extractVariables()">{{ content or '' }}</textarea>
                 </div>
                 <p class="mt-1 text-sm text-gray-500">
-                    {{ i18n.t('template.variables_help') }}
+                    {{ t('template.variables_help') }}
                 </p>
             </div>
 
@@ -126,7 +126,7 @@
             <div id="variables-section" class="bg-gray-50 rounded-lg p-4" style="display: none;">
                 <h3 class="text-sm font-medium text-gray-700 mb-2">
                     <i class="fas fa-code text-gray-400 mr-1"></i>
-                    {{ i18n.t('template.variables') }}
+                    {{ t('template.variables') }}
                 </h3>
                 <div id="variables-list" class="flex flex-wrap gap-2"></div>
             </div>
@@ -135,28 +135,28 @@
             <div class="bg-blue-50 rounded-lg p-4">
                 <h3 class="text-sm font-medium text-blue-800 mb-2">
                     <i class="fas fa-eye text-blue-600 mr-1"></i>
-                    {{ i18n.t('template.preview') }}
+                    {{ t('template.preview') }}
                 </h3>
                 <div id="template-preview" class="text-sm text-blue-700 whitespace-pre-wrap bg-white rounded border p-3 min-h-16">
-                    {{ content or i18n.t('template.preview') + '...' }}
+                    {{ content or t('template.preview') + '...' }}
                 </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                 <a href="/templates" class="btn-secondary">
-                    {{ i18n.t('template.cancel') }}
+                    {{ t('template.cancel') }}
                 </a>
                 <button type="button" onclick="validateTemplate()" class="btn-outline">
                     <i class="fas fa-check-circle mr-2"></i>
-                    {{ i18n.t('template.validate') }}
+                    {{ t('template.validate') }}
                 </button>
                 <button type="submit" class="btn-primary" id="save-btn">
                     <i class="fas fa-save mr-2"></i>
                     {% if action == 'create' %}
-                        {{ i18n.t('template.create') }}
+                        {{ t('template.create') }}
                     {% else %}
-                        {{ i18n.t('template.save') }}
+                        {{ t('template.save') }}
                     {% endif %}
                 </button>
             </div>
@@ -173,7 +173,7 @@ function extractVariables() {
     const variablesList = document.getElementById('variables-list');
     
     // Update preview
-    preview.textContent = content || "{{ i18n.t('template.preview') }}...";
+    preview.textContent = content || "{{ t('template.preview') }}...";
     
     // Extract variables using regex
     const variableRegex = /\{([^}]+)\}/g;
@@ -205,12 +205,12 @@ function validateTemplate() {
     const name = document.getElementById('name').value;
     
     if (!name.trim()) {
-        alert("{{ i18n.t('template.validation_error') }}: {{ i18n.t('template.name') }} {{ i18n.t('form.required').lower() }}");
+        alert("{{ t('template.validation_error') }}: {{ t('template.name') }} {{ t('form.required').lower() }}");
         return;
     }
     
     if (!content.trim()) {
-        alert("{{ i18n.t('template.validation_error') }}: {{ i18n.t('template.content') }} {{ i18n.t('form.required').lower() }}");
+        alert("{{ t('template.validation_error') }}: {{ t('template.content') }} {{ t('form.required').lower() }}");
         return;
     }
     
@@ -219,11 +219,11 @@ function validateTemplate() {
     const closeBraces = (content.match(/\}/g) || []).length;
     
     if (openBraces !== closeBraces) {
-        alert("{{ i18n.t('template.validation_error') }}: Mismatched braces in template content");
+        alert("{{ t('template.validation_error') }}: Mismatched braces in template content");
         return;
     }
     
-    alert("✅ {{ i18n.t('template.validation_error').replace('failed', 'passed') }}");
+    alert("✅ {{ t('template.validation_error').replace('failed', 'passed') }}");
 }
 
 // Initialize on page load

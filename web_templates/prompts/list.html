@@ -3,29 +3,29 @@
 {% block main_content %}
 <!-- Enhanced Page Header -->
 {% set breadcrumbs = [
-    {"name": i18n.t('nav.home'), "url": "/", "icon": "fas fa-home"},
-    {"name": i18n.t('nav.prompts'), "icon": "fas fa-file-text"}
+    {"name": t('nav.home'), "url": "/", "icon": "fas fa-home"},
+    {"name": t('nav.prompts'), "icon": "fas fa-file-text"}
 ] %}
-{% set header_title = i18n.t('nav.prompts') %}
-{% set header_subtitle = i18n.t('prompt.manage_desc') %}
+{% set header_title = t('nav.prompts') %}
+{% set header_subtitle = t('prompts.title') %}
 {% set header_icon = "fas fa-file-text" %}
 {% set header_actions = [
     {
         "type": "button",
-        "text": i18n.t('prompt.create_new'),
+        "text": t('prompts.new'),
         "url": "/prompts/new",
         "icon": "fas fa-plus",
         "style": "primary"
     },
     {
         "type": "dropdown",
-        "text": i18n.t('common.actions'),
+        "text": t('common.actions'),
         "icon": "fas fa-ellipsis-v",
         "style": "secondary",
         "items": [
-            {"text": i18n.t('common.import'), "url": "/prompts/import", "icon": "fas fa-upload"},
-            {"text": i18n.t('common.export'), "url": "/prompts/export", "icon": "fas fa-download"},
-            {"text": i18n.t('common.actions'), "url": "/prompts/bulk", "icon": "fas fa-tasks"}
+            {"text": t('common.import'), "url": "/prompts/import", "icon": "fas fa-upload"},
+            {"text": t('common.export'), "url": "/prompts/export", "icon": "fas fa-download"},
+            {"text": t('nav.settings'), "url": "/settings", "icon": "fas fa-cog"}
         ]
     }
 ] %}
@@ -38,14 +38,14 @@
         <div class="card-body">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="md:col-span-2">
-                    <label for="search" class="sr-only">{{ i18n.t('prompt.search') }}</label>
+                    <label for="search" class="sr-only">{{ t('prompts.search') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
                         <input type="text" id="search" name="search" 
                                class="form-input pl-10" 
-                               placeholder="{{ i18n.t('prompt.search_placeholder') }}"
+                               placeholder="{{ t('prompts.search_placeholder') }}"
                                hx-get="/prompts/search" 
                                hx-trigger="keyup changed delay:300ms" 
                                hx-target="#prompts-list">
@@ -56,7 +56,7 @@
                             hx-get="/prompts/filter" 
                             hx-trigger="change" 
                             hx-target="#prompts-list">
-                        <option value="">{{ i18n.t('prompt.all_categories') }}</option>
+                        <option value="">{{ t('prompts.all_categories') }}</option>
                         {% for category in categories %}
                             <option value="{{ category }}">{{ category }}</option>
                         {% endfor %}
@@ -67,11 +67,11 @@
                             hx-get="/prompts/filter" 
                             hx-trigger="change" 
                             hx-target="#prompts-list">
-                        <option value="created_desc">{{ i18n.t('prompt.sort_newest') }}</option>
-                        <option value="created_asc">{{ i18n.t('prompt.sort_oldest') }}</option>
-                        <option value="name_asc">{{ i18n.t('prompt.sort_name_asc') }}</option>
-                        <option value="name_desc">{{ i18n.t('prompt.sort_name_desc') }}</option>
-                        <option value="category_asc">{{ i18n.t('prompt.sort_category') }}</option>
+                        <option value="created_desc">{{ t('prompts.sort_newest') }}</option>
+                        <option value="created_asc">{{ t('prompts.sort_oldest') }}</option>
+                        <option value="name_asc">{{ t('prompts.sort_name_asc') }}</option>
+                        <option value="name_desc">{{ t('prompts.sort_name_desc') }}</option>
+                        <option value="category_asc">{{ t('prompts.sort_category') }}</option>
                     </select>
                 </div>
             </div>
@@ -117,37 +117,37 @@
                                             <div class="mt-2 flex items-center text-xs text-gray-500">
                                                 <div class="flex items-center">
                                                     <i class="fas fa-calendar mr-1"></i>
-                                                    Recently created
+                                                    {{ t('prompts.recently_created') }}
                                                 </div>
                                                 <div class="ml-4 flex items-center">
                                                     <i class="fas fa-edit mr-1"></i>
-                                                    Recently modified
+                                                    {{ t('prompts.recently_modified') }}
                                                 </div>
                                                 <div class="ml-4 flex items-center">
                                                     <i class="fas fa-align-left mr-1"></i>
-                                                    {{ prompt.content|length if prompt.content else 0 }} characters
+                                                    {{ prompt.content|length if prompt.content else 0 }} {{ t('prompts.characters') }}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="flex items-center space-x-2 ml-4">
                                         <button class="text-gray-400 hover:text-blue-600 transition-colors duration-200"
-                                                title="Preview"
+                                                title="{{ t('common.preview') }}"
                                                 onclick="showPreview({{ prompt.id }}, '{{ prompt.name }}', `{{ prompt.content|replace('`', '\\`')|replace('\n', '\\n') }}`)">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <a href="/prompts/{{ prompt.id }}/execute" 
                                            class="text-gray-400 hover:text-green-600 transition-colors duration-200"
-                                           title="Execute">
+                                           title="{{ t('common.execute') }}">
                                             <i class="fas fa-play"></i>
                                         </a>
                                         <a href="/prompts/{{ prompt.id }}/edit" 
                                            class="text-gray-400 hover:text-yellow-600 transition-colors duration-200"
-                                           title="Edit">
+                                           title="{{ t('common.edit') }}">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <button class="text-gray-400 hover:text-red-600 transition-colors duration-200"
-                                                title="Delete"
+                                                title="{{ t('common.delete') }}"
                                                 onclick="confirmDelete({{ prompt.id }}, '{{ prompt.name }}')">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -163,27 +163,27 @@
             <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-lg">
                 <div class="flex-1 flex justify-between sm:hidden">
                     <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        Previous
+                        {{ t('common.previous') }}
                     </a>
                     <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        Next
+                        {{ t('common.next') }}
                     </a>
                 </div>
                 <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
                         <p class="text-sm text-gray-700">
-                            Showing <span class="font-medium">1</span> to <span class="font-medium">{{ prompts|length }}</span> of <span class="font-medium">{{ prompts|length }}</span> results
+                            {{ t('prompts.showing_results', count_start=1, count_end=prompts|length, total=prompts|length) }}
                         </p>
                     </div>
                     <div>
                         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                             <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <span class="sr-only">Previous</span>
+                                <span class="sr-only">{{ t('common.previous') }}</span>
                                 <i class="fas fa-chevron-left"></i>
                             </a>
                             <a href="#" class="bg-primary-50 border-primary-500 text-primary-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</a>
                             <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <span class="sr-only">Next</span>
+                                <span class="sr-only">{{ t('common.next') }}</span>
                                 <i class="fas fa-chevron-right"></i>
                             </a>
                         </nav>
@@ -194,11 +194,11 @@
             <div class="bg-white shadow rounded-lg">
                 <div class="text-center py-12">
                     <i class="fas fa-file-text text-4xl text-gray-300 mb-4"></i>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No prompts found</h3>
-                    <p class="text-gray-500 mb-6">Get started by creating your first prompt</p>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">{{ t('prompts.no_prompts_found') }}</h3>
+                    <p class="text-gray-500 mb-6">{{ t('prompts.get_started_message') }}</p>
                     <a href="/prompts/new" class="btn-primary">
                         <i class="fas fa-plus mr-2"></i>
-                        Create Your First Prompt
+                        {{ t('prompts.create_first') }}
                     </a>
                 </div>
             </div>
@@ -216,7 +216,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
                         <i class="fas fa-eye mr-2 text-blue-500"></i>
-                        Prompt Preview
+                        {{ t('prompts.preview') }}
                     </h3>
                     <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
                         <i class="fas fa-times"></i>
@@ -230,7 +230,7 @@
                 </div>
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button onclick="closePreview()" class="btn-secondary">Close</button>
+                <button onclick="closePreview()" class="btn-secondary">{{ t('common.close') }}</button>
             </div>
         </div>
     </div>
@@ -248,10 +248,10 @@
                         <i class="fas fa-exclamation-triangle text-red-600"></i>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Delete Prompt</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">{{ t('prompts.delete_title') }}</h3>
                         <div class="mt-2">
                             <p class="text-sm text-gray-500">
-                                Are you sure you want to delete "<span id="delete-prompt-name" class="font-medium"></span>"? This action cannot be undone.
+                                {{ t('prompts.delete_confirmation') }} "<span id="delete-prompt-name" class="font-medium"></span>"? {{ t('common.action_cannot_be_undone') }}
                             </p>
                         </div>
                     </div>
@@ -260,9 +260,9 @@
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button id="delete-confirm-btn" class="btn-danger sm:ml-3">
                     <i class="fas fa-trash mr-2"></i>
-                    Delete
+                    {{ t('common.delete') }}
                 </button>
-                <button onclick="closeDelete()" class="btn-secondary mt-3 sm:mt-0">Cancel</button>
+                <button onclick="closeDelete()" class="btn-secondary mt-3 sm:mt-0">{{ t('common.cancel') }}</button>
             </div>
         </div>
     </div>

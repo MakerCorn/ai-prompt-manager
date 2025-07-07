@@ -3,16 +3,16 @@
 {% block main_content %}
 <!-- Enhanced Page Header -->
 {% set breadcrumbs = [
-    {"name": i18n.t('nav.home'), "url": "/", "icon": "fas fa-home"},
-    {"name": i18n.t('template.list'), "icon": "fas fa-layer-group"}
+    {"name": t('nav.home'), "url": "/", "icon": "fas fa-home"},
+    {"name": t('template.list'), "icon": "fas fa-layer-group"}
 ] %}
-{% set header_title = i18n.t('template.list') %}
-{% set header_subtitle = i18n.t('template.list_desc') %}
+{% set header_title = t('template.list') %}
+{% set header_subtitle = t('template.list_desc') %}
 {% set header_icon = "fas fa-layer-group" %}
 {% set header_actions = [
     {
         "type": "button",
-        "text": i18n.t('template.new'),
+        "text": t('template.new'),
         "url": "/templates/new",
         "icon": "fas fa-plus",
         "style": "primary"
@@ -28,10 +28,10 @@
         <div class="px-4 py-5 sm:px-6">
             <h3 class="text-lg leading-6 font-medium text-slate-800">
                 <i class="fas fa-layer-group mr-2 text-slate-400"></i>
-                {{ i18n.t('template.custom') }}
+                {{ t('template.custom') }}
             </h3>
             <p class="mt-1 text-sm text-slate-500">
-                {{ i18n.t('template.custom_desc') }}
+                {{ t('template.custom_desc') }}
             </p>
         </div>
         <div class="border-t border-gray-200">
@@ -62,7 +62,7 @@
                                             {{ template.name }}
                                         </p>
                                         <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                            {{ i18n.t('template.category.' + template.category.lower()) or template.category }}
+                                            {{ t('template.category.' + template.category.lower()) or template.category }}
                                         </span>
                                     </div>
                                     {% if template.description %}
@@ -74,7 +74,7 @@
                                     <div class="mt-1 flex items-center space-x-1">
                                         <i class="fas fa-code text-gray-400 text-xs"></i>
                                         <span class="text-xs text-gray-500">
-                                            {{ template.variables.split(',') | length }} {{ i18n.t('template.variables').lower() }}
+                                            {{ template.variables.split(',') | length }} {{ t('template.variables').lower() }}
                                         </span>
                                     </div>
                                     {% endif %}
@@ -84,7 +84,7 @@
                         <div class="flex items-center space-x-2">
                             <button onclick="useTemplate('{{ template.name }}', '{{ template.content }}')" 
                                     class="text-primary-600 hover:text-primary-900 text-sm font-medium">
-                                {{ i18n.t('template.use') }}
+                                {{ t('template.use') }}
                             </button>
                             <a href="/templates/{{ template.id }}/edit" 
                                class="text-gray-600 hover:text-gray-900 text-sm">
@@ -109,20 +109,20 @@
         <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
             <h3 class="text-lg leading-6 font-medium text-slate-800">
                 <i class="fas fa-layer-group mr-2 text-slate-400"></i>
-                {{ i18n.t('template.custom') }}
+                {{ t('template.custom') }}
             </h3>
             <p class="mt-1 text-sm text-slate-500">
-                {{ i18n.t('template.custom_desc') }}
+                {{ t('template.custom_desc') }}
             </p>
         </div>
         <div class="px-4 py-5 sm:p-6">
             <div class="text-center py-12">
                 <i class="fas fa-layer-group text-4xl text-gray-300 mb-4"></i>
-                <h3 class="text-lg font-medium text-slate-800 mb-2">{{ i18n.t('template.empty') }}</h3>
-                <p class="text-slate-500 mb-6">{{ i18n.t('template.empty_desc') }}</p>
+                <h3 class="text-lg font-medium text-slate-800 mb-2">{{ t('template.empty') }}</h3>
+                <p class="text-slate-500 mb-6">{{ t('template.empty_desc') }}</p>
                 <a href="/templates/new" class="btn-primary">
                     <i class="fas fa-plus mr-2"></i>
-                    {{ i18n.t('template.create') }}
+                    {{ t('template.create') }}
                 </a>
             </div>
         </div>
@@ -139,23 +139,23 @@
                         <i class="fas fa-briefcase text-2xl text-blue-600"></i>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-slate-800">{{ i18n.t('template.category.business') }}</h3>
-                        <p class="text-sm text-slate-500">{{ i18n.t('template.category.business_desc') }}</p>
+                        <h3 class="text-lg font-medium text-slate-800">{{ t('template.category.business') }}</h3>
+                        <p class="text-sm text-slate-500">{{ t('template.category.business_desc') }}</p>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div class="space-y-2">
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-sm font-medium">Email Writing</span>
-                            <button onclick="useBuiltinTemplate('email')" class="text-primary-600 hover:text-primary-500 text-sm">{{ i18n.t('template.use') }}</button>
+                            <button onclick="useBuiltinTemplate('email')" class="text-primary-600 hover:text-primary-500 text-sm">{{ t('template.use') }}</button>
                         </div>
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-sm font-medium">Meeting Summary</span>
-                            <button onclick="useBuiltinTemplate('meeting')" class="text-primary-600 hover:text-primary-500 text-sm">{{ i18n.t('template.use') }}</button>
+                            <button onclick="useBuiltinTemplate('meeting')" class="text-primary-600 hover:text-primary-500 text-sm">{{ t('template.use') }}</button>
                         </div>
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-sm font-medium">Proposal Writing</span>
-                            <button onclick="useBuiltinTemplate('proposal')" class="text-primary-600 hover:text-primary-500 text-sm">{{ i18n.t('template.use') }}</button>
+                            <button onclick="useBuiltinTemplate('proposal')" class="text-primary-600 hover:text-primary-500 text-sm">{{ t('template.use') }}</button>
                         </div>
                     </div>
                 </div>
@@ -170,23 +170,23 @@
                         <i class="fas fa-code text-2xl text-green-600"></i>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-slate-800">{{ i18n.t('template.category.technical') }}</h3>
-                        <p class="text-sm text-slate-500">{{ i18n.t('template.category.technical_desc') }}</p>
+                        <h3 class="text-lg font-medium text-slate-800">{{ t('template.category.technical') }}</h3>
+                        <p class="text-sm text-slate-500">{{ t('template.category.technical_desc') }}</p>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div class="space-y-2">
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-sm font-medium">Code Review</span>
-                            <button onclick="useBuiltinTemplate('code-review')" class="text-primary-600 hover:text-primary-500 text-sm">{{ i18n.t('template.use') }}</button>
+                            <button onclick="useBuiltinTemplate('code-review')" class="text-primary-600 hover:text-primary-500 text-sm">{{ t('template.use') }}</button>
                         </div>
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-sm font-medium">API Documentation</span>
-                            <button onclick="useBuiltinTemplate('api-docs')" class="text-primary-600 hover:text-primary-500 text-sm">{{ i18n.t('template.use') }}</button>
+                            <button onclick="useBuiltinTemplate('api-docs')" class="text-primary-600 hover:text-primary-500 text-sm">{{ t('template.use') }}</button>
                         </div>
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-sm font-medium">Bug Report</span>
-                            <button onclick="useBuiltinTemplate('bug-report')" class="text-primary-600 hover:text-primary-500 text-sm">{{ i18n.t('template.use') }}</button>
+                            <button onclick="useBuiltinTemplate('bug-report')" class="text-primary-600 hover:text-primary-500 text-sm">{{ t('template.use') }}</button>
                         </div>
                     </div>
                 </div>
@@ -201,23 +201,23 @@
                         <i class="fas fa-paint-brush text-2xl text-purple-600"></i>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-slate-800">{{ i18n.t('template.category.creative') }}</h3>
-                        <p class="text-sm text-slate-500">{{ i18n.t('template.category.creative_desc') }}</p>
+                        <h3 class="text-lg font-medium text-slate-800">{{ t('template.category.creative') }}</h3>
+                        <p class="text-sm text-slate-500">{{ t('template.category.creative_desc') }}</p>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div class="space-y-2">
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-sm font-medium">Blog Post</span>
-                            <button onclick="useBuiltinTemplate('blog-post')" class="text-primary-600 hover:text-primary-500 text-sm">{{ i18n.t('template.use') }}</button>
+                            <button onclick="useBuiltinTemplate('blog-post')" class="text-primary-600 hover:text-primary-500 text-sm">{{ t('template.use') }}</button>
                         </div>
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-sm font-medium">Social Media</span>
-                            <button onclick="useBuiltinTemplate('social-media')" class="text-primary-600 hover:text-primary-500 text-sm">{{ i18n.t('template.use') }}</button>
+                            <button onclick="useBuiltinTemplate('social-media')" class="text-primary-600 hover:text-primary-500 text-sm">{{ t('template.use') }}</button>
                         </div>
                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span class="text-sm font-medium">Story Writing</span>
-                            <button onclick="useBuiltinTemplate('story')" class="text-primary-600 hover:text-primary-500 text-sm">{{ i18n.t('template.use') }}</button>
+                            <button onclick="useBuiltinTemplate('story')" class="text-primary-600 hover:text-primary-500 text-sm">{{ t('template.use') }}</button>
                         </div>
                     </div>
                 </div>
@@ -227,7 +227,7 @@
 </div>
 
 <script>
-// {{ i18n.t('template.use') }} a custom template
+// Use a custom template
 function useTemplate(name, content) {
     // Store template data in localStorage
     localStorage.setItem('selected_template', JSON.stringify({
@@ -239,7 +239,7 @@ function useTemplate(name, content) {
     window.location.href = '/prompts/new?from_template=true';
 }
 
-// {{ i18n.t('template.use') }} a built-in template
+// Use a built-in template
 function useBuiltinTemplate(templateType) {
     // Store template type in localStorage
     localStorage.setItem('selected_builtin_template', templateType);
@@ -250,7 +250,7 @@ function useBuiltinTemplate(templateType) {
 
 // Delete a template
 function deleteTemplate(templateId, templateName) {
-    if (confirm("{{ i18n.t('msg.confirm_delete') }}: " + templateName + "?")) {
+    if (confirm("{{ t('msg.confirm_delete') }}: " + templateName + "?")) {
         fetch(`/templates/${templateId}`, {
             method: 'DELETE',
             headers: {
@@ -262,11 +262,11 @@ function deleteTemplate(templateId, templateName) {
                 // Reload the page to show updated list
                 window.location.reload();
             } else {
-                alert("{{ i18n.t('status.error') }}: Failed to delete template");
+                alert("{{ t('status.error') }}: Failed to delete template");
             }
         })
         .catch(error => {
-            alert("{{ i18n.t('status.error') }}: " + error.message);
+            alert("{{ t('status.error') }}: " + error.message);
         });
     }
 }
