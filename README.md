@@ -2372,7 +2372,7 @@ docker-compose up -d
 - `auth_manager.py` - Authentication and user management
 - `token_calculator.py` - Token estimation engine
 - `langwatch_optimizer.py` - Prompt optimization
-- `api_endpoints.py` - REST API implementation
+- `api_endpoints_enhanced.py` - Enhanced REST API implementation
 - `api_token_manager.py` - Secure API token management
 
 ### Database Schema

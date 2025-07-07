@@ -95,7 +95,6 @@ This project now uses a **modern web interface** as the default, built with Fast
 - `prompt_data_manager.py` - Database operations with tenant-aware data access
 - `token_calculator.py` - AI model cost estimation and token calculation
 - `langwatch_optimizer.py` - AI-powered prompt optimization services
-- `api_endpoints.py` - REST API implementation with FastAPI
 - `api_endpoints_enhanced.py` - Enhanced AI services REST API with 14 endpoints
 - `api_token_manager.py` - Secure API token generation and validation
 - `__main__.py` - Package entry point for `python -m promptman` execution
@@ -628,7 +627,7 @@ When working in `src/` directory:
 - **Startup**: Both servers start from single `run.py --with-api` command
 
 #### API Server Details
-- **Location**: API endpoints defined in `api_endpoints.py` and `run.py`
+- **Location**: API endpoints defined in `api_endpoints_enhanced.py` and `run.py`
 - **Base Endpoints**: `/health`, `/info`, `/docs`, `/redoc`, `/`
 - **Documentation**: Auto-generated Swagger UI at `/docs`
 - **Port Calculation**: `api_port = main_port + 1`
@@ -650,7 +649,7 @@ async def your_function():
 ```
 
 #### Additional API Components
-- `api_endpoints.py` - Contains APIManager class with comprehensive endpoints
+- `api_endpoints_enhanced.py` - Contains enhanced API endpoints with comprehensive functionality
 - `api_token_manager.py` - Secure authentication and token management
 - `docs/API_AUTHORIZATION.md` - Complete API authorization guide with examples
 - These components provide full API functionality with enterprise-grade security
