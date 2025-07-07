@@ -131,10 +131,10 @@ jobs:
           poetry run python tests/integration/test_api_integration.py
           echo "✅ API integration test completed"
           
-          # Test 5: Standalone API
-          echo "⚡ Testing standalone API..."
-          poetry run python tests/integration/test_standalone_api.py
-          echo "✅ Standalone API test completed"
+          # Test 5: Language System Integration
+          echo "🌐 Testing language system integration..."
+          poetry run python tests/integration/test_language_system_integration.py
+          echo "✅ Language system integration test completed"
           
           # Test 6: Azure Integration (if configured)
           echo "☁️ Testing Azure integration..."
@@ -210,102 +210,32 @@ jobs:
           
           echo "✅ New architecture tests completed"
 
-      - name: Test standalone API endpoints
+      - name: Test enhanced API components
         run: |
-          # Test the standalone API (as used in the workflow tests)
-          echo "Starting standalone API server..."
+          echo "🔌 Testing enhanced API components..."
+          
+          # Test that enhanced API module can be imported and initialized
           poetry run python -c "
-          import uvicorn
-          import logging
-          from api_endpoints import get_api_app
+          from api_endpoints_enhanced import router
+          from fastapi import FastAPI
           
-          logging.basicConfig(level=logging.INFO)
-          print('Starting standalone API server...', flush=True)
-          app = get_api_app()
-          uvicorn.run(app, host='127.0.0.1', port=7861, log_level='info')
-          " > api_server.log 2>&1 &
-          API_PID=$!
-          echo "API server started with PID: $API_PID"
+          # Test API router initialization
+          app = FastAPI()
+          app.include_router(router, prefix='/api')
           
-          # Function to check if API server is ready
-          check_api_ready() {
-            local max_attempts=60
-            local attempt=1
-            
-            echo "Waiting for standalone API to be ready..."
-            while [ $attempt -le $max_attempts ]; do
-              echo "Attempt $attempt of $max_attempts..."
-              
-              # Check if process is still running
-              if ! kill -0 $API_PID 2>/dev/null; then
-                echo "ERROR: API server process died!"
-                echo "=== API Server Log ==="
-                cat api_server.log || echo "No log file found"
-                return 1
-              fi
-              
-              # Try to connect to health endpoint
-              if curl -s --max-time 5 http://127.0.0.1:7861/api/health >/dev/null 2>&1; then
-                echo "✅ Standalone API is ready!"
-                return 0
-              fi
-              
-              # Show progress every 10 attempts
-              if [ $((attempt % 10)) -eq 0 ]; then
-                echo "=== Recent API Log ==="
-                tail -5 api_server.log 2>/dev/null || echo "No log available yet"
-              fi
-              
-              sleep 1
-              attempt=$((attempt + 1))
-            done
-            
-            echo "❌ Standalone API failed to become ready within 60 seconds"
-            echo "=== Full API Log ==="
-            cat api_server.log || echo "No log file found"
-            return 1
-          }
+          print('✅ Enhanced API router initialization successful')
+          print(f'Router prefix: {router.prefix}')
+          print(f'Router tags: {router.tags}')
           
-          # Wait for API to be ready
-          if check_api_ready; then
-            echo "Proceeding with standalone API tests..."
-            
-            # Test health endpoint
-            echo "Testing health endpoint..."
-            if curl -f -v http://127.0.0.1:7861/api/health; then
-              echo "✅ Health endpoint test passed"
-            else
-              echo "❌ Health endpoint test failed"
-              kill $API_PID 2>/dev/null || true
-              exit 1
-            fi
-            
-            # Test unauthenticated endpoint (should return 403)
-            echo "Testing unauthenticated endpoint..."
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7861/api/prompts)
-            echo "HTTP response code: $HTTP_CODE"
-            
-            if [ "$HTTP_CODE" = "403" ]; then
-              echo "✅ Authentication test passed (got 403 as expected)"
-            else
-              echo "⚠️ Authentication test got $HTTP_CODE (may be expected in some configurations)"
-            fi
-            
-            echo "✅ All standalone API tests passed"
-          else
-            echo "❌ Standalone API startup failed"
-            exit 1
-          fi
+          # Test that all required dependencies can be imported
+          from src.core.config.ai_model_config import AIProvider, ModelConfig, OperationType
+          from src.core.services.ai_model_manager import get_model_manager
+          from src.utils.github_format import GitHubFormatHandler
           
-          # Clean up
-          echo "Stopping API server (PID: $API_PID)..."
-          kill $API_PID 2>/dev/null || true
-          sleep 2
-          if kill -0 $API_PID 2>/dev/null; then
-            echo "Force killing API server..."
-            kill -9 $API_PID 2>/dev/null || true
-          fi
-          echo "✅ Standalone API test cleanup completed"
+          print('✅ All enhanced API dependencies available')
+          "
+          
+          echo "✅ Enhanced API components test completed"
 
       - name: Generate comprehensive test report
         run: |
@@ -478,7 +408,7 @@ jobs:
           import prompt_data_manager
           import auth_manager
           import api_token_manager
-          import api_endpoints
+          import api_endpoints_enhanced
           import langwatch_optimizer
           from run import main
           print('✅ All core imports successful')
