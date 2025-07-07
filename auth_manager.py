@@ -386,7 +386,8 @@ class AuthManager:
         """Create a new user
 
         Returns:
-            Tuple[bool, str]: (success, user_id) if successful, (False, error_message) if failed
+            Tuple[bool, str]: (success, success_message) if successful, 
+                             (False, error_message) if failed
         """
         conn = self.get_conn()
         cursor = conn.cursor()
@@ -482,7 +483,7 @@ class AuthManager:
 
             conn.commit()
             conn.close()
-            return True, user_id
+            return True, f"User '{email}' created successfully"
 
         except Exception as e:
             conn.close()
@@ -1142,6 +1143,63 @@ class AuthManager:
         conn.close()
         return user
 
+    def get_user_by_email(
+        self, email: str, tenant_id: Optional[str] = None
+    ) -> Optional[User]:
+        """Get user by email with optional tenant filtering"""
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        if tenant_id:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    "SELECT * FROM users WHERE email = %s AND tenant_id = %s",
+                    (email, tenant_id),
+                )
+            else:
+                cursor.execute(
+                    "SELECT * FROM users WHERE email = ? AND tenant_id = ?",
+                    (email, tenant_id),
+                )
+        else:
+            if self.db_type == "postgres":
+                cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            else:
+                cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return None
+
+        if self.db_type == "postgres":
+            user = User(
+                id=row["id"],
+                tenant_id=row["tenant_id"],
+                email=row["email"],
+                first_name=row["first_name"],
+                last_name=row["last_name"],
+                role=row["role"],
+                is_active=bool(row["is_active"]),
+                created_at=row["created_at"],
+                last_login=row["last_login"],
+            )
+        else:
+            user = User(
+                id=row[0],
+                tenant_id=row[1],
+                email=row[2],
+                first_name=row[4],
+                last_name=row[5],
+                role=row[6],
+                is_active=bool(row[7]),
+                created_at=row[9],
+                last_login=row[10],
+            )
+
+        conn.close()
+        return user
+
     def handle_entra_id_callback(
         self, code: str, state: str
     ) -> Tuple[bool, Optional[User], str]:
@@ -1538,6 +1596,36 @@ class AuthManager:
                 WHERE id = ?
             """,
                 (tenant_id,),
+            )
+
+            row = cursor.fetchone()
+            if row:
+                tenant = Tenant(
+                    id=row[0],
+                    name=row[1],
+                    subdomain=row[2],
+                    max_users=row[3],
+                    is_active=bool(row[4]),
+                    created_at=datetime.fromisoformat(row[5]) if row[5] else None,
+                )
+                # Add user count as extra attribute
+                tenant.user_count = row[6]
+                return tenant
+
+            return None
+
+    def get_tenant_by_subdomain(self, subdomain: str) -> Optional[Tenant]:
+        """Get tenant by subdomain"""
+        with self.get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT id, name, subdomain, max_users, is_active, created_at,
+                       (SELECT COUNT(*) FROM users WHERE tenant_id = t.id AND is_active = 1) as user_count
+                FROM tenants t
+                WHERE subdomain = ?
+            """,
+                (subdomain,),
             )
 
             row = cursor.fetchone()

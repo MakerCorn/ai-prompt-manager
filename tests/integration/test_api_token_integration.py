@@ -75,10 +75,17 @@ class TestAPITokenIntegration(unittest.TestCase):
             "last_name": "User",
             "role": "user",
         }
-        success, self.user_id = self.auth_manager.create_user(
+        success, user_message = self.auth_manager.create_user(
             tenant_id=self.tenant_id, **self.user_data
         )
         self.assertTrue(success, "Test user creation should succeed")
+        
+        # Get the user_id after creation
+        user = self.auth_manager.get_user_by_email(
+            self.user_data["email"], self.tenant_id
+        )
+        self.assertIsNotNone(user, "Created user should be retrievable")
+        self.user_id = user.id
 
     def tearDown(self):
         """Clean up test environment"""
@@ -143,7 +150,7 @@ class TestAPITokenIntegration(unittest.TestCase):
         tenant2_id = result[0]
         conn.close()
 
-        success, user2_id = self.auth_manager.create_user(
+        success, user2_message = self.auth_manager.create_user(
             tenant_id=tenant2_id,
             email="test2@example.com",
             password="password123",
@@ -152,6 +159,11 @@ class TestAPITokenIntegration(unittest.TestCase):
             role="user",
         )
         self.assertTrue(success)
+        
+        # Get user2_id after creation
+        user2 = self.auth_manager.get_user_by_email("test2@example.com", tenant2_id)
+        self.assertIsNotNone(user2)
+        user2_id = user2.id
 
         # Create tokens for both users
         success1, _, token1 = self.token_manager.create_api_token(
@@ -397,7 +409,7 @@ class TestAPIEndpointsIntegration(unittest.TestCase):
         self.tenant_id = result[0]
         conn.close()
 
-        success, self.user_id = self.auth_manager.create_user(
+        success, user_message = self.auth_manager.create_user(
             tenant_id=self.tenant_id,
             email="test@example.com",
             password="password123",
@@ -406,6 +418,11 @@ class TestAPIEndpointsIntegration(unittest.TestCase):
             role="user",
         )
         self.assertTrue(success)
+        
+        # Get the user_id after creation
+        user = self.auth_manager.get_user_by_email("test@example.com", self.tenant_id)
+        self.assertIsNotNone(user)
+        self.user_id = user.id
 
         # Create API token for testing
         success, _, self.test_token = self.token_manager.create_api_token(
@@ -549,7 +566,7 @@ class TestPerformanceAndScalability(unittest.TestCase):
         self.tenant_id = result[0]
         conn.close()
 
-        success, self.user_id = self.auth_manager.create_user(
+        success, user_message = self.auth_manager.create_user(
             tenant_id=self.tenant_id,
             email="perf@example.com",
             password="password123",
@@ -558,6 +575,11 @@ class TestPerformanceAndScalability(unittest.TestCase):
             role="user",
         )
         self.assertTrue(success)
+        
+        # Get the user_id after creation
+        user = self.auth_manager.get_user_by_email("perf@example.com", self.tenant_id)
+        self.assertIsNotNone(user)
+        self.user_id = user.id
 
     def tearDown(self):
         """Clean up test environment"""

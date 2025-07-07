@@ -54,11 +54,17 @@ class WebUIE2ETest(unittest.TestCase):
         cls.auth_manager = AuthManager(cls.test_db)
 
         # Create test tenant and admin user
-        cls.tenant_id = cls.auth_manager.create_tenant("Test Tenant", "test")
-        if not cls.tenant_id:
-            raise Exception("Failed to create test tenant")
+        success, tenant_message = cls.auth_manager.create_tenant("Test Tenant", "test")
+        if not success:
+            raise Exception(f"Failed to create test tenant: {tenant_message}")
+            
+        # Get the tenant_id after creation
+        tenant = cls.auth_manager.get_tenant_by_subdomain("test")
+        if not tenant:
+            raise Exception("Failed to retrieve created tenant")
+        cls.tenant_id = tenant.id
 
-        success, cls.user_id = cls.auth_manager.create_user(
+        success, user_message = cls.auth_manager.create_user(
             tenant_id=cls.tenant_id,
             email="admin@test.com",
             password="testpass123",
@@ -67,7 +73,13 @@ class WebUIE2ETest(unittest.TestCase):
             role="admin",
         )
         if not success:
-            raise Exception(f"Failed to create test admin user: {cls.user_id}")
+            raise Exception(f"Failed to create test admin user: {user_message}")
+            
+        # Get the user_id after creation
+        user = cls.auth_manager.get_user_by_email("admin@test.com", cls.tenant_id)
+        if not user:
+            raise Exception("Failed to retrieve created admin user")
+        cls.user_id = user.id
 
         # Create API token for testing
         from api_token_manager import APITokenManager
