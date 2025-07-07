@@ -10,10 +10,11 @@ This software is licensed for non-commercial use only.
 See LICENSE file for details.
 """
 
+import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
@@ -21,6 +22,10 @@ from pydantic import BaseModel
 from api_token_manager import APITokenManager
 from auth_manager import AuthManager
 from prompt_data_manager import PromptDataManager
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 # Pydantic models for API
@@ -59,8 +64,30 @@ class UserInfo(BaseModel):
     role: str
 
 
+class APITokenInfo(BaseModel):
+    id: str
+    name: str
+    token_prefix: str
+    expires_at: Optional[str] = None
+    last_used: Optional[str] = None
+    created_at: str
+    is_active: bool
+
+
+class CreateTokenRequest(BaseModel):
+    name: str
+    expires_days: Optional[int] = None
+
+
+class CreateTokenResponse(BaseModel):
+    success: bool
+    message: str
+    token: Optional[str] = None
+    token_info: Optional[APITokenInfo] = None
+
+
 # API Security
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 class APIManager:
@@ -122,32 +149,71 @@ class APIManager:
         return router
 
     async def get_current_user(
-        self, credentials: HTTPAuthorizationCredentials = Depends(security)
+        self,
+        request: Request,
+        credentials: HTTPAuthorizationCredentials = Depends(security),
     ) -> UserInfo:
-        """Validate API token and return user info"""
+        """Validate API token and return user info with enhanced security"""
+        if not credentials:
+            logger.warning(
+                f"API access attempt without authorization header from {request.client.host}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing authorization header",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
         token = credentials.credentials
 
-        # Validate token
-        is_valid, user_id, tenant_id = self.token_manager.validate_api_token(token)
+        # Enhanced token validation with logging
+        try:
+            is_valid, user_id, tenant_id = self.token_manager.validate_api_token(token)
 
-        if not is_valid:
-            raise HTTPException(status_code=401, detail="Invalid or expired API token")
+            if not is_valid:
+                logger.warning(f"Invalid API token attempt from {request.client.host}")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid or expired API token",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
 
-        # Get user details
-        users = self.auth_manager.get_tenant_users(str(tenant_id))
-        user = next((u for u in users if u.id == user_id), None)
+            # Get user details
+            users = self.auth_manager.get_tenant_users(str(tenant_id))
+            user = next((u for u in users if u.id == user_id), None)
 
-        if not user:
-            raise HTTPException(status_code=401, detail="User not found")
+            if not user:
+                logger.error(
+                    f"User {user_id} not found for valid token from {request.client.host}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="User not found",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
 
-        return UserInfo(
-            user_id=user.id,
-            tenant_id=user.tenant_id,
-            email=user.email,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            role=user.role,
-        )
+            # Log successful authentication
+            logger.info(
+                f"API access granted to user {user.email} from {request.client.host}"
+            )
+
+            return UserInfo(
+                user_id=user.id,
+                tenant_id=user.tenant_id,
+                email=user.email,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                role=user.role,
+            )
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Token validation error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authentication service temporarily unavailable",
+            )
 
     def get_data_manager(self, user_info: UserInfo) -> PromptDataManager:
         """Get tenant-aware data manager for the user"""
@@ -402,6 +468,175 @@ class APIManager:
                 data={"stats": stats},
             )
 
+        # API Token Management Endpoints
+        @self.app.get("/api/tokens", response_model=APIResponse)
+        async def list_api_tokens(user_info: UserInfo = Depends(self.get_current_user)):
+            """List all API tokens for the current user"""
+            tokens = self.token_manager.get_user_tokens(user_info.user_id)
+
+            token_list = []
+            for token in tokens:
+                token_list.append(
+                    APITokenInfo(
+                        id=token.id,
+                        name=token.name,
+                        token_prefix=token.token_prefix,
+                        expires_at=(
+                            token.expires_at.isoformat() if token.expires_at else None
+                        ),
+                        last_used=(
+                            token.last_used.isoformat() if token.last_used else None
+                        ),
+                        created_at=token.created_at.isoformat(),
+                        is_active=token.is_active,
+                    )
+                )
+
+            return APIResponse(
+                success=True,
+                message="API tokens retrieved successfully",
+                data={
+                    "tokens": [token.model_dump() for token in token_list],
+                    "stats": self.token_manager.get_token_stats(user_info.user_id),
+                },
+            )
+
+        @self.app.post("/api/tokens", response_model=CreateTokenResponse)
+        async def create_api_token(
+            request: CreateTokenRequest,
+            user_info: UserInfo = Depends(self.get_current_user),
+        ):
+            """Create a new API token"""
+            success, message, token = self.token_manager.create_api_token(
+                user_info.user_id,
+                user_info.tenant_id,
+                request.name,
+                request.expires_days,
+            )
+
+            if success and token:
+                # Get the created token info
+                tokens = self.token_manager.get_user_tokens(user_info.user_id)
+                created_token = next(
+                    (t for t in tokens if t.name == request.name), None
+                )
+
+                token_info = None
+                if created_token:
+                    token_info = APITokenInfo(
+                        id=created_token.id,
+                        name=created_token.name,
+                        token_prefix=created_token.token_prefix,
+                        expires_at=(
+                            created_token.expires_at.isoformat()
+                            if created_token.expires_at
+                            else None
+                        ),
+                        last_used=(
+                            created_token.last_used.isoformat()
+                            if created_token.last_used
+                            else None
+                        ),
+                        created_at=created_token.created_at.isoformat(),
+                        is_active=created_token.is_active,
+                    )
+
+                logger.info(
+                    f"API token '{request.name}' created for user {user_info.email}"
+                )
+                return CreateTokenResponse(
+                    success=True, message=message, token=token, token_info=token_info
+                )
+            else:
+                logger.warning(
+                    f"Failed to create API token '{request.name}' for user {user_info.email}: {message}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=message
+                )
+
+        @self.app.delete("/api/tokens/{token_id}", response_model=APIResponse)
+        async def revoke_api_token(
+            token_id: str, user_info: UserInfo = Depends(self.get_current_user)
+        ):
+            """Revoke an API token"""
+            success, message = self.token_manager.revoke_token(
+                user_info.user_id, token_id
+            )
+
+            if success:
+                logger.info(f"API token {token_id} revoked for user {user_info.email}")
+                return APIResponse(
+                    success=True, message=message, data={"revoked_token_id": token_id}
+                )
+            else:
+                logger.warning(
+                    f"Failed to revoke API token {token_id} for user {user_info.email}: {message}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail=message
+                )
+
+        @self.app.delete("/api/tokens", response_model=APIResponse)
+        async def revoke_all_api_tokens(
+            user_info: UserInfo = Depends(self.get_current_user),
+        ):
+            """Revoke all API tokens for the current user"""
+            success, message = self.token_manager.revoke_all_tokens(user_info.user_id)
+
+            if success:
+                logger.info(f"All API tokens revoked for user {user_info.email}")
+                return APIResponse(
+                    success=True, message=message, data={"user_id": user_info.user_id}
+                )
+            else:
+                logger.error(
+                    f"Failed to revoke all API tokens for user {user_info.email}: {message}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message
+                )
+
+        @self.app.get("/api/tokens/stats", response_model=APIResponse)
+        async def get_token_stats(user_info: UserInfo = Depends(self.get_current_user)):
+            """Get API token statistics for the current user"""
+            stats = self.token_manager.get_token_stats(user_info.user_id)
+
+            return APIResponse(
+                success=True,
+                message="Token statistics retrieved successfully",
+                data={"stats": stats},
+            )
+
+        @self.app.get("/api/tokens/{token_id}", response_model=APIResponse)
+        async def get_api_token(
+            token_id: str, user_info: UserInfo = Depends(self.get_current_user)
+        ):
+            """Get details of a specific API token"""
+            tokens = self.token_manager.get_user_tokens(user_info.user_id)
+            token = next((t for t in tokens if t.id == token_id), None)
+
+            if not token:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="API token not found"
+                )
+
+            token_info = APITokenInfo(
+                id=token.id,
+                name=token.name,
+                token_prefix=token.token_prefix,
+                expires_at=token.expires_at.isoformat() if token.expires_at else None,
+                last_used=token.last_used.isoformat() if token.last_used else None,
+                created_at=token.created_at.isoformat(),
+                is_active=token.is_active,
+            )
+
+            return APIResponse(
+                success=True,
+                message="API token retrieved successfully",
+                data={"token": token_info.model_dump()},
+            )
+
 
 # Global API manager instance
 api_manager = None
@@ -410,6 +645,6 @@ api_manager = None
 def get_api_app(db_path: str = "prompts.db") -> FastAPI:
     """Get or create the FastAPI application"""
     global api_manager
-    if api_manager is None:
+    if api_manager is None or api_manager.db_path != db_path:
         api_manager = APIManager(db_path)
     return api_manager.app

@@ -531,5 +531,23 @@
     "service_degraded": "Service beeinträchtigt",
     "failover_failed": "Failover fehlgeschlagen",
     "recovery_failed": "Wiederherstellung fehlgeschlagen"
+  },
+  "theme": {
+    "toggle": "Design wechseln",
+    "light": "Helles Design",
+    "dark": "Dunkles Design",
+    "system": "System-Design",
+    "switch_to_light": "Zum hellen Design wechseln",
+    "switch_to_dark": "Zum dunklen Design wechseln",
+    "switch_to_system": "Zum System-Design wechseln",
+    "switched_to_light": "Zu hellem Design gewechselt",
+    "switched_to_dark": "Zu dunklem Design gewechselt",
+    "switched_to_system": "Zu System-Design gewechselt",
+    "preference": "Design-Präferenz",
+    "follows_system": "Folgt System-Präferenz",
+    "always_light": "Immer heller Modus",
+    "always_dark": "Immer dunkler Modus",
+    "description": "Wählen Sie Ihr bevorzugtes Farbschema",
+    "auto_detect": "Automatisch vom System erkennen"
   }
 }

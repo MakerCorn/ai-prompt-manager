@@ -4,9 +4,9 @@ Test script for API integration
 Tests the combined FastAPI web application with API endpoints including language management
 """
 
+import json
 import os
 import time
-import json
 
 import requests
 
@@ -224,12 +224,13 @@ def test_api_endpoints(base_port=None, api_port=None):
 
         # Test 5: Language management endpoints
         print("\n5. Testing language management endpoints...")
-        
+
         # Test language switching
         try:
             switch_data = {"language": "en"}
-            response = requests.post(f"{base_url}/settings/language/switch", 
-                                   json=switch_data, timeout=5)
+            response = requests.post(
+                f"{base_url}/settings/language/switch", json=switch_data, timeout=5
+            )
             if response.status_code in [200, 302]:
                 print("✅ Language switch endpoint accessible")
                 if response.status_code == 200:
@@ -246,18 +247,23 @@ def test_api_endpoints(base_port=None, api_port=None):
         # Test language validation
         try:
             validate_data = {"language_code": "en"}
-            response = requests.post(f"{base_url}/settings/language/validate", 
-                                   json=validate_data, timeout=5)
+            response = requests.post(
+                f"{base_url}/settings/language/validate", json=validate_data, timeout=5
+            )
             if response.status_code == 200:
                 print("✅ Language validation endpoint accessible")
                 try:
                     data = response.json()
-                    validation_data = data.get('data', {})
-                    print(f"   Validation coverage: {validation_data.get('coverage', 'N/A')}%")
+                    validation_data = data.get("data", {})
+                    print(
+                        f"   Validation coverage: {validation_data.get('coverage', 'N/A')}%"
+                    )
                 except:
                     pass
             else:
-                print(f"⚠️ Language validation endpoint returned: {response.status_code}")
+                print(
+                    f"⚠️ Language validation endpoint returned: {response.status_code}"
+                )
         except Exception as e:
             print(f"⚠️ Language validation test error: {e}")
 
@@ -265,22 +271,26 @@ def test_api_endpoints(base_port=None, api_port=None):
         try:
             create_data = {
                 "language_code": "test",
-                "language_name": "Test Language", 
-                "native_name": "Test Native"
+                "language_name": "Test Language",
+                "native_name": "Test Native",
             }
-            response = requests.post(f"{base_url}/settings/language/create", 
-                                   json=create_data, timeout=5)
+            response = requests.post(
+                f"{base_url}/settings/language/create", json=create_data, timeout=5
+            )
             if response.status_code == 200:
                 print("✅ Language creation endpoint accessible")
                 try:
                     data = response.json()
                     print(f"   Creation result: {data.get('success', 'unknown')}")
-                    
+
                     # Clean up test language if created successfully
-                    if data.get('success'):
+                    if data.get("success"):
                         cleanup_data = {"language_code": "test"}
-                        requests.post(f"{base_url}/settings/language/delete", 
-                                    json=cleanup_data, timeout=2)
+                        requests.post(
+                            f"{base_url}/settings/language/delete",
+                            json=cleanup_data,
+                            timeout=2,
+                        )
                 except:
                     pass
             else:
@@ -293,17 +303,18 @@ def test_api_endpoints(base_port=None, api_port=None):
         try:
             # Test if language manager is available
             from language_manager import get_language_manager
+
             manager = get_language_manager()
             available_languages = manager.get_available_languages()
-            
+
             print(f"✅ Language manager integration working")
             print(f"   Available languages: {list(available_languages.keys())}")
             print(f"   Current language: {manager.get_current_language()}")
-            
+
             # Test translation functionality
             test_translation = manager.t("app.title")
             print(f"   Sample translation: {test_translation}")
-            
+
         except Exception as e:
             print(f"⚠️ Language system integration error: {e}")
 

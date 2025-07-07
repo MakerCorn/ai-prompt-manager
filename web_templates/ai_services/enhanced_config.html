@@ -324,112 +324,456 @@
     </div>
 </div>
 
-<!-- Add Model Modal -->
-<div id="add-model-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Add New Model</h3>
-                <button onclick="hideAddModelModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
+<!-- Enhanced Add Model Modal -->
+<div id="add-model-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden z-50 modal-backdrop">
+    <div class="flex items-start justify-center min-h-screen p-4 py-8">
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[calc(100vh-4rem)] overflow-hidden modal-content my-auto">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-robot text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-white">Add New AI Model</h3>
+                            <p class="text-blue-100 text-sm">Configure a new AI model for your workspace</p>
+                        </div>
+                    </div>
+                    <button onclick="hideAddModelModal()" class="text-white hover:text-blue-200 transition-colors duration-200 p-2 rounded-lg hover:bg-white hover:bg-opacity-10">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
             </div>
-            
-            <form id="add-model-form" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Model Name</label>
-                        <input type="text" name="name" class="form-input" placeholder="my-custom-model" required>
+
+            <!-- Modal Body -->
+            <div class="p-8 overflow-y-auto flex-1" style="max-height: calc(100vh - 12rem);">
+                <form id="add-model-form" class="space-y-8">
+                    <!-- Step Indicator -->
+                    <div class="flex items-center justify-center space-x-4 mb-8">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">1</div>
+                            <span class="text-sm font-medium text-blue-600">Basic Info</span>
+                        </div>
+                        <div class="w-12 h-0.5 bg-gray-300"></div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">2</div>
+                            <span class="text-sm font-medium text-gray-600">Configuration</span>
+                        </div>
+                        <div class="w-12 h-0.5 bg-gray-300"></div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">3</div>
+                            <span class="text-sm font-medium text-gray-600">Features</span>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Display Name</label>
-                        <input type="text" name="display_name" class="form-input" placeholder="My Custom Model">
+
+                    <!-- Basic Information Section -->
+                    <div class="bg-gray-50 rounded-xl p-6 border-l-4 border-blue-500">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            Basic Information
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                <label class="form-label-enhanced">
+                                    <i class="fas fa-tag text-gray-400 mr-2"></i>
+                                    Model Name *
+                                </label>
+                                <input type="text" name="name" class="form-input-enhanced" placeholder="my-custom-model" required>
+                                <div class="form-help">Unique identifier for this model</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label-enhanced">
+                                    <i class="fas fa-signature text-gray-400 mr-2"></i>
+                                    Display Name
+                                </label>
+                                <input type="text" name="display_name" class="form-input-enhanced" placeholder="My Custom Model">
+                                <div class="form-help">Human-readable name shown in the UI</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <label class="form-label-enhanced">
+                                <i class="fas fa-cloud text-gray-400 mr-2"></i>
+                                Provider *
+                            </label>
+                            <select name="provider" class="form-select-enhanced" onchange="updateProviderFields(this.value)" required>
+                                <option value="">Choose an AI provider...</option>
+                                <option value="openai" data-icon="fab fa-openai" data-color="text-green-600">OpenAI</option>
+                                <option value="azure_openai" data-icon="fab fa-microsoft" data-color="text-blue-600">Azure OpenAI</option>
+                                <option value="anthropic" data-icon="fas fa-brain" data-color="text-purple-600">Anthropic (Claude)</option>
+                                <option value="google" data-icon="fab fa-google" data-color="text-red-600">Google (Gemini)</option>
+                                <option value="ollama" data-icon="fas fa-server" data-color="text-gray-600">Ollama (Local)</option>
+                                <option value="lmstudio" data-icon="fas fa-desktop" data-color="text-indigo-600">LM Studio</option>
+                                <option value="llamacpp" data-icon="fas fa-code" data-color="text-orange-600">Llama.cpp</option>
+                                <option value="mistral" data-icon="fas fa-wind" data-color="text-yellow-600">Mistral</option>
+                                <option value="perplexity" data-icon="fas fa-search" data-color="text-cyan-600">Perplexity</option>
+                                <option value="replicate" data-icon="fas fa-clone" data-color="text-pink-600">Replicate</option>
+                            </select>
+                            <div class="form-help">Select the AI service provider</div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div class="form-group">
+                                <label class="form-label-enhanced">
+                                    <i class="fas fa-id-badge text-gray-400 mr-2"></i>
+                                    Model ID *
+                                </label>
+                                <input type="text" name="model_id" class="form-input-enhanced" placeholder="gpt-4-turbo-preview" required>
+                                <div class="form-help">Provider-specific model identifier</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label-enhanced">
+                                    <i class="fas fa-align-left text-gray-400 mr-2"></i>
+                                    Description
+                                </label>
+                                <textarea name="description" rows="3" class="form-textarea-enhanced" 
+                                          placeholder="Brief description of the model's capabilities..."></textarea>
+                                <div class="form-help">Optional description for documentation</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Provider-specific Configuration -->
+                    <div id="provider-specific-fields" class="transition-all duration-300"></div>
+
+                    <!-- Model Configuration Section -->
+                    <div class="bg-green-50 rounded-xl p-6 border-l-4 border-green-500">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-cogs text-green-500 mr-2"></i>
+                            Model Configuration
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="form-group">
+                                <label class="form-label-enhanced">
+                                    <i class="fas fa-expand-arrows-alt text-gray-400 mr-2"></i>
+                                    Max Context Length
+                                </label>
+                                <input type="number" name="max_context_length" class="form-input-enhanced" placeholder="4096">
+                                <div class="form-help">Maximum tokens the model can process</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label-enhanced">
+                                    <i class="fas fa-thermometer-half text-gray-400 mr-2"></i>
+                                    Temperature
+                                </label>
+                                <input type="number" name="temperature" class="form-input-enhanced" step="0.1" min="0" max="2" value="0.7">
+                                <div class="form-help">Creativity level (0.0 - 2.0)</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label-enhanced">
+                                    <i class="fas fa-layer-group text-gray-400 mr-2"></i>
+                                    Top P
+                                </label>
+                                <input type="number" name="top_p" class="form-input-enhanced" step="0.1" min="0" max="1" value="1.0">
+                                <div class="form-help">Nucleus sampling (0.0 - 1.0)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cost Configuration Section -->
+                    <div class="bg-yellow-50 rounded-xl p-6 border-l-4 border-yellow-500">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-dollar-sign text-yellow-500 mr-2"></i>
+                            Cost Configuration
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                <label class="form-label-enhanced">
+                                    <i class="fas fa-arrow-down text-gray-400 mr-2"></i>
+                                    Input Cost (per 1k tokens)
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                                    <input type="number" name="cost_input" class="form-input-enhanced pl-8" step="0.0001" min="0" placeholder="0.0010">
+                                </div>
+                                <div class="form-help">Cost for processing input tokens</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label-enhanced">
+                                    <i class="fas fa-arrow-up text-gray-400 mr-2"></i>
+                                    Output Cost (per 1k tokens)
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                                    <input type="number" name="cost_output" class="form-input-enhanced pl-8" step="0.0001" min="0" placeholder="0.0020">
+                                </div>
+                                <div class="form-help">Cost for generating output tokens</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Features Section -->
+                    <div class="bg-purple-50 rounded-xl p-6 border-l-4 border-purple-500">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-magic text-purple-500 mr-2"></i>
+                            Model Features
+                        </h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <label class="feature-checkbox">
+                                <input type="checkbox" name="supports_streaming" class="sr-only">
+                                <div class="feature-card">
+                                    <i class="fas fa-stream text-2xl mb-2"></i>
+                                    <span class="text-sm font-medium">Streaming</span>
+                                    <div class="text-xs text-gray-500">Real-time responses</div>
+                                </div>
+                            </label>
+                            <label class="feature-checkbox">
+                                <input type="checkbox" name="supports_function_calling" class="sr-only">
+                                <div class="feature-card">
+                                    <i class="fas fa-function text-2xl mb-2"></i>
+                                    <span class="text-sm font-medium">Functions</span>
+                                    <div class="text-xs text-gray-500">Tool calling</div>
+                                </div>
+                            </label>
+                            <label class="feature-checkbox">
+                                <input type="checkbox" name="supports_vision" class="sr-only">
+                                <div class="feature-card">
+                                    <i class="fas fa-eye text-2xl mb-2"></i>
+                                    <span class="text-sm font-medium">Vision</span>
+                                    <div class="text-xs text-gray-500">Image analysis</div>
+                                </div>
+                            </label>
+                            <label class="feature-checkbox">
+                                <input type="checkbox" name="supports_json_mode" class="sr-only">
+                                <div class="feature-card">
+                                    <i class="fas fa-code text-2xl mb-2"></i>
+                                    <span class="text-sm font-medium">JSON Mode</span>
+                                    <div class="text-xs text-gray-500">Structured output</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 px-8 py-4 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        All fields marked with * are required
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="hideAddModelModal()" class="btn-secondary-enhanced">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                        <button type="button" onclick="testNewModel()" class="btn-warning-enhanced">
+                            <i class="fas fa-vial mr-2"></i>Test Connection
+                        </button>
+                        <button type="submit" form="add-model-form" class="btn-primary-enhanced">
+                            <i class="fas fa-plus mr-2"></i>Add Model
+                        </button>
                     </div>
                 </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Provider</label>
-                    <select name="provider" class="form-select" onchange="updateProviderFields(this.value)" required>
-                        <option value="">Select Provider...</option>
-                        <option value="openai">OpenAI</option>
-                        <option value="azure_openai">Azure OpenAI</option>
-                        <option value="anthropic">Anthropic</option>
-                        <option value="google">Google</option>
-                        <option value="ollama">Ollama</option>
-                        <option value="lmstudio">LM Studio</option>
-                        <option value="llamacpp">Llama.cpp</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Model ID</label>
-                    <input type="text" name="model_id" class="form-input" placeholder="gpt-4-turbo-preview" required>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea name="description" rows="2" class="form-textarea" 
-                              placeholder="Brief description of the model..."></textarea>
-                </div>
-                
-                <!-- Provider-specific fields will be added here -->
-                <div id="provider-specific-fields"></div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Max Context Length</label>
-                        <input type="number" name="max_context_length" class="form-input" placeholder="4096">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Temperature</label>
-                        <input type="number" name="temperature" class="form-input" step="0.1" min="0" max="2" value="0.7">
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Cost per 1k Input Tokens ($)</label>
-                        <input type="number" name="cost_input" class="form-input" step="0.0001" min="0" placeholder="0.0010">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Cost per 1k Output Tokens ($)</label>
-                        <input type="number" name="cost_output" class="form-input" step="0.0001" min="0" placeholder="0.0020">
-                    </div>
-                </div>
-                
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700">Features</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="flex items-center">
-                            <input type="checkbox" name="supports_streaming" class="form-checkbox">
-                            <span class="ml-2 text-sm">Streaming</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" name="supports_function_calling" class="form-checkbox">
-                            <span class="ml-2 text-sm">Function Calling</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" name="supports_vision" class="form-checkbox">
-                            <span class="ml-2 text-sm">Vision</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" name="supports_json_mode" class="form-checkbox">
-                            <span class="ml-2 text-sm">JSON Mode</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" onclick="hideAddModelModal()" class="btn-secondary">Cancel</button>
-                    <button type="button" onclick="testNewModel()" class="btn-secondary">Test Model</button>
-                    <button type="submit" class="btn-primary">Add Model</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
+/* Enhanced Modal Styles */
+.modal-backdrop {
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    animation: slideInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Enhanced Form Styles */
+.form-group {
+    position: relative;
+}
+
+.form-label-enhanced {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.form-input-enhanced {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease-in-out;
+    background-color: #FAFAFA;
+}
+
+.form-input-enhanced:focus {
+    outline: none;
+    border-color: #3B82F6;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea-enhanced {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease-in-out;
+    background-color: #FAFAFA;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-textarea-enhanced:focus {
+    outline: none;
+    border-color: #3B82F6;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-select-enhanced {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease-in-out;
+    background-color: #FAFAFA;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    appearance: none;
+}
+
+.form-select-enhanced:focus {
+    outline: none;
+    border-color: #3B82F6;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-help {
+    font-size: 0.75rem;
+    color: #6B7280;
+    margin-top: 0.375rem;
+    font-style: italic;
+}
+
+/* Enhanced Button Styles */
+.btn-primary-enhanced {
+    background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary-enhanced:hover {
+    background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.4);
+}
+
+.btn-secondary-enhanced {
+    background-color: #F9FAFB;
+    color: #374151;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    border: 2px solid #E5E7EB;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-secondary-enhanced:hover {
+    background-color: #F3F4F6;
+    border-color: #D1D5DB;
+    transform: translateY(-1px);
+}
+
+.btn-warning-enhanced {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.25);
+}
+
+.btn-warning-enhanced:hover {
+    background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px -5px rgba(245, 158, 11, 0.4);
+}
+
+/* Feature Card Styles */
+.feature-checkbox {
+    cursor: pointer;
+}
+
+.feature-card {
+    padding: 1rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 0.75rem;
+    text-align: center;
+    transition: all 0.2s ease-in-out;
+    background-color: #FAFAFA;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.feature-checkbox:hover .feature-card {
+    border-color: #3B82F6;
+    background-color: #EFF6FF;
+    transform: translateY(-2px);
+}
+
+.feature-checkbox input:checked + .feature-card {
+    border-color: #3B82F6;
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+    color: #1D4ED8;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.25);
+}
+
+.feature-checkbox input:checked + .feature-card i {
+    color: #3B82F6;
+}
+
 /* Tab Styles */
 .tab-active {
     border-color: #3B82F6;
@@ -562,72 +906,283 @@ function loadModels() {
 }
 
 function showAddModelModal() {
-    document.getElementById('add-model-modal').classList.remove('hidden');
+    const modal = document.getElementById('add-model-modal');
+    modal.classList.remove('hidden');
+    
+    // Enhanced entrance animation
+    setTimeout(() => {
+        modal.querySelector('.modal-content').style.animation = 'slideInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    }, 10);
+    
+    // Focus first input for better UX
+    setTimeout(() => {
+        const firstInput = modal.querySelector('input[name="name"]');
+        if (firstInput) firstInput.focus();
+    }, 200);
 }
 
 function hideAddModelModal() {
-    document.getElementById('add-model-modal').classList.add('hidden');
-    document.getElementById('add-model-form').reset();
+    const modal = document.getElementById('add-model-modal');
+    const modalContent = modal.querySelector('.modal-content');
+    
+    // Enhanced exit animation
+    modalContent.style.animation = 'slideOutDown 0.3s ease-in-out';
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.getElementById('add-model-form').reset();
+        document.getElementById('provider-specific-fields').innerHTML = '';
+        modalContent.style.animation = '';
+    }, 300);
 }
+
+// Add exit animation keyframes
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideOutDown {
+        from {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+    }
+`;
+document.head.appendChild(style);
 
 function updateProviderFields(provider) {
     const container = document.getElementById('provider-specific-fields');
     let html = '';
     
+    if (!provider) {
+        container.innerHTML = '';
+        return;
+    }
+    
     switch(provider) {
         case 'openai':
             html = `
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">API Key</label>
-                    <input type="password" name="api_key" class="form-input" placeholder="sk-...">
+                <div class="bg-green-50 rounded-xl p-6 border-l-4 border-green-500">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fab fa-openai text-green-500 mr-2"></i>
+                        OpenAI Configuration
+                    </h4>
+                    <div class="form-group">
+                        <label class="form-label-enhanced">
+                            <i class="fas fa-key text-gray-400 mr-2"></i>
+                            API Key *
+                        </label>
+                        <input type="password" name="api_key" class="form-input-enhanced" placeholder="sk-...">
+                        <div class="form-help">Your OpenAI API key from platform.openai.com</div>
+                    </div>
                 </div>
             `;
             break;
         case 'azure_openai':
             html = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">API Key</label>
-                        <input type="password" name="api_key" class="form-input">
+                <div class="bg-blue-50 rounded-xl p-6 border-l-4 border-blue-500">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fab fa-microsoft text-blue-500 mr-2"></i>
+                        Azure OpenAI Configuration
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label class="form-label-enhanced">
+                                <i class="fas fa-key text-gray-400 mr-2"></i>
+                                API Key *
+                            </label>
+                            <input type="password" name="api_key" class="form-input-enhanced">
+                            <div class="form-help">Azure OpenAI resource key</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-enhanced">
+                                <i class="fas fa-globe text-gray-400 mr-2"></i>
+                                Endpoint *
+                            </label>
+                            <input type="url" name="api_endpoint" class="form-input-enhanced" placeholder="https://your-resource.openai.azure.com/">
+                            <div class="form-help">Azure OpenAI resource endpoint</div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Endpoint</label>
-                        <input type="url" name="api_endpoint" class="form-input" placeholder="https://your-resource.openai.azure.com/">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Deployment Name</label>
-                        <input type="text" name="deployment_name" class="form-input">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">API Version</label>
-                        <input type="text" name="api_version" class="form-input" value="2024-02-15-preview">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <div class="form-group">
+                            <label class="form-label-enhanced">
+                                <i class="fas fa-rocket text-gray-400 mr-2"></i>
+                                Deployment Name *
+                            </label>
+                            <input type="text" name="deployment_name" class="form-input-enhanced">
+                            <div class="form-help">Model deployment name in Azure</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-enhanced">
+                                <i class="fas fa-code-branch text-gray-400 mr-2"></i>
+                                API Version
+                            </label>
+                            <input type="text" name="api_version" class="form-input-enhanced" value="2024-02-15-preview">
+                            <div class="form-help">Azure OpenAI API version</div>
+                        </div>
                     </div>
                 </div>
             `;
             break;
         case 'anthropic':
             html = `
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">API Key</label>
-                    <input type="password" name="api_key" class="form-input" placeholder="sk-ant-...">
+                <div class="bg-purple-50 rounded-xl p-6 border-l-4 border-purple-500">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-brain text-purple-500 mr-2"></i>
+                        Anthropic Configuration
+                    </h4>
+                    <div class="form-group">
+                        <label class="form-label-enhanced">
+                            <i class="fas fa-key text-gray-400 mr-2"></i>
+                            API Key *
+                        </label>
+                        <input type="password" name="api_key" class="form-input-enhanced" placeholder="sk-ant-...">
+                        <div class="form-help">Your Anthropic API key from console.anthropic.com</div>
+                    </div>
+                </div>
+            `;
+            break;
+        case 'google':
+            html = `
+                <div class="bg-red-50 rounded-xl p-6 border-l-4 border-red-500">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fab fa-google text-red-500 mr-2"></i>
+                        Google AI Configuration
+                    </h4>
+                    <div class="form-group">
+                        <label class="form-label-enhanced">
+                            <i class="fas fa-key text-gray-400 mr-2"></i>
+                            API Key *
+                        </label>
+                        <input type="password" name="api_key" class="form-input-enhanced">
+                        <div class="form-help">Google AI Studio API key from aistudio.google.com</div>
+                    </div>
+                </div>
+            `;
+            break;
+        case 'mistral':
+            html = `
+                <div class="bg-yellow-50 rounded-xl p-6 border-l-4 border-yellow-500">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-wind text-yellow-500 mr-2"></i>
+                        Mistral AI Configuration
+                    </h4>
+                    <div class="form-group">
+                        <label class="form-label-enhanced">
+                            <i class="fas fa-key text-gray-400 mr-2"></i>
+                            API Key *
+                        </label>
+                        <input type="password" name="api_key" class="form-input-enhanced">
+                        <div class="form-help">Mistral AI API key from console.mistral.ai</div>
+                    </div>
+                </div>
+            `;
+            break;
+        case 'perplexity':
+            html = `
+                <div class="bg-cyan-50 rounded-xl p-6 border-l-4 border-cyan-500">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-search text-cyan-500 mr-2"></i>
+                        Perplexity AI Configuration
+                    </h4>
+                    <div class="form-group">
+                        <label class="form-label-enhanced">
+                            <i class="fas fa-key text-gray-400 mr-2"></i>
+                            API Key *
+                        </label>
+                        <input type="password" name="api_key" class="form-input-enhanced" placeholder="pplx-...">
+                        <div class="form-help">Perplexity API key with web search capabilities</div>
+                    </div>
+                </div>
+            `;
+            break;
+        case 'replicate':
+            html = `
+                <div class="bg-pink-50 rounded-xl p-6 border-l-4 border-pink-500">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-clone text-pink-500 mr-2"></i>
+                        Replicate Configuration
+                    </h4>
+                    <div class="form-group">
+                        <label class="form-label-enhanced">
+                            <i class="fas fa-key text-gray-400 mr-2"></i>
+                            API Token *
+                        </label>
+                        <input type="password" name="api_key" class="form-input-enhanced" placeholder="r8_...">
+                        <div class="form-help">Replicate API token from replicate.com</div>
+                    </div>
                 </div>
             `;
             break;
         case 'ollama':
         case 'lmstudio':
         case 'llamacpp':
+            const localConfig = {
+                'ollama': {
+                    color: 'gray',
+                    icon: 'fas fa-server',
+                    title: 'Ollama Configuration',
+                    placeholder: 'http://localhost:11434/api/generate',
+                    help: 'Local Ollama server endpoint'
+                },
+                'lmstudio': {
+                    color: 'indigo',
+                    icon: 'fas fa-desktop',
+                    title: 'LM Studio Configuration',
+                    placeholder: 'http://localhost:1234/v1/chat/completions',
+                    help: 'LM Studio local server endpoint'
+                },
+                'llamacpp': {
+                    color: 'orange',
+                    icon: 'fas fa-code',
+                    title: 'Llama.cpp Configuration',
+                    placeholder: 'http://localhost:8080/completion',
+                    help: 'Llama.cpp server endpoint'
+                }
+            };
+            const config = localConfig[provider];
             html = `
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">API Endpoint</label>
-                    <input type="url" name="api_endpoint" class="form-input" placeholder="http://localhost:11434/api/generate">
+                <div class="bg-${config.color}-50 rounded-xl p-6 border-l-4 border-${config.color}-500">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="${config.icon} text-${config.color}-500 mr-2"></i>
+                        ${config.title}
+                    </h4>
+                    <div class="form-group">
+                        <label class="form-label-enhanced">
+                            <i class="fas fa-globe text-gray-400 mr-2"></i>
+                            API Endpoint *
+                        </label>
+                        <input type="url" name="api_endpoint" class="form-input-enhanced" placeholder="${config.placeholder}">
+                        <div class="form-help">${config.help}</div>
+                    </div>
+                    <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-blue-500 mt-1 mr-2"></i>
+                            <div class="text-sm text-blue-700">
+                                <strong>Local Model:</strong> This provider runs models locally on your machine. 
+                                No API key required, but make sure the service is running and accessible.
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
             break;
     }
     
     container.innerHTML = html;
+    
+    // Add fade-in animation to the new content
+    if (html) {
+        container.style.opacity = '0';
+        container.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            container.style.transition = 'all 0.3s ease-out';
+            container.style.opacity = '1';
+            container.style.transform = 'translateY(0)';
+        }, 50);
+    }
 }
 
 async function testNewModel() {

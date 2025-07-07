@@ -24,6 +24,9 @@ class AIProvider(Enum):
     HUGGINGFACE = "huggingface"
     COHERE = "cohere"
     TOGETHER = "together"
+    MISTRAL = "mistral"
+    PERPLEXITY = "perplexity"
+    REPLICATE = "replicate"
 
 
 class OperationType(Enum):
@@ -399,6 +402,44 @@ def get_default_models() -> List[ModelConfig]:
             cost_per_1k_output_tokens=0.0015,
             supports_streaming=True,
             supports_vision=True,
+        ),
+        # Mistral Models
+        ModelConfig(
+            name="mistral-large",
+            provider=AIProvider.MISTRAL,
+            model_id="mistral-large-latest",
+            display_name="Mistral Large",
+            description="Mistral's most capable model",
+            max_context_length=32768,
+            cost_per_1k_input_tokens=0.008,
+            cost_per_1k_output_tokens=0.024,
+            supports_streaming=True,
+            supports_function_calling=True,
+            supports_json_mode=True,
+        ),
+        ModelConfig(
+            name="mistral-medium",
+            provider=AIProvider.MISTRAL,
+            model_id="mistral-medium",
+            display_name="Mistral Medium",
+            description="Balanced performance and cost",
+            max_context_length=32768,
+            cost_per_1k_input_tokens=0.0027,
+            cost_per_1k_output_tokens=0.0081,
+            supports_streaming=True,
+            supports_function_calling=True,
+        ),
+        # Perplexity Models
+        ModelConfig(
+            name="perplexity-sonar",
+            provider=AIProvider.PERPLEXITY,
+            model_id="llama-3.1-sonar-large-128k-online",
+            display_name="Perplexity Sonar Large",
+            description="Online model with web search capabilities",
+            max_context_length=131072,
+            cost_per_1k_input_tokens=0.001,
+            cost_per_1k_output_tokens=0.001,
+            supports_streaming=True,
         ),
         # Local Models (Templates)
         ModelConfig(

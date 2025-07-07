@@ -1,15 +1,17 @@
 {% extends "layouts/base.html" %}
 
 {% block main_content %}
+<!-- Enhanced Page Header -->
+{% set breadcrumbs = [
+    {"name": i18n.t('nav.home'), "url": "/", "icon": "fas fa-home"},
+    {"name": i18n.t('nav.settings'), "icon": "fas fa-cog"}
+] %}
+{% set header_title = i18n.t('nav.settings') %}
+{% set header_subtitle = i18n.t('settings.general') %}
+{% set header_icon = "fas fa-cog" %}
+{% include "components/page_header.html" %}
+
 <div class="space-y-6">
-    <!-- Header -->
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">
-            <i class="fas fa-cog text-primary-500 mr-2"></i>
-            {{ i18n.t('nav.settings') }}
-        </h1>
-        <p class="text-gray-600">{{ i18n.t('nav.settings') }}</p>
-    </div>
 
     <!-- Settings Navigation -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -22,7 +24,7 @@
                     </div>
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900">{{ i18n.t('settings.profile') }}</h3>
-                        <p class="text-sm text-gray-500">{{ i18n.t('settings.profile_desc') }}</p>
+                        <p class="text-sm text-gray-500">{{ i18n.t('settings.profile') }}</p>
                     </div>
                 </div>
             </div>
@@ -37,7 +39,7 @@
                     </div>
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900">{{ i18n.t('settings.api_tokens') }}</h3>
-                        <p class="text-sm text-gray-500">{{ i18n.t('settings.api_tokens_desc') }}</p>
+                        <p class="text-sm text-gray-500">{{ i18n.t('tokens.title') }}</p>
                     </div>
                 </div>
             </div>
@@ -51,8 +53,8 @@
                         <i class="fas fa-robot text-2xl text-purple-600"></i>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">{{ t('services.title') }}</h3>
-                        <p class="text-sm text-gray-500">Configure AI models and services</p>
+                        <h3 class="text-lg font-medium text-gray-900">{{ i18n.t('nav.services') }}</h3>
+                        <p class="text-sm text-gray-500">{{ i18n.t('nav.services') }}</p>
                     </div>
                 </div>
             </div>
@@ -66,13 +68,13 @@
                         <i class="fas fa-language text-2xl text-orange-600"></i>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-medium text-gray-900">{{ t('settings.languages') }}</h3>
+                        <h3 class="text-lg font-medium text-gray-900">{{ i18n.t('settings.languages') }}</h3>
                         <p class="text-sm text-gray-500">Manage interface languages and translations</p>
                         <div class="mt-2 flex items-center text-xs text-gray-400">
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                {{ available_languages|length }} {{ t('settings.languages') }}
+                                {{ available_languages|length }} {{ i18n.t('settings.languages') }}
                             </span>
-                            <span class="ml-2">{{ t('settings.current_language') }}: {{ available_languages[current_language]['native_name'] }}</span>
+                            <span class="ml-2">{{ i18n.t('settings.current_language') }}: {{ available_languages[current_language]['native_name'] }}</span>
                         </div>
                     </div>
                 </div>
@@ -88,7 +90,7 @@
                     </div>
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900">{{ i18n.t('settings.security') }}</h3>
-                        <p class="text-sm text-gray-500">{{ i18n.t('settings.security_desc') }}</p>
+                        <p class="text-sm text-gray-500">{{ i18n.t('settings.security') }}</p>
                     </div>
                 </div>
             </div>
@@ -103,7 +105,7 @@
                     </div>
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900">{{ i18n.t('settings.preferences') }}</h3>
-                        <p class="text-sm text-gray-500">{{ i18n.t('settings.preferences_desc') }}</p>
+                        <p class="text-sm text-gray-500">{{ i18n.t('settings.preferences') }}</p>
                     </div>
                 </div>
             </div>
@@ -118,7 +120,7 @@
                     </div>
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900">{{ i18n.t('settings.export_import') }}</h3>
-                        <p class="text-sm text-gray-500">{{ i18n.t('settings.export_import_desc') }}</p>
+                        <p class="text-sm text-gray-500">{{ i18n.t('settings.import_export') }}</p>
                     </div>
                 </div>
             </div>

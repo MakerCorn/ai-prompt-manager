@@ -531,5 +531,23 @@
     "service_degraded": "服务降级",
     "failover_failed": "故障转移失败",
     "recovery_failed": "恢复失败"
+  },
+  "theme": {
+    "toggle": "切换主题",
+    "light": "浅色主题",
+    "dark": "深色主题",
+    "system": "系统主题",
+    "switch_to_light": "切换到浅色主题",
+    "switch_to_dark": "切换到深色主题",
+    "switch_to_system": "切换到系统主题",
+    "switched_to_light": "已切换到浅色主题",
+    "switched_to_dark": "已切换到深色主题",
+    "switched_to_system": "已切换到系统主题",
+    "preference": "主题偏好",
+    "follows_system": "跟随系统偏好",
+    "always_light": "始终浅色模式",
+    "always_dark": "始终深色模式",
+    "description": "选择您偏好的配色方案",
+    "auto_detect": "从系统自动检测"
   }
 }

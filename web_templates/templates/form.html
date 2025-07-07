@@ -1,31 +1,26 @@
 {% extends "layouts/base.html" %}
 
 {% block main_content %}
+<!-- Enhanced Page Header -->
+{% set breadcrumbs = [
+    {"name": i18n.t('template.list'), "url": "/templates", "icon": "fas fa-layer-group"},
+    {"name": i18n.t('template.create') if action == 'create' else i18n.t('template.edit'), "icon": "fas fa-" + ('plus' if action == 'create' else 'edit')}
+] %}
+{% set header_title = i18n.t('template.create') if action == 'create' else i18n.t('template.edit') %}
+{% set header_subtitle = i18n.t('template.create_desc') if action == 'create' else i18n.t('template.edit_desc') %}
+{% set header_icon = "fas fa-" + ('plus' if action == 'create' else 'edit') %}
+{% set header_actions = [
+    {
+        "type": "button",
+        "text": i18n.t('action.cancel'),
+        "url": "/templates",
+        "icon": "fas fa-arrow-left",
+        "style": "secondary"
+    }
+] %}
+{% include "components/page_header.html" %}
+
 <div class="max-w-4xl mx-auto space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">
-                <i class="fas fa-layer-group text-primary-500 mr-2"></i>
-                {% if action == 'create' %}
-                    {{ i18n.t('template.create') }}
-                {% else %}
-                    {{ i18n.t('template.edit') }}
-                {% endif %}
-            </h1>
-            <p class="text-gray-600">
-                {% if action == 'create' %}
-                    {{ i18n.t('template.create') }} {{ i18n.t('template.name').lower() }}
-                {% else %}
-                    {{ i18n.t('template.edit') }} {{ i18n.t('template.name').lower() }}
-                {% endif %}
-            </p>
-        </div>
-        <a href="/templates" class="btn-secondary">
-            <i class="fas fa-arrow-left mr-2"></i>
-            {{ i18n.t('action.cancel') }}
-        </a>
-    </div>
 
     <!-- Error Alert -->
     {% if error %}

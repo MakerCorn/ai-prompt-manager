@@ -88,5 +88,23 @@
     "total": "Total",
     "current": "Actual",
     "switch": "Cambiar"
+  },
+  "theme": {
+    "toggle": "Alternar tema",
+    "light": "Tema claro",
+    "dark": "Tema oscuro",
+    "system": "Tema del sistema",
+    "switch_to_light": "Cambiar a tema claro",
+    "switch_to_dark": "Cambiar a tema oscuro",
+    "switch_to_system": "Cambiar a tema del sistema",
+    "switched_to_light": "Cambiado a tema claro",
+    "switched_to_dark": "Cambiado a tema oscuro",
+    "switched_to_system": "Cambiado a tema del sistema",
+    "preference": "Preferencia de tema",
+    "follows_system": "Sigue la preferencia del sistema",
+    "always_light": "Siempre modo claro",
+    "always_dark": "Siempre modo oscuro",
+    "description": "Elige tu esquema de colores preferido",
+    "auto_detect": "Detectar automáticamente del sistema"
   }
 }

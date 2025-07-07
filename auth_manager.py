@@ -383,7 +383,11 @@ class AuthManager:
         role: str = "user",
         sso_id: Optional[str] = None,
     ) -> Tuple[bool, str]:
-        """Create a new user"""
+        """Create a new user
+
+        Returns:
+            Tuple[bool, str]: (success, user_id) if successful, (False, error_message) if failed
+        """
         conn = self.get_conn()
         cursor = conn.cursor()
 
@@ -478,7 +482,7 @@ class AuthManager:
 
             conn.commit()
             conn.close()
-            return True, f"User '{email}' created successfully"
+            return True, user_id
 
         except Exception as e:
             conn.close()

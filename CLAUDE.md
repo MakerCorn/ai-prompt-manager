@@ -174,6 +174,122 @@ src/
 - **Visual Design**: Consistent color scheme and typography
 - **Accessibility**: Proper focus management and screen reader support
 - **Mobile Optimization**: Touch-friendly interface elements
+- **Dark/Light Theme System**: Comprehensive theming with system preference detection
+
+## Theme System Architecture
+
+### Comprehensive Dark/Light Mode Support
+The application features a complete theme system that supports light mode, dark mode, and automatic system preference detection with smooth transitions and full accessibility support.
+
+**Theme System Components:**
+- `web_templates/static/css/theme.css` - Complete theme implementation with CSS variables
+- `web_templates/layouts/base.html` - Theme toggle UI and JavaScript functionality
+- Theme translations in all 9 supported languages (`languages/*.json`)
+- Comprehensive test coverage (unit, integration, and E2E tests)
+
+### Theme Features
+```css
+/* CSS Variables for Light/Dark Theme */
+:root {
+    color-scheme: light;
+    --surface-primary: #ffffff;
+    --surface-secondary: #f8fafc;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --border-light: #e2e8f0;
+    --transition-theme: 0.2s ease-in-out;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-primary: #0f172a;
+    --surface-secondary: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --border-light: #334155;
+}
+```
+
+**Theme System Capabilities:**
+- **Three-State Toggle**: Light → Dark → System → Light cycling
+- **System Integration**: Automatic detection of OS dark/light preference via `prefers-color-scheme`
+- **Persistent Storage**: Theme preference saved in localStorage across sessions
+- **Smooth Transitions**: CSS transitions for seamless theme switching (0.2s ease-in-out)
+- **Responsive Design**: Mobile-optimized theme toggle with proper touch targets
+- **Accessibility**: Full keyboard navigation, ARIA labels, and screen reader support
+- **Performance**: CSS variables for instant theme switching without class manipulation
+- **Cross-Browser**: Modern CSS with fallbacks for older browsers
+
+### Theme Toggle Functionality
+```javascript
+// Theme cycling logic with system preference detection
+function toggleTheme() {
+    const currentStored = getStoredTheme();
+    let nextTheme;
+    switch (currentStored) {
+        case 'light': nextTheme = 'dark'; break;
+        case 'dark': nextTheme = 'system'; break;
+        case 'system': default: nextTheme = 'light'; break;
+    }
+    applyTheme(nextTheme);
+}
+
+// System preference detection with real-time updates
+function getSystemTheme() {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+```
+
+### Multi-Language Theme Support
+All theme-related UI elements are fully internationalized across 9 languages:
+- **English (en)**: "Toggle theme", "Light theme", "Dark theme", "System theme"
+- **Spanish (es)**: "Alternar tema", "Tema claro", "Tema oscuro", "Tema del sistema"
+- **German (de)**: "Thema wechseln", "Helles Thema", "Dunkles Thema", "System-Thema"
+- **And 6 more languages** with complete theme translations
+
+### Theme Testing Coverage
+```bash
+# Theme System Tests
+poetry run python tests/unit/test_theme_system.py                    # Unit tests
+poetry run python tests/integration/test_theme_system_integration.py # Integration tests
+poetry run python tests/e2e/test_web_ui_e2e.py                     # E2E theme tests
+
+# E2E Theme Test Cases:
+# - Theme toggle functionality and cycling
+# - Theme persistence across page reloads
+# - System preference detection and switching
+# - Visual verification of light/dark colors
+# - Responsive design on mobile/tablet/desktop
+# - Accessibility (keyboard navigation, ARIA)
+# - Performance (smooth transitions, timing)
+```
+
+### Theme Implementation Guidelines
+**For Developers:**
+- Use CSS variables instead of hardcoded colors: `var(--surface-primary)` not `#ffffff`
+- Apply `color-scheme` property for proper browser rendering
+- Test theme switching in all major browsers and screen sizes
+- Ensure proper contrast ratios in both light and dark modes
+- Include theme toggle in navigation with proper accessibility attributes
+
+**Theme CSS Structure:**
+```css
+/* Base theme variables (light mode) */
+:root { /* light theme variables */ }
+
+/* Dark mode override */
+:root[data-theme="dark"] { /* dark theme variables */ }
+
+/* System preference fallback */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) { /* dark theme as system fallback */ }
+}
+
+/* Responsive theme toggle */
+@media (max-width: 768px) {
+    .theme-toggle { /* mobile-optimized styles */ }
+}
+```
 
 ## Enhanced AI Services Configuration
 
@@ -497,10 +613,11 @@ When working in `src/` directory:
 - **Startup**: Both servers start from single `run.py --with-api` command
 
 #### API Server Details
-- **Location**: API endpoints defined in `run.py` (lines 266-289)
+- **Location**: API endpoints defined in `api_endpoints.py` and `run.py`
 - **Base Endpoints**: `/health`, `/info`, `/docs`, `/redoc`, `/`
 - **Documentation**: Auto-generated Swagger UI at `/docs`
 - **Port Calculation**: `api_port = main_port + 1`
+- **Authorization**: Bearer token authentication required for all endpoints except `/health`
 
 #### Development Workflow
 1. **Start with API**: `poetry run python run.py --with-api --port 7860`
@@ -518,9 +635,19 @@ async def your_function():
 ```
 
 #### Additional API Components
-- `api_endpoints.py` - Contains APIManager class for advanced features
-- `api_token_manager.py` - Authentication and token management
-- These can be integrated into the dual-server setup as needed
+- `api_endpoints.py` - Contains APIManager class with comprehensive endpoints
+- `api_token_manager.py` - Secure authentication and token management
+- `docs/API_AUTHORIZATION.md` - Complete API authorization guide with examples
+- These components provide full API functionality with enterprise-grade security
+
+#### API Authorization Features
+- **Secure Token Generation**: Cryptographically secure tokens with `apm_` prefix
+- **Bearer Authentication**: Industry-standard authorization via HTTP headers
+- **Token Management**: Complete CRUD operations for API tokens
+- **Expiration Support**: Configurable token expiration for enhanced security
+- **Usage Tracking**: Last-used timestamps and comprehensive statistics
+- **Tenant Isolation**: Multi-tenant security with complete data separation
+- **Comprehensive Logging**: Security events and authentication attempts logged
 
 ## Package Distribution
 

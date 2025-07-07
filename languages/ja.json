@@ -531,5 +531,23 @@
     "service_degraded": "サービスが劣化しています",
     "failover_failed": "フェイルオーバーに失敗しました",
     "recovery_failed": "復旧に失敗しました"
+  },
+  "theme": {
+    "toggle": "テーマを切り替え",
+    "light": "ライトテーマ",
+    "dark": "ダークテーマ",
+    "system": "システムテーマ",
+    "switch_to_light": "ライトテーマに切り替え",
+    "switch_to_dark": "ダークテーマに切り替え",
+    "switch_to_system": "システムテーマに切り替え",
+    "switched_to_light": "ライトテーマに切り替えました",
+    "switched_to_dark": "ダークテーマに切り替えました",
+    "switched_to_system": "システムテーマに切り替えました",
+    "preference": "テーマの設定",
+    "follows_system": "システム設定に従う",
+    "always_light": "常にライトモード",
+    "always_dark": "常にダークモード",
+    "description": "お好みの配色を選択してください",
+    "auto_detect": "システムから自動検出"
   }
 }

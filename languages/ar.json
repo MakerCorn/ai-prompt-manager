@@ -531,5 +531,23 @@
     "service_degraded": "الخدمة متدهورة",
     "failover_failed": "فشل التبديل",
     "recovery_failed": "فشل الاستعادة"
+  },
+  "theme": {
+    "toggle": "تبديل المظهر",
+    "light": "المظهر الفاتح",
+    "dark": "المظهر الداكن",
+    "system": "مظهر النظام",
+    "switch_to_light": "التبديل إلى المظهر الفاتح",
+    "switch_to_dark": "التبديل إلى المظهر الداكن",
+    "switch_to_system": "التبديل إلى مظهر النظام",
+    "switched_to_light": "تم التبديل إلى المظهر الفاتح",
+    "switched_to_dark": "تم التبديل إلى المظهر الداكن",
+    "switched_to_system": "تم التبديل إلى مظهر النظام",
+    "preference": "تفضيل المظهر",
+    "follows_system": "يتبع تفضيل النظام",
+    "always_light": "دائماً وضع فاتح",
+    "always_dark": "دائماً وضع داكن",
+    "description": "اختر نظام الألوان المفضل لديك",
+    "auto_detect": "كشف تلقائي من النظام"
   }
 }

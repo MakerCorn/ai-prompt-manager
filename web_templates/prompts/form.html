@@ -1,38 +1,18 @@
 {% extends "layouts/base.html" %}
 
 {% block main_content %}
+<!-- Enhanced Page Header -->
+{% set breadcrumbs = [
+    {"name": i18n.t('nav.prompts'), "url": "/prompts", "icon": "fas fa-file-text"},
+    {"name": i18n.t('prompt.create') if action == 'create' else i18n.t('prompt.edit'), "icon": "fas fa-" + ('plus' if action == 'create' else 'edit')}
+] %}
+{% set header_title = i18n.t('prompt.create_new') if action == 'create' else i18n.t('prompt.edit') %}
+{% set header_subtitle = i18n.t('prompt.create_desc') if action == 'create' else i18n.t('prompt.edit_desc') %}
+{% set header_icon = "fas fa-" + ('plus' if action == 'create' else 'edit') %}
+{% include "components/page_header.html" %}
+
 <div class="max-w-4xl mx-auto">
     <div class="space-y-6">
-        <!-- Header -->
-        <div>
-            <nav class="flex" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                    <li class="inline-flex items-center">
-                        <a href="/prompts" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary-600">
-                            <i class="fas fa-file-text mr-2"></i>
-                            {{ i18n.t('nav.prompts') }}
-                        </a>
-                    </li>
-                    <li>
-                        <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-gray-400 mr-2"></i>
-                            <span class="text-sm font-medium text-gray-500">
-                                {{ i18n.t('prompt.create') if action == 'create' else i18n.t('prompt.edit') }}
-                            </span>
-                        </div>
-                    </li>
-                </ol>
-            </nav>
-            <div class="mt-4">
-                <h1 class="text-2xl font-bold text-gray-900">
-                    <i class="fas fa-{{ 'plus' if action == 'create' else 'edit' }} text-primary-500 mr-2"></i>
-                    {{ i18n.t('prompt.create_new') if action == 'create' else i18n.t('prompt.edit') }}
-                </h1>
-                <p class="text-gray-600">
-                    {{ i18n.t('prompt.create_desc') if action == 'create' else i18n.t('prompt.edit_desc') }}
-                </p>
-            </div>
-        </div>
 
         <!-- Form -->
         <div class="bg-white shadow rounded-lg">

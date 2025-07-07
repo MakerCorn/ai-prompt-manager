@@ -1,127 +1,124 @@
 {% extends "layouts/base.html" %}
 
 {% block main_content %}
-<div class="space-y-6">
-    <!-- Welcome section -->
-    <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center">
-                        <i class="fas fa-robot text-primary-600 text-xl"></i>
-                    </div>
+<div class="space-y-8">
+    <!-- Enhanced Welcome section -->
+    <div class="card">
+        <div class="card-header">
+            <div class="flex items-center space-x-4">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                    <i class="fas fa-robot text-white text-2xl"></i>
                 </div>
-                <div class="ml-4">
-                    <h1 class="text-2xl font-bold text-gray-900">
+                <div class="flex-1">
+                    <h1 class="text-3xl font-bold text-gray-900">
                         {% if user %}
                             {{ i18n.t('dashboard.welcome_back', name=user.first_name) }}
                         {% else %}
                             {{ i18n.t('dashboard.welcome') }}
                         {% endif %}
                     </h1>
-                    <p class="text-gray-600">
+                    <p class="text-lg mt-2 text-secondary">
                         {{ i18n.t('dashboard.subtitle') }}
                     </p>
                 </div>
+                <div class="hidden lg:block">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">{{ prompts|length }}</div>
+                            <div class="text-sm text-tertiary">Total Prompts</div>
+                        </div>
+                        <div class="w-px h-12 bg-gray-200"></div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">✓</div>
+                            <div class="text-sm text-tertiary">Ready to Go</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Quick actions -->
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-plus-circle text-2xl text-green-600"></i>
+    <!-- Enhanced Quick actions -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <!-- Create New Prompt -->
+        <a href="/prompts/new" class="group block">
+            <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-green-200 hover:shadow-lg">
+                <div class="card-body text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                        <i class="fas fa-plus-circle text-white text-2xl"></i>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">
-                                {{ i18n.t('dashboard.create_new') }}
-                            </dt>
-                            <dd class="text-lg font-medium text-gray-900">
-                                <a href="/prompts/new" class="text-green-600 hover:text-green-800">
-                                    {{ i18n.t('dashboard.new_prompt') }}
-                                </a>
-                            </dd>
-                        </dl>
+                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ i18n.t('prompt.create_new') }}</h3>
+                    <p class="text-sm text-secondary">{{ i18n.t('prompt.create_desc') }}</p>
+                    <div class="mt-4">
+                        <span class="btn btn-success btn-sm">
+                            <i class="fas fa-arrow-right mr-2"></i>{{ i18n.t('dashboard.get_started') }}
+                        </span>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-file-text text-2xl text-blue-600"></i>
+        <!-- Browse Library -->
+        <a href="/prompts" class="group block">
+            <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-blue-200 hover:shadow-lg">
+                <div class="card-body text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center">
+                        <i class="fas fa-file-text text-white text-2xl"></i>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">
-                                {{ i18n.t('stats.total_prompts') }}
-                            </dt>
-                            <dd class="text-lg font-medium text-gray-900">
-                                {{ prompts|length + 10 }}
-                            </dd>
-                        </dl>
+                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ i18n.t('nav.library') }}</h3>
+                    <p class="text-sm text-secondary">{{ prompts|length }} saved prompts</p>
+                    <div class="mt-4">
+                        <span class="btn btn-primary btn-sm">
+                            <i class="fas fa-arrow-right mr-2"></i>{{ i18n.t('dashboard.explore') }}
+                        </span>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-layer-group text-2xl text-purple-600"></i>
+        <!-- Templates -->
+        <a href="/templates" class="group block">
+            <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-purple-200 hover:shadow-lg">
+                <div class="card-body text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center">
+                        <i class="fas fa-layer-group text-white text-2xl"></i>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">
-                                {{ i18n.t('stats.templates') }}
-                            </dt>
-                            <dd class="text-lg font-medium text-gray-900">
-                                <a href="/templates" class="text-purple-600 hover:text-purple-800">
-                                    {{ i18n.t('dashboard.browse') }}
-                                </a>
-                            </dd>
-                        </dl>
+                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ i18n.t('template.list') }}</h3>
+                    <p class="text-sm text-secondary">{{ i18n.t('template.list_desc') }}</p>
+                    <div class="mt-4">
+                        <span class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-right mr-2"></i>{{ i18n.t('dashboard.browse') }}
+                        </span>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-cog text-2xl text-gray-600"></i>
+        <!-- Settings -->
+        <a href="/settings" class="group block">
+            <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-gray-200 hover:shadow-lg">
+                <div class="card-body text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center">
+                        <i class="fas fa-cog text-white text-2xl"></i>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">
-                                {{ i18n.t('nav.settings') }}
-                            </dt>
-                            <dd class="text-lg font-medium text-gray-900">
-                                <a href="/settings" class="text-gray-600 hover:text-gray-800">
-                                    {{ i18n.t('dashboard.configure') }}
-                                </a>
-                            </dd>
-                        </dl>
+                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ i18n.t('nav.settings') }}</h3>
+                    <p class="text-sm text-secondary">{{ i18n.t('settings.customize_desc') }}</p>
+                    <div class="mt-4">
+                        <span class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-right mr-2"></i>{{ i18n.t('dashboard.configure') }}
+                        </span>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Recent prompts -->
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+    <div class="card">
+        <div class="card-header">
             <div class="flex items-center justify-between">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                    <i class="fas fa-clock mr-2 text-gray-400"></i>
+                <h3 class="text-lg leading-6 font-medium text-primary">
+                    <i class="fas fa-clock mr-2 text-tertiary"></i>
                     {{ i18n.t('dashboard.recent_prompts') }}
                 </h3>
                 <a href="/prompts" class="text-sm font-medium text-primary-600 hover:text-primary-500">
@@ -129,35 +126,35 @@
                 </a>
             </div>
         </div>
-        <div class="px-4 py-5 sm:p-6">
+        <div class="card-body">
             {% if prompts %}
                 <div class="space-y-4">
                     {% for prompt in prompts %}
-                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        <div class="flex items-center justify-between p-4 border border-light rounded-lg hover:bg-secondary transition-colors duration-200">
                             <div class="flex-1">
                                 <div class="flex items-center">
-                                    <h4 class="text-sm font-medium text-gray-900">
+                                    <h4 class="text-sm font-medium text-primary">
                                         {{ prompt.name }}
                                     </h4>
                                     <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ prompt.category_color|default('blue') }}-100 text-{{ prompt.category_color|default('blue') }}-800">
                                         {{ prompt.category }}
                                     </span>
                                 </div>
-                                <p class="mt-1 text-sm text-gray-500 truncate">
+                                <p class="mt-1 text-sm text-slate-500 truncate">
                                     {{ prompt.description or prompt.content[:100] + '...' if prompt.content|length > 100 else prompt.content }}
                                 </p>
-                                <div class="mt-2 flex items-center text-xs text-gray-400">
+                                <div class="mt-2 flex items-center text-xs text-slate-400">
                                     <i class="fas fa-calendar mr-1"></i>
                                     {{ i18n.t('dashboard.recently_created') }}
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <a href="/prompts/{{ prompt.id }}/edit" 
-                                   class="text-gray-400 hover:text-primary-600 transition-colors duration-200">
+                                   class="text-slate-400 hover:text-primary-600 transition-colors duration-200">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <a href="/prompts/{{ prompt.id }}/execute" 
-                                   class="text-gray-400 hover:text-green-600 transition-colors duration-200">
+                                   class="text-slate-400 hover:text-green-600 transition-colors duration-200">
                                     <i class="fas fa-play"></i>
                                 </a>
                             </div>
@@ -167,8 +164,8 @@
             {% else %}
                 <div class="text-center py-12">
                     <i class="fas fa-file-text text-4xl text-gray-300 mb-4"></i>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">{{ i18n.t('dashboard.no_prompts') }}</h3>
-                    <p class="text-gray-500 mb-6">{{ i18n.t('dashboard.no_prompts_desc') }}</p>
+                    <h3 class="text-lg font-medium text-slate-800 mb-2">{{ i18n.t('dashboard.no_prompts') }}</h3>
+                    <p class="text-slate-500 mb-6">{{ i18n.t('dashboard.no_prompts_desc') }}</p>
                     <a href="/prompts/new" class="btn-primary">
                         <i class="fas fa-plus mr-2"></i>
                         {{ i18n.t('dashboard.create_first') }}
@@ -181,7 +178,7 @@
     <!-- Getting started tips -->
     <div class="bg-gradient-to-r from-primary-50 to-blue-50 shadow rounded-lg">
         <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+            <h3 class="text-lg leading-6 font-medium text-slate-800 mb-4">
                 <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
                 {{ i18n.t('tips.title') }}
             </h3>
@@ -193,8 +190,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-gray-900">{{ i18n.t('tips.create_title') }}</h4>
-                        <p class="text-sm text-gray-600">{{ i18n.t('tips.create_desc') }}</p>
+                        <h4 class="text-sm font-medium text-slate-800">{{ i18n.t('tips.create_title') }}</h4>
+                        <p class="text-sm text-slate-600">{{ i18n.t('tips.create_desc') }}</p>
                     </div>
                 </div>
                 <div class="flex items-start">
@@ -204,8 +201,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-gray-900">{{ i18n.t('tips.templates_title') }}</h4>
-                        <p class="text-sm text-gray-600">{{ i18n.t('tips.templates_desc') }}</p>
+                        <h4 class="text-sm font-medium text-slate-800">{{ i18n.t('tips.templates_title') }}</h4>
+                        <p class="text-sm text-slate-600">{{ i18n.t('tips.templates_desc') }}</p>
                     </div>
                 </div>
                 <div class="flex items-start">
@@ -215,8 +212,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-gray-900">{{ i18n.t('tips.test_title') }}</h4>
-                        <p class="text-sm text-gray-600">{{ i18n.t('tips.test_desc') }}</p>
+                        <h4 class="text-sm font-medium text-slate-800">{{ i18n.t('tips.test_title') }}</h4>
+                        <p class="text-sm text-slate-600">{{ i18n.t('tips.test_desc') }}</p>
                     </div>
                 </div>
                 <div class="flex items-start">
@@ -226,8 +223,8 @@
                         </div>
                     </div>
                     <div class="ml-3">
-                        <h4 class="text-sm font-medium text-gray-900">{{ i18n.t('tips.organize_title') }}</h4>
-                        <p class="text-sm text-gray-600">{{ i18n.t('tips.organize_desc') }}</p>
+                        <h4 class="text-sm font-medium text-slate-800">{{ i18n.t('tips.organize_title') }}</h4>
+                        <p class="text-sm text-slate-600">{{ i18n.t('tips.organize_desc') }}</p>
                     </div>
                 </div>
             </div>

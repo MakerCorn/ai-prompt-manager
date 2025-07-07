@@ -531,5 +531,23 @@
     "service_degraded": "Serviço degradado",
     "failover_failed": "Falha no failover",
     "recovery_failed": "Falha na recuperação"
+  },
+  "theme": {
+    "toggle": "Alternar tema",
+    "light": "Tema claro",
+    "dark": "Tema escuro",
+    "system": "Tema do sistema",
+    "switch_to_light": "Mudar para tema claro",
+    "switch_to_dark": "Mudar para tema escuro",
+    "switch_to_system": "Mudar para tema do sistema",
+    "switched_to_light": "Mudou para tema claro",
+    "switched_to_dark": "Mudou para tema escuro",
+    "switched_to_system": "Mudou para tema do sistema",
+    "preference": "Preferência de tema",
+    "follows_system": "Segue a preferência do sistema",
+    "always_light": "Sempre modo claro",
+    "always_dark": "Sempre modo escuro",
+    "description": "Escolha seu esquema de cores preferido",
+    "auto_detect": "Detectar automaticamente do sistema"
   }
 }

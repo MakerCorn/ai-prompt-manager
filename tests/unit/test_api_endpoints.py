@@ -255,8 +255,8 @@ class TestAPIEndpoints:
         response = test_client.get("/api/user/info")
 
         assert (
-            response.status_code == 403
-        )  # FastAPI security returns 403 for missing auth
+            response.status_code == 401
+        )  # Our implementation returns 401 for missing auth
 
     def test_list_prompts_basic(
         self, test_client, mock_managers, valid_token, sample_user, sample_prompts
@@ -759,7 +759,7 @@ class TestAPIEndpoints:
         response = test_client.get(
             "/api/prompts", headers={"Authorization": "valid-token"}
         )
-        assert response.status_code == 403
+        assert response.status_code == 401
 
     def test_url_encoding_in_names(
         self, test_client, mock_managers, valid_token, sample_user

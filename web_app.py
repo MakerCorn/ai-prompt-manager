@@ -675,22 +675,33 @@ class WebApp:
         # Admin routes (only for admin users)
         @self.app.get("/admin", response_class=HTMLResponse)
         async def admin_dashboard(request: Request):
-            user = await self.get_current_user(request)
-            if not user:
-                return RedirectResponse(url="/login", status_code=302)
+            if self.single_user_mode:
+                # In single-user mode, allow admin access without authentication
+                user = None
+            else:
+                # Multi-tenant mode - require authentication and admin role
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
 
-            # Check if user is admin
-            if user.role != "admin":
-                raise HTTPException(status_code=403, detail="Admin access required")
+                # Check if user is admin
+                if user.role != "admin":
+                    raise HTTPException(status_code=403, detail="Admin access required")
 
             # Get admin statistics
             stats = self.auth_manager.get_admin_stats()
-            users = self.auth_manager.get_all_users_for_tenant(user.tenant_id)
-            tenants = (
-                self.auth_manager.get_all_tenants()
-                if user.role == "admin"
-                else [self.auth_manager.get_tenant_by_id(user.tenant_id)]
-            )
+
+            if self.single_user_mode:
+                # In single-user mode, show simplified stats
+                users = []
+                tenants = []
+            else:
+                users = self.auth_manager.get_all_users_for_tenant(user.tenant_id)
+                tenants = (
+                    self.auth_manager.get_all_tenants()
+                    if user.role == "admin"
+                    else [self.auth_manager.get_tenant_by_id(user.tenant_id)]
+                )
 
             # Mock recent activity (would be from audit log)
             recent_activity = [
@@ -712,19 +723,38 @@ class WebApp:
                 "environment": "Development" if os.getenv("DEBUG") else "Production",
             }
 
-            return self.templates.TemplateResponse(
-                "admin/dashboard.html",
-                self.get_template_context(
-                    request,
-                    user,
-                    stats=stats,
-                    users=users,
-                    tenants=tenants,
-                    recent_activity=recent_activity,
-                    system_info=system_info,
-                    page_title="Admin Dashboard",
-                ),
-            )
+            if self.single_user_mode:
+                return self.templates.TemplateResponse(
+                    "admin/dashboard.html",
+                    {
+                        "request": request,
+                        "user": None,
+                        "stats": stats,
+                        "users": users,
+                        "tenants": tenants,
+                        "recent_activity": recent_activity,
+                        "system_info": system_info,
+                        "page_title": "Admin Dashboard",
+                        "single_user_mode": True,
+                        "i18n": i18n,
+                        "current_language": i18n.current_language,
+                        "available_languages": i18n.get_available_languages(),
+                    },
+                )
+            else:
+                return self.templates.TemplateResponse(
+                    "admin/dashboard.html",
+                    self.get_template_context(
+                        request,
+                        user,
+                        stats=stats,
+                        users=users,
+                        tenants=tenants,
+                        recent_activity=recent_activity,
+                        system_info=system_info,
+                        page_title="Admin Dashboard",
+                    ),
+                )
 
         # Prompt Builder route
         @self.app.get("/prompts/builder", response_class=HTMLResponse)
@@ -1120,8 +1150,19 @@ class WebApp:
         @self.app.get("/settings", response_class=HTMLResponse)
         async def settings_page(request: Request):
             if self.single_user_mode:
-                # In single-user mode, redirect to main page or show simplified settings
-                return RedirectResponse(url="/", status_code=302)
+                # In single-user mode, show simplified settings
+                return self.templates.TemplateResponse(
+                    "settings/index.html",
+                    {
+                        "request": request,
+                        "user": None,
+                        "page_title": "Settings",
+                        "single_user_mode": True,
+                        "i18n": i18n,
+                        "current_language": i18n.current_language,
+                        "available_languages": i18n.get_available_languages(),
+                    },
+                )
 
             user = await self.get_current_user(request)
             if not user:
@@ -1226,8 +1267,10 @@ class WebApp:
                 return RedirectResponse(url="/login", status_code=302)
 
             return self.templates.TemplateResponse(
-                "ai_services/config.html",
-                self.get_template_context(request, user, page_title="AI Services"),
+                "ai_services/enhanced_config.html",
+                self.get_template_context(
+                    request, user, page_title="AI Model Configuration"
+                ),
             )
 
         # Enhanced AI Services Configuration
@@ -1315,42 +1358,46 @@ class WebApp:
                 return RedirectResponse(url="/login", status_code=302)
 
             language_manager = get_language_manager()
-            
+
             # Validate language code
             available_languages = language_manager.get_available_languages()
             if language_code not in available_languages:
                 raise HTTPException(status_code=404, detail="Language not found")
-            
+
             # Set current language for this session
             language_manager.set_language(language_code)
-            
+
             # Get language information
             language_info = available_languages[language_code]
-            
+
             # Get validation information
             validation = language_manager.validate_language_file(language_code)
-            
+
             # Get all translation keys
-            all_keys = sorted(language_manager.get_all_translation_keys('en'))
-            
+            all_keys = sorted(language_manager.get_all_translation_keys("en"))
+
             # Get current and English translations
             english_translations = {}
             current_translations = {}
-            
+
             for key in all_keys:
                 # Get English reference
-                language_manager.set_language('en')
+                language_manager.set_language("en")
                 english_translations[key] = language_manager.t(key)
-                
+
                 # Get current language translation
                 language_manager.set_language(language_code)
-                current_translations[key] = language_manager.t(key) if key not in validation['missing_keys'] else ''
-            
+                current_translations[key] = (
+                    language_manager.t(key)
+                    if key not in validation["missing_keys"]
+                    else ""
+                )
+
             # Check if translation service is available
-            translation_service = getattr(text_translator, 'service_type', None)
-            
+            translation_service = getattr(text_translator, "service_type", None)
+
             context = self.get_template_context(
-                request, 
+                request,
                 user,
                 page_title=f"Language Editor - {language_info['native_name']}",
                 current_language=language_code,
@@ -1360,20 +1407,18 @@ class WebApp:
                 all_keys=all_keys,
                 english_translations=english_translations,
                 current_translations=current_translations,
-                translation_service=translation_service
+                translation_service=translation_service,
             )
-            
+
             return self.templates.TemplateResponse(
-                "settings/language_editor.html",
-                context
+                "settings/language_editor.html", context
             )
 
         @self.app.post("/settings/language/switch")
         async def switch_language(request: Request, language_code: str = Form(...)):
             """Switch current language and redirect to editor"""
             return RedirectResponse(
-                url=f"/settings/language/{language_code}", 
-                status_code=302
+                url=f"/settings/language/{language_code}", status_code=302
             )
 
         @self.app.post("/settings/language/create")
@@ -1385,34 +1430,35 @@ class WebApp:
 
             try:
                 body = await request.json()
-                language_code = body.get('language_code', '').lower().strip()
-                language_name = body.get('language_name', '').strip()
-                native_name = body.get('native_name', '').strip()
-                author = body.get('author', 'AI Prompt Manager').strip()
+                language_code = body.get("language_code", "").lower().strip()
+                language_name = body.get("language_name", "").strip()
+                native_name = body.get("native_name", "").strip()
+                author = body.get("author", "AI Prompt Manager").strip()
 
                 # Validation
                 if not language_code or not language_name or not native_name:
                     return {
-                        "success": False, 
-                        "message": "Language code, name, and native name are required"
+                        "success": False,
+                        "message": "Language code, name, and native name are required",
                     }
 
                 # Validate language code format (2-3 lowercase letters)
                 import re
-                if not re.match(r'^[a-z]{2,3}$', language_code):
+
+                if not re.match(r"^[a-z]{2,3}$", language_code):
                     return {
-                        "success": False, 
-                        "message": "Invalid language code format. Use 2-3 lowercase letters (e.g., 'fr', 'de', 'ja')"
+                        "success": False,
+                        "message": "Invalid language code format. Use 2-3 lowercase letters (e.g., 'fr', 'de', 'ja')",
                     }
 
                 language_manager = get_language_manager()
-                
+
                 # Check if language already exists
                 available_languages = language_manager.get_available_languages()
                 if language_code in available_languages:
                     return {
-                        "success": False, 
-                        "message": f"Language '{language_code}' already exists"
+                        "success": False,
+                        "message": f"Language '{language_code}' already exists",
                     }
 
                 # Create language template
@@ -1423,17 +1469,26 @@ class WebApp:
                 # Save the new language file
                 success = language_manager.save_language_file(
                     language_code,
-                    template_data['translations'],
-                    template_data['metadata']
+                    template_data["translations"],
+                    template_data["metadata"],
                 )
 
                 if success:
-                    return {"success": True, "message": f"Language '{language_name}' created successfully"}
+                    return {
+                        "success": True,
+                        "message": f"Language '{language_name}' created successfully",
+                    }
                 else:
-                    return {"success": False, "message": "Failed to create language file"}
+                    return {
+                        "success": False,
+                        "message": "Failed to create language file",
+                    }
 
             except Exception as e:
-                return {"success": False, "message": f"Error creating language: {str(e)}"}
+                return {
+                    "success": False,
+                    "message": f"Error creating language: {str(e)}",
+                }
 
         @self.app.post("/settings/language/save")
         async def save_language(request: Request):
@@ -1444,46 +1499,56 @@ class WebApp:
 
             try:
                 body = await request.json()
-                language_code = body.get('language_code', '').strip()
-                translations_flat = body.get('translations', {})
+                language_code = body.get("language_code", "").strip()
+                translations_flat = body.get("translations", {})
 
                 if not language_code or not translations_flat:
-                    return {"success": False, "message": "Language code and translations are required"}
+                    return {
+                        "success": False,
+                        "message": "Language code and translations are required",
+                    }
 
                 language_manager = get_language_manager()
-                
+
                 # Convert flat translations back to nested structure
                 translations_nested = {}
                 for key, value in translations_flat.items():
-                    keys = key.split('.')
+                    keys = key.split(".")
                     current_dict = translations_nested
-                    
+
                     for k in keys[:-1]:
                         if k not in current_dict:
                             current_dict[k] = {}
                         current_dict = current_dict[k]
-                    
+
                     current_dict[keys[-1]] = value
 
                 # Get existing metadata
                 available_languages = language_manager.get_available_languages()
                 if language_code in available_languages:
                     metadata = {
-                        'language_code': language_code,
-                        'language_name': available_languages[language_code]['name'],
-                        'native_name': available_languages[language_code]['native_name'],
-                        'version': available_languages[language_code]['version'],
-                        'author': available_languages[language_code]['author'],
-                        'last_updated': datetime.now().strftime('%Y-%m-%d')
+                        "language_code": language_code,
+                        "language_name": available_languages[language_code]["name"],
+                        "native_name": available_languages[language_code][
+                            "native_name"
+                        ],
+                        "version": available_languages[language_code]["version"],
+                        "author": available_languages[language_code]["author"],
+                        "last_updated": datetime.now().strftime("%Y-%m-%d"),
                     }
                 else:
                     metadata = None
 
                 # Save the language file
-                success = language_manager.save_language_file(language_code, translations_nested, metadata)
+                success = language_manager.save_language_file(
+                    language_code, translations_nested, metadata
+                )
 
                 if success:
-                    return {"success": True, "message": "Language file saved successfully"}
+                    return {
+                        "success": True,
+                        "message": "Language file saved successfully",
+                    }
                 else:
                     return {"success": False, "message": "Failed to save language file"}
 
@@ -1499,24 +1564,36 @@ class WebApp:
 
             try:
                 body = await request.json()
-                language_code = body.get('language_code', '').strip()
+                language_code = body.get("language_code", "").strip()
 
                 if not language_code:
                     return {"success": False, "message": "Language code is required"}
 
-                if language_code == 'en':
-                    return {"success": False, "message": "Cannot delete default language"}
+                if language_code == "en":
+                    return {
+                        "success": False,
+                        "message": "Cannot delete default language",
+                    }
 
                 language_manager = get_language_manager()
                 success = language_manager.delete_language_file(language_code)
 
                 if success:
-                    return {"success": True, "message": f"Language '{language_code}' deleted successfully"}
+                    return {
+                        "success": True,
+                        "message": f"Language '{language_code}' deleted successfully",
+                    }
                 else:
-                    return {"success": False, "message": "Failed to delete language file"}
+                    return {
+                        "success": False,
+                        "message": "Failed to delete language file",
+                    }
 
             except Exception as e:
-                return {"success": False, "message": f"Error deleting language: {str(e)}"}
+                return {
+                    "success": False,
+                    "message": f"Error deleting language: {str(e)}",
+                }
 
         @self.app.post("/settings/language/validate")
         async def validate_language(request: Request):
@@ -1527,7 +1604,7 @@ class WebApp:
 
             try:
                 body = await request.json()
-                language_code = body.get('language_code', '').strip()
+                language_code = body.get("language_code", "").strip()
 
                 if not language_code:
                     return {"success": False, "message": "Language code is required"}
@@ -1537,15 +1614,18 @@ class WebApp:
 
                 return {
                     "success": True,
-                    "valid": validation['valid'],
-                    "missing_keys": validation['missing_keys'],
-                    "extra_keys": validation['extra_keys'],
-                    "total_keys": validation['total_keys'],
-                    "coverage": validation['coverage']
+                    "valid": validation["valid"],
+                    "missing_keys": validation["missing_keys"],
+                    "extra_keys": validation["extra_keys"],
+                    "total_keys": validation["total_keys"],
+                    "coverage": validation["coverage"],
                 }
 
             except Exception as e:
-                return {"success": False, "message": f"Error validating language: {str(e)}"}
+                return {
+                    "success": False,
+                    "message": f"Error validating language: {str(e)}",
+                }
 
         @self.app.post("/settings/language/translate-key")
         async def translate_key(request: Request):
@@ -1556,48 +1636,63 @@ class WebApp:
 
             try:
                 body = await request.json()
-                key = body.get('key', '').strip()
-                target_language = body.get('target_language', '').strip()
+                key = body.get("key", "").strip()
+                target_language = body.get("target_language", "").strip()
 
                 if not key or not target_language:
-                    return {"success": False, "message": "Key and target language are required"}
+                    return {
+                        "success": False,
+                        "message": "Key and target language are required",
+                    }
 
                 language_manager = get_language_manager()
-                
+
                 # Get English text for the key
-                language_manager.set_language('en')
+                language_manager.set_language("en")
                 english_text = language_manager.t(key)
-                
+
                 if english_text == key:  # No translation found
-                    return {"success": False, "message": f"English text not found for key: {key}"}
+                    return {
+                        "success": False,
+                        "message": f"English text not found for key: {key}",
+                    }
 
                 # Get target language info
                 available_languages = language_manager.get_available_languages()
                 if target_language not in available_languages:
-                    return {"success": False, "message": f"Target language '{target_language}' not available"}
+                    return {
+                        "success": False,
+                        "message": f"Target language '{target_language}' not available",
+                    }
 
-                target_lang_name = available_languages[target_language]['name']
+                target_lang_name = available_languages[target_language]["name"]
 
                 # Use text translator to translate
                 try:
                     translated_text = text_translator.translate_text(
                         text=english_text,
                         target_language=target_lang_name.lower(),
-                        source_language='english'
+                        source_language="english",
                     )
-                    
+
                     if translated_text and translated_text != english_text:
                         return {
                             "success": True,
                             "translation": translated_text,
                             "original": english_text,
-                            "key": key
+                            "key": key,
                         }
                     else:
-                        return {"success": False, "message": "Translation service did not return a valid translation"}
+                        return {
+                            "success": False,
+                            "message": "Translation service did not return a valid translation",
+                        }
 
                 except Exception as translation_error:
-                    return {"success": False, "message": f"Translation failed: {str(translation_error)}"}
+                    return {
+                        "success": False,
+                        "message": f"Translation failed: {str(translation_error)}",
+                    }
 
             except Exception as e:
                 return {"success": False, "message": f"Error translating key: {str(e)}"}
@@ -1656,7 +1751,7 @@ class WebApp:
     ):
         """Get common template context with i18n support"""
         language_manager = get_language_manager()
-        
+
         context = {
             "request": request,
             "user": user,

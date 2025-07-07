@@ -531,5 +531,23 @@
     "service_degraded": "सेवा ख़राब",
     "failover_failed": "फेलओवर असफल",
     "recovery_failed": "रिकवरी असफल"
+  },
+  "theme": {
+    "toggle": "थीम टॉगल करें",
+    "light": "हल्की थीम",
+    "dark": "डार्क थीम",
+    "system": "सिस्टम थीम",
+    "switch_to_light": "हल्की थीम पर स्विच करें",
+    "switch_to_dark": "डार्क थीम पर स्विच करें",
+    "switch_to_system": "सिस्टम थीम पर स्विच करें",
+    "switched_to_light": "हल्की थीम पर स्विच किया गया",
+    "switched_to_dark": "डार्क थीम पर स्विच किया गया",
+    "switched_to_system": "सिस्टम थीम पर स्विच किया गया",
+    "preference": "थीम प्राथमिकता",
+    "follows_system": "सिस्टम प्राथमिकता का पालन करता है",
+    "always_light": "हमेशा हल्का मोड",
+    "always_dark": "हमेशा डार्क मोड",
+    "description": "अपनी पसंदीदा रंग योजना चुनें",
+    "auto_detect": "सिस्टम से स्वतः पहचान"
   }
 }

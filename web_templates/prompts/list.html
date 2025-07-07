@@ -1,25 +1,41 @@
 {% extends "layouts/base.html" %}
 
 {% block main_content %}
+<!-- Enhanced Page Header -->
+{% set breadcrumbs = [
+    {"name": i18n.t('nav.home'), "url": "/", "icon": "fas fa-home"},
+    {"name": i18n.t('nav.prompts'), "icon": "fas fa-file-text"}
+] %}
+{% set header_title = i18n.t('nav.prompts') %}
+{% set header_subtitle = i18n.t('prompt.manage_desc') %}
+{% set header_icon = "fas fa-file-text" %}
+{% set header_actions = [
+    {
+        "type": "button",
+        "text": i18n.t('prompt.create_new'),
+        "url": "/prompts/new",
+        "icon": "fas fa-plus",
+        "style": "primary"
+    },
+    {
+        "type": "dropdown",
+        "text": i18n.t('common.actions'),
+        "icon": "fas fa-ellipsis-v",
+        "style": "secondary",
+        "items": [
+            {"text": i18n.t('common.import'), "url": "/prompts/import", "icon": "fas fa-upload"},
+            {"text": i18n.t('common.export'), "url": "/prompts/export", "icon": "fas fa-download"},
+            {"text": i18n.t('common.actions'), "url": "/prompts/bulk", "icon": "fas fa-tasks"}
+        ]
+    }
+] %}
+{% include "components/page_header.html" %}
+
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">
-                <i class="fas fa-file-text text-primary-500 mr-2"></i>
-                {{ i18n.t('nav.prompts') }}
-            </h1>
-            <p class="text-gray-600">{{ i18n.t('prompt.manage_desc') }}</p>
-        </div>
-        <a href="/prompts/new" class="btn-primary">
-            <i class="fas fa-plus mr-2"></i>
-            {{ i18n.t('prompt.create_new') }}
-        </a>
-    </div>
 
     <!-- Filters and Search -->
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
+    <div class="card">
+        <div class="card-body">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="md:col-span-2">
                     <label for="search" class="sr-only">{{ i18n.t('prompt.search') }}</label>
