@@ -544,7 +544,8 @@ class I18nManager:
             "auth.organization": "Organización",
             "auth.organization_placeholder": "Subdominio de la organización",
             "auth.organization_help": (
-                "Ingresa el subdominio de tu organización (usa 'localhost' para desarrollo local)"
+                "Ingresa el subdominio de tu organización "
+                "(usa 'localhost' para desarrollo local)"
             ),
             "auth.email_placeholder": "tu@ejemplo.com",
             "auth.password_placeholder": "Ingresa tu contraseña",
@@ -757,7 +758,8 @@ class I18nManager:
             "template.name_placeholder": "Ingresa el nombre de la plantilla",
             "template.description_placeholder": "Describe para qué es esta plantilla",
             "template.content_placeholder": (
-                "Ingresa el contenido de tu plantilla con variables como {nombre_variable}"
+                "Ingresa el contenido de tu plantilla con variables como "
+                "{nombre_variable}"
             ),
             "template.variables_help": (
                 "Las variables encontradas en tu plantilla aparecerán aquí"
@@ -800,7 +802,8 @@ class I18nManager:
             "builder.available_prompts": "Prompts Disponibles",
             "builder.selected_prompts": "Prompts Seleccionados",
             "builder.selected_prompts_desc": (
-                "Arrastra prompts aquí o haz clic para seleccionar. Arrastra para reordenar."
+                "Arrastra prompts aquí o haz clic para seleccionar. "
+                "Arrastra para reordenar."
             ),
             "builder.combination_template": "Plantilla de Combinación",
             "builder.combination_template_desc": (
@@ -914,7 +917,8 @@ class I18nManager:
             "tips.test_desc": "Utilisez nos outils intégrés pour affiner vos prompts",
             "tips.organize_title": "Organiser avec des Catégories",
             "tips.organize_desc": (
-                "Gardez vos prompts organisés en utilisant des catégories et des étiquettes"
+                "Gardez vos prompts organisés en utilisant des catégories et "
+                "des étiquettes"
             ),
             "dashboard.no_prompts": "Aucun prompt encore",
             "dashboard.no_prompts_desc": "Commencez par créer votre premier prompt",
@@ -1044,7 +1048,8 @@ class I18nManager:
             "template.name_placeholder": "Entrez le nom du modèle",
             "template.description_placeholder": "Décrivez à quoi sert ce modèle",
             "template.content_placeholder": (
-                "Entrez le contenu de votre modèle avec des variables comme {nom_variable}"
+                "Entrez le contenu de votre modèle avec des variables comme "
+                "{nom_variable}"
             ),
             "template.variables_help": (
                 "Les variables trouvées dans votre modèle apparaîtront ici"
@@ -1109,7 +1114,8 @@ class I18nManager:
             ),
             "tips.templates_title": "Vorlagen Verwenden",
             "tips.templates_desc": (
-                "Durchsuchen Sie unsere Vorlagenbibliothek mit bewährten Prompt-Patterns"
+                "Durchsuchen Sie unsere Vorlagenbibliothek mit bewährten "
+                "Prompt-Patterns"
             ),
             "tips.test_title": "Testen und Optimieren",
             "tips.test_desc": (
@@ -1678,7 +1684,8 @@ class I18nManager:
             "builder.available_prompts": "Prompts Disponíveis",
             "builder.selected_prompts": "Prompts Selecionados",
             "builder.selected_prompts_desc": (
-                "Arraste prompts aqui ou clique para selecionar. Arraste para reordenar."
+                "Arraste prompts aqui ou clique para selecionar. "
+                "Arraste para reordenar."
             ),
             "builder.combination_template": "Modelo de Combinação",
             "builder.combination_template_desc": (
@@ -1789,7 +1796,8 @@ class I18nManager:
             ),
             "tips.templates_title": "Используйте шаблоны",
             "tips.templates_desc": (
-                "Просмотрите нашу библиотеку шаблонов с проверенными паттернами промптов"
+                "Просмотрите нашу библиотеку шаблонов с проверенными "
+                "паттернами промптов"
             ),
             "tips.test_title": "Тестируйте и оптимизируйте",
             "tips.test_desc": (
@@ -1865,12 +1873,14 @@ class I18nManager:
             # Prompt Builder
             "builder.title": "Конструктор Промптов",
             "builder.subtitle": (
-                "Объедините несколько промптов с помощью перетаскивания для создания сложных рабочих процессов"
+                "Объедините несколько промптов с помощью перетаскивания "
+                "для создания сложных рабочих процессов"
             ),
             "builder.available_prompts": "Доступные Промпты",
             "builder.selected_prompts": "Выбранные Промпты",
             "builder.selected_prompts_desc": (
-                "Перетащите промпты сюда или нажмите для выбора. Перетащите для изменения порядка."
+                "Перетащите промпты сюда или нажмите для выбора. "
+                "Перетащите для изменения порядка."
             ),
             "builder.combination_template": "Шаблон Комбинации",
             "builder.combination_template_desc": (
@@ -1917,7 +1927,8 @@ class I18nManager:
             "builder.add_numbers": "Добавить номера последовательности",
             "builder.custom_template": "Пользовательский Шаблон",
             "builder.custom_template_placeholder": (
-                "Используйте {content}, {name}, {title}, {category}, {tags} как заполнители"
+                "Используйте {content}, {name}, {title}, {category}, {tags} "
+                "как заполнители"
             ),
             "builder.available_placeholders": (
                 "Доступные заполнители: {content}, {name}, {title}, {category}, {tags}"
@@ -2158,14 +2169,16 @@ class I18nManager:
             "stats.templates": "टेम्प्लेट्स",
             "tips.title": "शुरुआत के लिए टिप्स",
             "tips.create_title": "अपना पहला प्रॉम्प्ट बनाएं",
-            "tips.create_desc": ("अपने सबसे सामान्य AI कार्य के लिए प्रॉम्प्ट बनाकर शुरुआत करें"),
+            "tips.create_desc": (
+                "अपने सबसे सामान्य AI कार्य के लिए प्रॉम्प्ट बनाकर " "शुरुआत करें"
+            ),
             "tips.templates_title": "टेम्प्लेट्स का उपयोग करें",
             "tips.templates_desc": (
-                "सिद्ध प्रॉम्प्ट पैटर्न के लिए हमारी टेम्प्लेट लाइब्रेरी ब्राउज़ करें"
+                "सिद्ध प्रॉम्प्ट पैटर्न के लिए हमारी टेम्प्लेट " "लाइब्रेरी ब्राउज़ करें"
             ),
             "tips.test_title": "परीक्षण और अनुकूलन",
             "tips.test_desc": (
-                "अपने प्रॉम्प्ट्स को परिष्कृत करने के लिए हमारे अंतर्निहित उपकरणों का उपयोग करें"
+                "अपने प्रॉम्प्ट्स को परिष्कृत करने के लिए हमारे " "अंतर्निहित उपकरणों का उपयोग करें"
             ),
             "tips.organize_title": "श्रेणियों के साथ व्यवस्थित करें",
             "tips.organize_desc": (
@@ -2231,16 +2244,16 @@ class I18nManager:
             # Translation
             "translate.to_english": "अंग्रेजी में अनुवाद करें",
             "translate.status": "अनुवाद स्थिति",
-            "translate.help": ("बेहतर AI सुधार के लिए अपने प्रॉम्प्ट को अंग्रेजी में अनुवाद करें"),
+            "translate.help": ("बेहतर AI सुधार के लिए अपने प्रॉम्प्ट को अंग्रेजी में " "अनुवाद करें"),
             # Prompt Builder
             "builder.title": "प्रॉम्प्ट बिल्डर",
             "builder.subtitle": (
-                "परिष्कृत वर्कफ़्लो बनाने के लिए ड्रैग-एंड-ड्रॉप का उपयोग करके कई प्रॉम्प्ट्स को जोड़ें"
+                "परिष्कृत वर्कफ़्लो बनाने के लिए ड्रैग-एंड-ड्रॉप का " "उपयोग करके कई प्रॉम्प्ट्स को जोड़ें"
             ),
             "builder.available_prompts": "उपलब्ध प्रॉम्प्ट्स",
             "builder.selected_prompts": "चुने गए प्रॉम्प्ट्स",
             "builder.selected_prompts_desc": (
-                "प्रॉम्प्ट्स को यहाँ खींचें या चुनने के लिए क्लिक करें। पुनः व्यवस्थित करने के लिए खींचें।"
+                "प्रॉम्प्ट्स को यहाँ खींचें या चुनने के लिए क्लिक करें। " "पुनः व्यवस्थित करने के लिए खींचें।"
             ),
             "builder.combination_template": "संयोजन टेम्प्लेट",
             "builder.combination_template_desc": (
@@ -2285,7 +2298,8 @@ class I18nManager:
             "builder.add_numbers": "अनुक्रम संख्याएं जोड़ें",
             "builder.custom_template": "कस्टम टेम्प्लेट",
             "builder.custom_template_placeholder": (
-                "{content}, {name}, {title}, {category}, {tags} को प्लेसहोल्डर के रूप में उपयोग करें"
+                "{content}, {name}, {title}, {category}, {tags} को "
+                "प्लेसहोल्डर के रूप में उपयोग करें"
             ),
             "builder.available_placeholders": (
                 "उपलब्ध प्लेसहोल्डर: {content}, {name}, {title}, {category}, {tags}"

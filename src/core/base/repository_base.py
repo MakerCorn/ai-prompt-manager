@@ -24,9 +24,10 @@ class BaseRepository(ABC, Generic[T]):
     implementing common database operations while allowing for
     entity-specific customization through abstract methods.
 
-    Security Note: SQL queries in this class use f-strings for table and column names,
-    which are controlled class attributes (not user input), combined with parameterized
-    queries for all user data. This is a safe pattern used in ORMs and repository layers.
+    Security Note: SQL queries in this class use f-strings for table and
+    column names, which are controlled class attributes (not user input),
+    combined with parameterized queries for all user data. This is a safe
+    pattern used in ORMs and repository layers.
     """
 
     def __init__(self, db_manager: BaseDatabaseManager, table_name: str):
@@ -89,7 +90,8 @@ class BaseRepository(ABC, Generic[T]):
         """
         try:
             id_field = self._get_id_field()
-            query = f"SELECT * FROM {self.table_name} WHERE {id_field} = ?"  # nosec B608: table_name and id_field are controlled, not user input
+            # nosec B608: table_name and id_field are controlled, not user input
+            query = f"SELECT * FROM {self.table_name} WHERE {id_field} = ?"
 
             if self.db_manager.config.db_type.value == "postgres":
                 query = query.replace("?", "%s")
@@ -128,9 +130,8 @@ class BaseRepository(ABC, Generic[T]):
             List of entity objects
         """
         try:
-            query_parts = [
-                f"SELECT * FROM {self.table_name}"
-            ]  # nosec B608: table_name is controlled, not user input
+            # nosec B608: table_name is controlled, not user input
+            query_parts = [f"SELECT * FROM {self.table_name}"]
             params = []
 
             # Add WHERE clause if filters provided
@@ -211,7 +212,8 @@ class BaseRepository(ABC, Generic[T]):
         """
         try:
             id_field = self._get_id_field()
-            query = f"DELETE FROM {self.table_name} WHERE {id_field} = ?"  # nosec B608: table_name and id_field are controlled, not user input
+            # nosec B608: table_name and id_field are controlled, not user input
+            query = f"DELETE FROM {self.table_name} WHERE {id_field} = ?"
 
             if self.db_manager.config.db_type.value == "postgres":
                 query = query.replace("?", "%s")
@@ -237,9 +239,8 @@ class BaseRepository(ABC, Generic[T]):
             Number of matching entities
         """
         try:
-            query_parts = [
-                f"SELECT COUNT(*) as count FROM {self.table_name}"
-            ]  # nosec B608: table_name is controlled
+            # nosec B608: table_name is controlled
+            query_parts = [f"SELECT COUNT(*) as count FROM {self.table_name}"]
             params = []
 
             # Add WHERE clause if filters provided
@@ -485,7 +486,11 @@ class TenantAwareRepository(BaseRepository[T]):
             self._ensure_tenant_context()
 
             id_field = self._get_id_field()
-            query = f"SELECT * FROM {self.table_name} WHERE {id_field} = ? AND tenant_id = ?"  # nosec B608: table_name and id_field are controlled
+            # nosec B608: table_name and id_field are controlled
+            query = (
+                f"SELECT * FROM {self.table_name} "
+                f"WHERE {id_field} = ? AND tenant_id = ?"
+            )
 
             if self.db_manager.config.db_type.value == "postgres":
                 query = query.replace("?", "%s")
@@ -527,7 +532,11 @@ class TenantAwareRepository(BaseRepository[T]):
             self._ensure_tenant_context()
 
             id_field = self._get_id_field()
-            query = f"DELETE FROM {self.table_name} WHERE {id_field} = ? AND tenant_id = ?"  # nosec B608: table_name and id_field are controlled
+            # nosec B608: table_name and id_field are controlled
+            query = (
+                f"DELETE FROM {self.table_name} "
+                f"WHERE {id_field} = ? AND tenant_id = ?"
+            )
 
             if self.db_manager.config.db_type.value == "postgres":
                 query = query.replace("?", "%s")
@@ -622,8 +631,11 @@ class TenantAwareRepository(BaseRepository[T]):
                 cursor.execute("SELECT last_insert_rowid()")
                 last_id = cursor.fetchone()[0]
 
-                # Fetch the record directly from the same connection without tenant filtering
-                fetch_query = f"SELECT * FROM {self.table_name} WHERE {id_field} = ?"  # nosec B608: table_name and id_field are controlled
+                # Fetch record from same connection without tenant filtering
+                # nosec B608: table_name and id_field are controlled
+                fetch_query = (
+                    f"SELECT * FROM {self.table_name} " f"WHERE {id_field} = ?"
+                )
                 cursor.execute(fetch_query, (last_id,))
                 row = cursor.fetchone()
 
@@ -634,7 +646,8 @@ class TenantAwareRepository(BaseRepository[T]):
                     return self._row_to_entity(row_dict)
                 else:
                     raise DatabaseException(
-                        f"Failed to retrieve inserted {self.table_name} record with ID {last_id}"
+                        f"Failed to retrieve inserted {self.table_name} "
+                        f"record with ID {last_id}"
                     )
 
     @abstractmethod

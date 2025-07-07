@@ -107,6 +107,7 @@ class PromptDataManager:
                     description TEXT,
                     content TEXT NOT NULL,
                     category TEXT DEFAULT 'Custom',
+                    tags TEXT DEFAULT '',
                     variables TEXT,
                     is_builtin BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -214,6 +215,19 @@ class PromptDataManager:
                 END $$;
             """
             )
+            cursor.execute(
+                """
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='templates' AND column_name='tags'
+                    ) THEN
+                        ALTER TABLE templates ADD COLUMN tags TEXT DEFAULT '';
+                    END IF;
+                END $$;
+            """
+            )
         else:
             cursor.execute(
                 """
@@ -255,6 +269,7 @@ class PromptDataManager:
                     description TEXT,
                     content TEXT NOT NULL,
                     category TEXT DEFAULT 'Custom',
+                    tags TEXT DEFAULT '',
                     variables TEXT,
                     is_builtin BOOLEAN DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -320,7 +335,8 @@ class PromptDataManager:
             columns = [column[1] for column in cursor.fetchall()]
             if "is_enhancement_prompt" not in columns:
                 cursor.execute(
-                    "ALTER TABLE prompts ADD COLUMN is_enhancement_prompt BOOLEAN DEFAULT 0"
+                    "ALTER TABLE prompts ADD COLUMN is_enhancement_prompt "
+                    "BOOLEAN DEFAULT 0"
                 )
             if "tenant_id" not in columns:
                 cursor.execute("ALTER TABLE prompts ADD COLUMN tenant_id TEXT")
@@ -329,6 +345,12 @@ class PromptDataManager:
             if "name" not in columns:
                 cursor.execute("ALTER TABLE prompts ADD COLUMN name TEXT")
                 cursor.execute("UPDATE prompts SET name = title WHERE name IS NULL")
+
+            # Update templates table structure
+            cursor.execute("PRAGMA table_info(templates)")
+            template_columns = [column[1] for column in cursor.fetchall()]
+            if "tags" not in template_columns:
+                cursor.execute("ALTER TABLE templates ADD COLUMN tags TEXT DEFAULT ''")
 
             # Update config table structure
             cursor.execute("PRAGMA table_info(config)")
@@ -400,7 +422,8 @@ class PromptDataManager:
         if self.db_type == "postgres":
             cursor.execute(
                 """
-                INSERT INTO prompts (tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at)
+                INSERT INTO prompts (tenant_id, user_id, name, title, content,
+                category, tags, is_enhancement_prompt, created_at, updated_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
                 (
@@ -419,7 +442,8 @@ class PromptDataManager:
         else:
             cursor.execute(
                 """
-                INSERT INTO prompts (tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at)
+                INSERT INTO prompts (tenant_id, user_id, name, title, content,
+                category, tags, is_enhancement_prompt, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 (
@@ -495,13 +519,17 @@ class PromptDataManager:
 
             if cursor.fetchone():
                 conn.close()
-                return f"Error: A prompt with name '{new_name}' already exists in your workspace!"
+                return (
+                    f"Error: A prompt with name '{new_name}' already exists "
+                    "in your workspace!"
+                )
 
         if self.db_type == "postgres":
             cursor.execute(
                 """
                 UPDATE prompts
-                SET name=%s, title=%s, content=%s, category=%s, tags=%s, is_enhancement_prompt=%s, updated_at=%s
+                SET name=%s, title=%s, content=%s, category=%s, tags=%s,
+                is_enhancement_prompt=%s, updated_at=%s
                 WHERE name=%s AND tenant_id=%s
             """,
                 (
@@ -520,7 +548,8 @@ class PromptDataManager:
             cursor.execute(
                 """
                 UPDATE prompts
-                SET name=?, title=?, content=?, category=?, tags=?, is_enhancement_prompt=?, updated_at=?
+                SET name=?, title=?, content=?, category=?, tags=?,
+                is_enhancement_prompt=?, updated_at=?
                 WHERE name=? AND tenant_id=?
             """,
                 (
@@ -583,7 +612,8 @@ class PromptDataManager:
             if include_enhancement_prompts:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
                     FROM prompts WHERE tenant_id = %s ORDER BY category, name
                 """,
                     (self.tenant_id,),
@@ -591,8 +621,10 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                    FROM prompts WHERE tenant_id = %s AND is_enhancement_prompt = FALSE ORDER BY category, name
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
+                    FROM prompts WHERE tenant_id = %s
+                    AND is_enhancement_prompt = FALSE ORDER BY category, name
                 """,
                     (self.tenant_id,),
                 )
@@ -600,7 +632,8 @@ class PromptDataManager:
             if include_enhancement_prompts:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
                     FROM prompts WHERE tenant_id = ? ORDER BY category, name
                 """,
                     (self.tenant_id,),
@@ -608,8 +641,10 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                    FROM prompts WHERE tenant_id = ? AND is_enhancement_prompt = 0 ORDER BY category, name
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
+                    FROM prompts WHERE tenant_id = ?
+                    AND is_enhancement_prompt = 0 ORDER BY category, name
                 """,
                     (self.tenant_id,),
                 )
@@ -646,16 +681,20 @@ class PromptDataManager:
         if self.db_type == "postgres":
             cursor.execute(
                 """
-                SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts WHERE tenant_id = %s AND is_enhancement_prompt = TRUE ORDER BY name
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                tags, is_enhancement_prompt, created_at, updated_at
+                FROM prompts WHERE tenant_id = %s AND is_enhancement_prompt = TRUE
+                ORDER BY name
             """,
                 (self.tenant_id,),
             )
         else:
             cursor.execute(
                 """
-                SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                FROM prompts WHERE tenant_id = ? AND is_enhancement_prompt = 1 ORDER BY name
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                tags, is_enhancement_prompt, created_at, updated_at
+                FROM prompts WHERE tenant_id = ? AND is_enhancement_prompt = 1
+                ORDER BY name
             """,
                 (self.tenant_id,),
             )
@@ -689,12 +728,14 @@ class PromptDataManager:
 
         if self.db_type == "postgres":
             cursor.execute(
-                "SELECT DISTINCT category FROM prompts WHERE tenant_id = %s ORDER BY category",
+                "SELECT DISTINCT category FROM prompts WHERE tenant_id = %s "
+                "ORDER BY category",
                 (self.tenant_id,),
             )
         else:
             cursor.execute(
-                "SELECT DISTINCT category FROM prompts WHERE tenant_id = ? ORDER BY category",
+                "SELECT DISTINCT category FROM prompts WHERE tenant_id = ? "
+                "ORDER BY category",
                 (self.tenant_id,),
             )
 
@@ -723,9 +764,12 @@ class PromptDataManager:
             if include_enhancement_prompts:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
                     FROM prompts
-                    WHERE tenant_id = %s AND (name ILIKE %s OR title ILIKE %s OR content ILIKE %s OR tags ILIKE %s)
+                    WHERE tenant_id = %s
+                    AND (name ILIKE %s OR title ILIKE %s OR content ILIKE %s
+                    OR tags ILIKE %s)
                     ORDER BY category, name
                 """,
                     (self.tenant_id, like, like, like, like),
@@ -733,9 +777,12 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
                     FROM prompts
-                    WHERE tenant_id = %s AND (name ILIKE %s OR title ILIKE %s OR content ILIKE %s OR tags ILIKE %s) AND is_enhancement_prompt = FALSE
+                    WHERE tenant_id = %s
+                    AND (name ILIKE %s OR title ILIKE %s OR content ILIKE %s
+                    OR tags ILIKE %s) AND is_enhancement_prompt = FALSE
                     ORDER BY category, name
                 """,
                     (self.tenant_id, like, like, like, like),
@@ -744,9 +791,12 @@ class PromptDataManager:
             if include_enhancement_prompts:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
                     FROM prompts
-                    WHERE tenant_id = ? AND (name LIKE ? OR title LIKE ? OR content LIKE ? OR tags LIKE ?)
+                    WHERE tenant_id = ?
+                    AND (name LIKE ? OR title LIKE ? OR content LIKE ?
+                    OR tags LIKE ?)
                     ORDER BY category, name
                 """,
                     (
@@ -760,9 +810,12 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
                     FROM prompts
-                    WHERE tenant_id = ? AND (name LIKE ? OR title LIKE ? OR content LIKE ? OR tags LIKE ?) AND is_enhancement_prompt = 0
+                    WHERE tenant_id = ?
+                    AND (name LIKE ? OR title LIKE ? OR content LIKE ?
+                    OR tags LIKE ?) AND is_enhancement_prompt = 0
                     ORDER BY category, name
                 """,
                     (
@@ -811,7 +864,8 @@ class PromptDataManager:
             if include_enhancement_prompts:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
                     FROM prompts WHERE tenant_id = %s AND category = %s
                     ORDER BY name
                 """,
@@ -820,8 +874,10 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                    FROM prompts WHERE tenant_id = %s AND category = %s AND is_enhancement_prompt = FALSE
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
+                    FROM prompts WHERE tenant_id = %s AND category = %s
+                    AND is_enhancement_prompt = FALSE
                     ORDER BY name
                 """,
                     (self.tenant_id, category),
@@ -830,7 +886,8 @@ class PromptDataManager:
             if include_enhancement_prompts:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
                     FROM prompts WHERE tenant_id = ? AND category = ?
                     ORDER BY name
                 """,
@@ -839,8 +896,10 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
-                    FROM prompts WHERE tenant_id = ? AND category = ? AND is_enhancement_prompt = 0
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, created_at, updated_at
+                    FROM prompts WHERE tenant_id = ? AND category = ?
+                    AND is_enhancement_prompt = 0
                     ORDER BY name
                 """,
                     (self.tenant_id, category),
@@ -878,7 +937,8 @@ class PromptDataManager:
         if self.db_type == "postgres":
             cursor.execute(
                 """
-                SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                       tags, is_enhancement_prompt, created_at, updated_at
                 FROM prompts WHERE name = %s AND tenant_id = %s
             """,
                 (name.strip(), self.tenant_id),
@@ -906,7 +966,8 @@ class PromptDataManager:
         else:
             cursor.execute(
                 """
-                SELECT id, tenant_id, user_id, name, title, content, category, tags, is_enhancement_prompt, created_at, updated_at
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                       tags, is_enhancement_prompt, created_at, updated_at
                 FROM prompts WHERE name = ? AND tenant_id = ?
             """,
                 (name.strip(), self.tenant_id),
@@ -930,6 +991,297 @@ class PromptDataManager:
                     "updated_at": row[10],
                 }
         return None
+
+    # Tag Management Methods
+
+    def get_all_tags(self, entity_type: str = "all") -> List[str]:
+        """Get all unique tags across prompts and/or templates."""
+        if not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+        all_tags = set()
+
+        try:
+            # Get tags from prompts
+            if entity_type in ["all", "prompts"]:
+                if self.db_type == "postgres":
+                    cursor.execute(
+                        "SELECT tags FROM prompts WHERE tenant_id = %s AND tags IS NOT NULL",
+                        (self.tenant_id,),
+                    )
+                else:
+                    cursor.execute(
+                        "SELECT tags FROM prompts WHERE tenant_id = ? AND tags IS NOT NULL",
+                        (self.tenant_id,),
+                    )
+
+                for row in cursor.fetchall():
+                    if row[0]:
+                        tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                        all_tags.update(tags)
+
+            # Get tags from templates
+            if entity_type in ["all", "templates"]:
+                if self.db_type == "postgres":
+                    cursor.execute(
+                        "SELECT tags FROM templates WHERE tenant_id = %s AND tags IS NOT NULL",
+                        (self.tenant_id,),
+                    )
+                else:
+                    cursor.execute(
+                        "SELECT tags FROM templates WHERE tenant_id = ? AND tags IS NOT NULL",
+                        (self.tenant_id,),
+                    )
+
+                for row in cursor.fetchall():
+                    if row[0]:
+                        tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                        all_tags.update(tags)
+
+            conn.close()
+            return sorted(list(all_tags))
+
+        except Exception:
+            conn.close()
+            return []
+
+    def search_by_tags(
+        self,
+        tags: List[str],
+        entity_type: str = "prompts",
+        match_all: bool = False,
+        include_enhancement_prompts: bool = True,
+    ) -> List[Dict]:
+        """Search entities by tags with AND/OR logic."""
+        if not tags or not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        # Prepare tag conditions
+        tag_conditions = []
+        params = [self.tenant_id]
+
+        for tag in tags:
+            if self.db_type == "postgres":
+                tag_conditions.append("tags ILIKE %s")
+                params.append(f"%{tag}%")
+            else:
+                tag_conditions.append("tags LIKE ?")
+                params.append(f"%{tag}%")
+
+        # Join conditions with AND or OR
+        condition_join = " AND " if match_all else " OR "
+        tag_where = f"({condition_join.join(tag_conditions)})"
+
+        try:
+            if entity_type == "prompts":
+                enhancement_filter = (
+                    ""
+                    if include_enhancement_prompts
+                    else " AND is_enhancement_prompt = FALSE"
+                )
+
+                if self.db_type == "postgres":
+                    query = f"""
+                        SELECT id, tenant_id, user_id, name, title, content, category,
+                               tags, is_enhancement_prompt, created_at, updated_at
+                        FROM prompts
+                        WHERE tenant_id = %s AND {tag_where}{enhancement_filter}
+                        ORDER BY category, name
+                    """
+                else:
+                    query = f"""
+                        SELECT id, tenant_id, user_id, name, title, content, category,
+                               tags, is_enhancement_prompt, created_at, updated_at
+                        FROM prompts
+                        WHERE tenant_id = ? AND {tag_where}{enhancement_filter}
+                        ORDER BY category, name
+                    """
+
+                cursor.execute(query, params)
+                results = []
+                for row in cursor.fetchall():
+                    results.append(
+                        {
+                            "id": row[0],
+                            "tenant_id": row[1],
+                            "user_id": row[2],
+                            "name": row[3],
+                            "title": row[4],
+                            "content": row[5],
+                            "category": row[6],
+                            "tags": row[7],
+                            "is_enhancement_prompt": (
+                                bool(row[8]) if row[8] is not None else False
+                            ),
+                            "created_at": row[9],
+                            "updated_at": row[10],
+                        }
+                    )
+
+            elif entity_type == "templates":
+                if self.db_type == "postgres":
+                    query = f"""
+                        SELECT id, tenant_id, user_id, name, description, content,
+                               category, tags, variables, is_builtin, created_at, updated_at
+                        FROM templates
+                        WHERE tenant_id = %s AND {tag_where}
+                        ORDER BY category, name
+                    """
+                else:
+                    query = f"""
+                        SELECT id, tenant_id, user_id, name, description, content,
+                               category, tags, variables, is_builtin, created_at, updated_at
+                        FROM templates
+                        WHERE tenant_id = ? AND {tag_where}
+                        ORDER BY category, name
+                    """
+
+                cursor.execute(query, params)
+                results = []
+                for row in cursor.fetchall():
+                    results.append(
+                        {
+                            "id": row[0],
+                            "tenant_id": row[1],
+                            "user_id": row[2],
+                            "name": row[3],
+                            "description": row[4],
+                            "content": row[5],
+                            "category": row[6],
+                            "tags": row[7],
+                            "variables": row[8],
+                            "is_builtin": bool(row[9]) if row[9] is not None else False,
+                            "created_at": row[10],
+                            "updated_at": row[11],
+                        }
+                    )
+            else:
+                results = []
+
+            conn.close()
+            return results
+
+        except Exception:
+            conn.close()
+            return []
+
+    def get_tag_statistics(self) -> Dict[str, Dict]:
+        """Get statistics about tag usage across prompts and templates."""
+        if not self.tenant_id:
+            return {}
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+        tag_stats = {}
+
+        try:
+            # Count tags in prompts
+            if self.db_type == "postgres":
+                cursor.execute(
+                    "SELECT tags FROM prompts WHERE tenant_id = %s AND tags IS NOT NULL",
+                    (self.tenant_id,),
+                )
+            else:
+                cursor.execute(
+                    "SELECT tags FROM prompts WHERE tenant_id = ? AND tags IS NOT NULL",
+                    (self.tenant_id,),
+                )
+
+            for row in cursor.fetchall():
+                if row[0]:
+                    tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                    for tag in tags:
+                        if tag not in tag_stats:
+                            tag_stats[tag] = {"prompts": 0, "templates": 0, "total": 0}
+                        tag_stats[tag]["prompts"] += 1
+                        tag_stats[tag]["total"] += 1
+
+            # Count tags in templates
+            if self.db_type == "postgres":
+                cursor.execute(
+                    "SELECT tags FROM templates WHERE tenant_id = %s AND tags IS NOT NULL",
+                    (self.tenant_id,),
+                )
+            else:
+                cursor.execute(
+                    "SELECT tags FROM templates WHERE tenant_id = ? AND tags IS NOT NULL",
+                    (self.tenant_id,),
+                )
+
+            for row in cursor.fetchall():
+                if row[0]:
+                    tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                    for tag in tags:
+                        if tag not in tag_stats:
+                            tag_stats[tag] = {"prompts": 0, "templates": 0, "total": 0}
+                        tag_stats[tag]["templates"] += 1
+                        tag_stats[tag]["total"] += 1
+
+            conn.close()
+            return tag_stats
+
+        except Exception:
+            conn.close()
+            return {}
+
+    def get_popular_tags(self, entity_type: str = "all", limit: int = 10) -> List[Dict]:
+        """Get most popular tags with usage counts."""
+        tag_stats = self.get_tag_statistics()
+
+        # Filter by entity type if specified
+        if entity_type == "prompts":
+            filtered_stats = {
+                tag: stats for tag, stats in tag_stats.items() if stats["prompts"] > 0
+            }
+            sort_key = "prompts"
+        elif entity_type == "templates":
+            filtered_stats = {
+                tag: stats for tag, stats in tag_stats.items() if stats["templates"] > 0
+            }
+            sort_key = "templates"
+        else:
+            filtered_stats = tag_stats
+            sort_key = "total"
+
+        # Sort by usage count and limit results
+        popular_tags = [
+            {"tag": tag, "count": stats[sort_key], "details": stats}
+            for tag, stats in filtered_stats.items()
+        ]
+        popular_tags.sort(key=lambda x: x["count"], reverse=True)
+
+        return popular_tags[:limit]
+
+    def suggest_tags(self, partial_tag: str, limit: int = 5) -> List[str]:
+        """Suggest tags based on partial input."""
+        if not partial_tag.strip():
+            return []
+
+        all_tags = self.get_all_tags()
+        partial_lower = partial_tag.lower()
+
+        # Find exact matches first, then prefix matches, then substring matches
+        exact_matches = [tag for tag in all_tags if tag.lower() == partial_lower]
+        prefix_matches = [
+            tag
+            for tag in all_tags
+            if tag.lower().startswith(partial_lower) and tag.lower() != partial_lower
+        ]
+        substring_matches = [
+            tag
+            for tag in all_tags
+            if partial_lower in tag.lower()
+            and not tag.lower().startswith(partial_lower)
+        ]
+
+        # Combine and limit results
+        suggestions = exact_matches + prefix_matches + substring_matches
+        return suggestions[:limit]
 
     def save_config(self, key: str, value: str) -> bool:
         """Save configuration for tenant/user"""
@@ -977,12 +1329,18 @@ class PromptDataManager:
         try:
             if self.db_type == "postgres":
                 cursor.execute(
-                    "SELECT value FROM config WHERE tenant_id = %s AND user_id = %s AND key = %s",
+                    """
+                    SELECT value FROM config
+                    WHERE tenant_id = %s AND user_id = %s AND key = %s
+                    """,
                     (self.tenant_id, self.user_id, key),
                 )
             else:
                 cursor.execute(
-                    "SELECT value FROM config WHERE tenant_id = ? AND user_id = ? AND key = ?",
+                    """
+                    SELECT value FROM config
+                    WHERE tenant_id = ? AND user_id = ? AND key = ?
+                    """,
                     (self.tenant_id, self.user_id, key),
                 )
 
@@ -1011,7 +1369,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, description, content,
-                           category, variables, is_builtin, created_at, updated_at
+                           category, tags, variables, is_builtin, created_at, updated_at
                     FROM templates
                     WHERE tenant_id = %s
                     ORDER BY created_at DESC
@@ -1022,7 +1380,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, description, content,
-                           category, variables, is_builtin, created_at, updated_at
+                           category, tags, variables, is_builtin, created_at, updated_at
                     FROM templates
                     WHERE tenant_id = ?
                     ORDER BY created_at DESC
@@ -1046,10 +1404,11 @@ class PromptDataManager:
                         "description": row[4],
                         "content": row[5],
                         "category": row[6],
-                        "variables": row[7],
-                        "is_builtin": bool(row[8]) if row[8] is not None else False,
-                        "created_at": row[9],
-                        "updated_at": row[10],
+                        "tags": row[7],
+                        "variables": row[8],
+                        "is_builtin": bool(row[9]) if row[9] is not None else False,
+                        "created_at": row[10],
+                        "updated_at": row[11],
                     }
                 templates.append(template)
 
@@ -1071,7 +1430,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, description, content,
-                           category, variables, is_builtin, created_at, updated_at
+                           category, tags, variables, is_builtin, created_at, updated_at
                     FROM templates
                     WHERE id = %s AND tenant_id = %s
                     """,
@@ -1081,7 +1440,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, description, content,
-                           category, variables, is_builtin, created_at, updated_at
+                           category, tags, variables, is_builtin, created_at, updated_at
                     FROM templates
                     WHERE id = ? AND tenant_id = ?
                     """,
@@ -1103,10 +1462,11 @@ class PromptDataManager:
                         "description": row[4],
                         "content": row[5],
                         "category": row[6],
-                        "variables": row[7],
-                        "is_builtin": bool(row[8]) if row[8] is not None else False,
-                        "created_at": row[9],
-                        "updated_at": row[10],
+                        "tags": row[7],
+                        "variables": row[8],
+                        "is_builtin": bool(row[9]) if row[9] is not None else False,
+                        "created_at": row[10],
+                        "updated_at": row[11],
                     }
             return None
         except Exception:
@@ -1126,7 +1486,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, description, content,
-                           category, variables, is_builtin, created_at, updated_at
+                           category, tags, variables, is_builtin, created_at, updated_at
                     FROM templates
                     WHERE name = %s AND tenant_id = %s
                     """,
@@ -1136,7 +1496,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, description, content,
-                           category, variables, is_builtin, created_at, updated_at
+                           category, tags, variables, is_builtin, created_at, updated_at
                     FROM templates
                     WHERE name = ? AND tenant_id = ?
                     """,
@@ -1158,10 +1518,11 @@ class PromptDataManager:
                         "description": row[4],
                         "content": row[5],
                         "category": row[6],
-                        "variables": row[7],
-                        "is_builtin": bool(row[8]) if row[8] is not None else False,
-                        "created_at": row[9],
-                        "updated_at": row[10],
+                        "tags": row[7],
+                        "variables": row[8],
+                        "is_builtin": bool(row[9]) if row[9] is not None else False,
+                        "created_at": row[10],
+                        "updated_at": row[11],
                     }
             return None
         except Exception:
@@ -1175,6 +1536,7 @@ class PromptDataManager:
         content: str,
         category: str = "Custom",
         variables: str = "",
+        tags: str = "",
     ) -> str:
         """Create a new template"""
         if not self.tenant_id or not self.user_id:
@@ -1192,8 +1554,9 @@ class PromptDataManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    INSERT INTO templates (tenant_id, user_id, name, description, content, category, variables, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO templates (tenant_id, user_id, name, description,
+                                          content, category, tags, variables, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         self.tenant_id,
@@ -1202,6 +1565,7 @@ class PromptDataManager:
                         description,
                         content,
                         category,
+                        tags,
                         variables,
                         current_time,
                         current_time,
@@ -1210,8 +1574,9 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    INSERT INTO templates (tenant_id, user_id, name, description, content, category, variables, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO templates (tenant_id, user_id, name, description,
+                                          content, category, tags, variables, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         self.tenant_id,
@@ -1220,6 +1585,7 @@ class PromptDataManager:
                         description,
                         content,
                         category,
+                        tags,
                         variables,
                         current_time,
                         current_time,
@@ -1244,6 +1610,7 @@ class PromptDataManager:
         content: str,
         category: str = "Custom",
         variables: str = "",
+        tags: str = "",
     ) -> str:
         """Update an existing template"""
         if not self.tenant_id or not self.user_id:
@@ -1262,7 +1629,8 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     UPDATE templates
-                    SET name = %s, description = %s, content = %s, category = %s, variables = %s, updated_at = %s
+                    SET name = %s, description = %s, content = %s,
+                        category = %s, tags = %s, variables = %s, updated_at = %s
                     WHERE id = %s AND tenant_id = %s AND user_id = %s
                     """,
                     (
@@ -1270,6 +1638,7 @@ class PromptDataManager:
                         description,
                         content,
                         category,
+                        tags,
                         variables,
                         current_time,
                         template_id,
@@ -1281,7 +1650,8 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     UPDATE templates
-                    SET name = ?, description = ?, content = ?, category = ?, variables = ?, updated_at = ?
+                    SET name = ?, description = ?, content = ?,
+                        category = ?, tags = ?, variables = ?, updated_at = ?
                     WHERE id = ? AND tenant_id = ? AND user_id = ?
                     """,
                     (
@@ -1289,6 +1659,7 @@ class PromptDataManager:
                         description,
                         content,
                         category,
+                        tags,
                         variables,
                         current_time,
                         template_id,
@@ -1324,16 +1695,24 @@ class PromptDataManager:
         try:
             if self.db_type == "postgres":
                 cursor.execute(
-                    "DELETE FROM templates WHERE id = %s AND tenant_id = %s AND user_id = %s AND is_builtin = FALSE",
+                    """
+                    DELETE FROM templates
+                    WHERE id = %s AND tenant_id = %s AND user_id = %s
+                    AND is_builtin = FALSE
+                    """,
                     (template_id, self.tenant_id, self.user_id),
                 )
             else:
                 cursor.execute(
-                    "DELETE FROM templates WHERE id = ? AND tenant_id = ? AND user_id = ? AND is_builtin = 0",
+                    """
+                    DELETE FROM templates
+                    WHERE id = ? AND tenant_id = ? AND user_id = ?
+                    AND is_builtin = 0
+                    """,
                     (template_id, self.tenant_id, self.user_id),
                 )
 
-            success = cursor.rowcount > 0
+            success = bool(cursor.rowcount > 0)
             conn.commit()
             conn.close()
             return success
@@ -1353,12 +1732,18 @@ class PromptDataManager:
         try:
             if self.db_type == "postgres":
                 cursor.execute(
-                    "SELECT DISTINCT category FROM templates WHERE tenant_id = %s ORDER BY category",
+                    """
+                    SELECT DISTINCT category FROM templates
+                    WHERE tenant_id = %s ORDER BY category
+                    """,
                     (self.tenant_id,),
                 )
             else:
                 cursor.execute(
-                    "SELECT DISTINCT category FROM templates WHERE tenant_id = ? ORDER BY category",
+                    """
+                    SELECT DISTINCT category FROM templates
+                    WHERE tenant_id = ? ORDER BY category
+                    """,
                     (self.tenant_id,),
                 )
 
@@ -1415,10 +1800,14 @@ class PromptDataManager:
                         api_key, api_endpoint, api_version, deployment_name, max_tokens,
                         temperature, top_p, frequency_penalty, presence_penalty,
                         cost_per_1k_input_tokens, cost_per_1k_output_tokens, max_context_length,
-                        supports_streaming, supports_function_calling, supports_vision, supports_json_mode,
+                        supports_streaming, supports_function_calling,
+                        supports_vision, supports_json_mode,
                         is_enabled, is_available
                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s
                     )
                     """,
                     (
@@ -1457,7 +1846,8 @@ class PromptDataManager:
                         api_key, api_endpoint, api_version, deployment_name, max_tokens,
                         temperature, top_p, frequency_penalty, presence_penalty,
                         cost_per_1k_input_tokens, cost_per_1k_output_tokens, max_context_length,
-                        supports_streaming, supports_function_calling, supports_vision, supports_json_mode,
+                        supports_streaming, supports_function_calling,
+                        supports_vision, supports_json_mode,
                         is_enabled, is_available
                     ) VALUES (
                         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
@@ -1511,12 +1901,15 @@ class PromptDataManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, display_name, provider, model_id, description,
-                           api_key, api_endpoint, api_version, deployment_name, max_tokens,
-                           temperature, top_p, frequency_penalty, presence_penalty,
-                           cost_per_1k_input_tokens, cost_per_1k_output_tokens, max_context_length,
-                           supports_streaming, supports_function_calling, supports_vision, supports_json_mode,
-                           is_enabled, is_available, last_health_check, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, display_name, provider,
+                           model_id, description, api_key, api_endpoint, api_version,
+                           deployment_name, max_tokens, temperature, top_p,
+                           frequency_penalty, presence_penalty,
+                           cost_per_1k_input_tokens, cost_per_1k_output_tokens,
+                           max_context_length, supports_streaming,
+                           supports_function_calling, supports_vision,
+                           supports_json_mode, is_enabled, is_available,
+                           last_health_check, created_at, updated_at
                     FROM ai_models WHERE tenant_id = %s ORDER BY name
                     """,
                     (self.tenant_id,),
@@ -1524,12 +1917,15 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, name, display_name, provider, model_id, description,
-                           api_key, api_endpoint, api_version, deployment_name, max_tokens,
-                           temperature, top_p, frequency_penalty, presence_penalty,
-                           cost_per_1k_input_tokens, cost_per_1k_output_tokens, max_context_length,
-                           supports_streaming, supports_function_calling, supports_vision, supports_json_mode,
-                           is_enabled, is_available, last_health_check, created_at, updated_at
+                    SELECT id, tenant_id, user_id, name, display_name, provider,
+                           model_id, description, api_key, api_endpoint, api_version,
+                           deployment_name, max_tokens, temperature, top_p,
+                           frequency_penalty, presence_penalty,
+                           cost_per_1k_input_tokens, cost_per_1k_output_tokens,
+                           max_context_length, supports_streaming,
+                           supports_function_calling, supports_vision,
+                           supports_json_mode, is_enabled, is_available,
+                           last_health_check, created_at, updated_at
                     FROM ai_models WHERE tenant_id = ? ORDER BY name
                     """,
                     (self.tenant_id,),
@@ -1636,7 +2032,12 @@ class PromptDataManager:
 
             # Add updated_at
             set_clauses.append(
-                f"updated_at = {'CURRENT_TIMESTAMP' if self.db_type == 'postgres' else 'CURRENT_TIMESTAMP'}"
+                "updated_at = "
+                + (
+                    "CURRENT_TIMESTAMP"
+                    if self.db_type == "postgres"
+                    else "CURRENT_TIMESTAMP"
+                )
             )
 
             # Add WHERE clause values
@@ -1646,13 +2047,14 @@ class PromptDataManager:
             query = f"""
                 UPDATE ai_models
                 SET {', '.join(set_clauses)}
-                WHERE tenant_id = {'%s' if self.db_type == 'postgres' else '?'} AND name = {'%s' if self.db_type == 'postgres' else '?'}
+                WHERE tenant_id = {'%s' if self.db_type == 'postgres' else '?'}
+                AND name = {'%s' if self.db_type == 'postgres' else '?'}
             """
 
             cursor.execute(query, values)
             conn.commit()
             conn.close()
-            return cursor.rowcount > 0
+            return bool(cursor.rowcount > 0)
         except Exception:
             conn.close()
             return False
@@ -1679,7 +2081,7 @@ class PromptDataManager:
 
             conn.commit()
             conn.close()
-            return cursor.rowcount > 0
+            return bool(cursor.rowcount > 0)
         except Exception:
             conn.close()
             return False
@@ -1696,18 +2098,22 @@ class PromptDataManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, operation_type, primary_model, fallback_models,
-                           is_enabled, custom_parameters, created_at, updated_at
-                    FROM ai_operation_configs WHERE tenant_id = %s ORDER BY operation_type
+                    SELECT id, tenant_id, user_id, operation_type, primary_model,
+                           fallback_models, is_enabled, custom_parameters,
+                           created_at, updated_at
+                    FROM ai_operation_configs WHERE tenant_id = %s
+                    ORDER BY operation_type
                     """,
                     (self.tenant_id,),
                 )
             else:
                 cursor.execute(
                     """
-                    SELECT id, tenant_id, user_id, operation_type, primary_model, fallback_models,
-                           is_enabled, custom_parameters, created_at, updated_at
-                    FROM ai_operation_configs WHERE tenant_id = ? ORDER BY operation_type
+                    SELECT id, tenant_id, user_id, operation_type, primary_model,
+                           fallback_models, is_enabled, custom_parameters,
+                           created_at, updated_at
+                    FROM ai_operation_configs WHERE tenant_id = ?
+                    ORDER BY operation_type
                     """,
                     (self.tenant_id,),
                 )
@@ -1751,12 +2157,18 @@ class PromptDataManager:
             # Check if config exists
             if self.db_type == "postgres":
                 cursor.execute(
-                    "SELECT id FROM ai_operation_configs WHERE tenant_id = %s AND operation_type = %s",
+                    """
+                    SELECT id FROM ai_operation_configs
+                    WHERE tenant_id = %s AND operation_type = %s
+                    """,
                     (self.tenant_id, operation_type),
                 )
             else:
                 cursor.execute(
-                    "SELECT id FROM ai_operation_configs WHERE tenant_id = ? AND operation_type = ?",
+                    """
+                    SELECT id FROM ai_operation_configs
+                    WHERE tenant_id = ? AND operation_type = ?
+                    """,
                     (self.tenant_id, operation_type),
                 )
 

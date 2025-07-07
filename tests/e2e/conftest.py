@@ -212,7 +212,10 @@ def sample_prompt_data() -> Dict[str, Any]:
     return {
         "name": "e2e_test_prompt",
         "title": "E2E Test Prompt",
-        "content": "You are a helpful AI assistant for E2E testing. Please respond with 'E2E Test Successful' to verify the workflow.",
+        "content": (
+            "You are a helpful AI assistant for E2E testing. Please respond "
+            "with 'E2E Test Successful' to verify the workflow."
+        ),
         "category": "Testing",
         "tags": "e2e,testing,automation",
     }

@@ -696,12 +696,17 @@ class WebApp:
                 users = []
                 tenants = []
             else:
-                users = self.auth_manager.get_all_users_for_tenant(user.tenant_id)
-                tenants = (
-                    self.auth_manager.get_all_tenants()
-                    if user.role == "admin"
-                    else [self.auth_manager.get_tenant_by_id(user.tenant_id)]
-                )
+                if user:
+                    users = self.auth_manager.get_all_users_for_tenant(user.tenant_id)
+                    tenant_by_id = self.auth_manager.get_tenant_by_id(user.tenant_id)
+                    tenants = (
+                        self.auth_manager.get_all_tenants()
+                        if user.role == "admin"
+                        else ([tenant_by_id] if tenant_by_id else [])
+                    )
+                else:
+                    users = []
+                    tenants = []
 
             # Mock recent activity (would be from audit log)
             recent_activity = [
@@ -1224,16 +1229,12 @@ class WebApp:
                 return RedirectResponse(url="/login", status_code=302)
 
             try:
-                expiry_date = (
-                    datetime.now() + timedelta(days=expires_days)
-                    if expires_days > 0
-                    else None
-                )
-                token_info = self.api_token_manager.create_token(
+                expires_days_param = expires_days if expires_days > 0 else None
+                token_info = self.api_token_manager.create_api_token(
                     user_id=user.id,
                     tenant_id=user.tenant_id,
                     name=name,
-                    expires_at=expiry_date,
+                    expires_days=expires_days_param,
                 )
 
                 # Show token once to user
@@ -1448,7 +1449,10 @@ class WebApp:
                 if not re.match(r"^[a-z]{2,3}$", language_code):
                     return {
                         "success": False,
-                        "message": "Invalid language code format. Use 2-3 lowercase letters (e.g., 'fr', 'de', 'ja')",
+                        "message": (
+                            "Invalid language code format. Use 2-3 lowercase "
+                            "letters (e.g., 'fr', 'de', 'ja')"
+                        ),
                     }
 
                 language_manager = get_language_manager()
@@ -1511,7 +1515,9 @@ class WebApp:
                 language_manager = get_language_manager()
 
                 # Convert flat translations back to nested structure
-                translations_nested = {}
+                from typing import Any, Dict
+
+                translations_nested: Dict[str, Any] = {}
                 for key, value in translations_flat.items():
                     keys = key.split(".")
                     current_dict = translations_nested
@@ -1669,10 +1675,11 @@ class WebApp:
 
                 # Use text translator to translate
                 try:
-                    translated_text = text_translator.translate_text(
-                        text=english_text,
-                        target_language=target_lang_name.lower(),
-                        source_language="english",
+                    success, translated_text, error_msg = (
+                        text_translator.translate_to_english(
+                            text=english_text,
+                            source_language=target_lang_name.lower(),
+                        )
                     )
 
                     if translated_text and translated_text != english_text:
@@ -1685,7 +1692,10 @@ class WebApp:
                     else:
                         return {
                             "success": False,
-                            "message": "Translation service did not return a valid translation",
+                            "message": (
+                                "Translation service did not return a valid "
+                                "translation"
+                            ),
                         }
 
                 except Exception as translation_error:
@@ -1733,14 +1743,18 @@ class WebApp:
 
         # Check session expiry (24 hours)
         try:
-            login_time = datetime.fromisoformat(login_time_str)
-            if datetime.now() - login_time > timedelta(hours=24):
-                return None
+            if login_time_str:
+                login_time = datetime.fromisoformat(login_time_str)
+                if datetime.now() - login_time > timedelta(hours=24):
+                    return None
         except ValueError:
             return None
 
         # Get user from database
-        user = self.auth_manager.get_user_by_id(user_id)
+        if user_id:
+            user = self.auth_manager.get_user_by_id(user_id)
+        else:
+            return None
         if user and user.tenant_id == tenant_id and user.is_active:
             return user
 

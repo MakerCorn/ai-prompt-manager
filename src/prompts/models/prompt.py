@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+import yaml
+
 
 @dataclass
 class Prompt:
@@ -71,7 +73,8 @@ class Prompt:
 
         if not re.match(r"^[a-zA-Z0-9\s\-_]+$", self.name):
             raise ValueError(
-                "Prompt name can only contain letters, numbers, spaces, hyphens, and underscores"
+                "Prompt name can only contain letters, numbers, spaces, "
+                "hyphens, and underscores"
             )
 
     @property
@@ -300,9 +303,248 @@ class Prompt:
 
         return cloned
 
+    def to_github_format(self) -> Dict[str, Any]:
+        """
+        Convert prompt to GitHub YAML format.
+
+        Returns:
+            Dictionary in GitHub YAML format
+        """
+        # Parse content to extract messages if it's in conversation format
+        messages = self._parse_content_to_messages()
+
+        github_dict = {
+            "messages": messages,
+            "model": self.get_metadata("model", "openai/gpt-4o"),
+        }
+
+        # Add optional fields if they exist
+        if self.get_metadata("temperature"):
+            github_dict["temperature"] = self.get_metadata("temperature")
+        if self.get_metadata("max_tokens"):
+            github_dict["max_tokens"] = self.get_metadata("max_tokens")
+        if self.get_metadata("top_p"):
+            github_dict["top_p"] = self.get_metadata("top_p")
+        if self.get_metadata("frequency_penalty"):
+            github_dict["frequency_penalty"] = self.get_metadata("frequency_penalty")
+        if self.get_metadata("presence_penalty"):
+            github_dict["presence_penalty"] = self.get_metadata("presence_penalty")
+
+        return github_dict
+
+    def _parse_content_to_messages(self) -> List[Dict[str, str]]:
+        """
+        Parse prompt content to extract messages in conversation format.
+
+        Returns:
+            List of message dictionaries
+        """
+        # Check if content is already in structured format
+        if self.get_metadata("format") == "messages":
+            messages = self.get_metadata("messages", [])
+            if isinstance(messages, list):
+                return messages
+            return []
+
+        # Try to parse as conversation format
+        content = self.content.strip()
+        messages = []
+
+        # Check for explicit role markers
+        if (
+            "system:" in content.lower()
+            or "user:" in content.lower()
+            or "assistant:" in content.lower()
+        ):
+            lines = content.split("\n")
+            current_role = None
+            current_content = []
+
+            for line in lines:
+                line = line.strip()
+                if line.lower().startswith("system:"):
+                    if current_role and current_content:
+                        messages.append(
+                            {
+                                "role": current_role,
+                                "content": "\n".join(current_content).strip(),
+                            }
+                        )
+                    current_role = "system"
+                    current_content = [line[7:].strip()]
+                elif line.lower().startswith("user:"):
+                    if current_role and current_content:
+                        messages.append(
+                            {
+                                "role": current_role,
+                                "content": "\n".join(current_content).strip(),
+                            }
+                        )
+                    current_role = "user"
+                    current_content = [line[5:].strip()]
+                elif line.lower().startswith("assistant:"):
+                    if current_role and current_content:
+                        messages.append(
+                            {
+                                "role": current_role,
+                                "content": "\n".join(current_content).strip(),
+                            }
+                        )
+                    current_role = "assistant"
+                    current_content = [line[10:].strip()]
+                else:
+                    if current_role:
+                        current_content.append(line)
+
+            # Add the last message
+            if current_role and current_content:
+                messages.append(
+                    {
+                        "role": current_role,
+                        "content": "\n".join(current_content).strip(),
+                    }
+                )
+
+        # If no messages found, treat as single user message
+        if not messages:
+            messages = [
+                {"role": "system", "content": ""},
+                {"role": "user", "content": content},
+            ]
+
+        return messages
+
+    @classmethod
+    def from_github_format(
+        cls,
+        github_data: Dict[str, Any],
+        tenant_id: str,
+        user_id: str,
+        name: Optional[str] = None,
+        title: Optional[str] = None,
+        category: str = "GitHub Import",
+    ) -> "Prompt":
+        """
+        Create Prompt from GitHub YAML format.
+
+        Args:
+            github_data: Dictionary containing GitHub format data
+            tenant_id: Tenant ID to assign
+            user_id: User ID to assign
+            name: Optional name for the prompt
+            title: Optional title for the prompt
+            category: Category for the prompt
+
+        Returns:
+            Prompt instance
+        """
+        messages = github_data.get("messages", [])
+
+        # Convert messages to content string
+        content_parts = []
+        for message in messages:
+            role = message.get("role", "user")
+            content = message.get("content", "")
+            if content.strip():  # Only add non-empty content
+                content_parts.append(f"{role.upper()}: {content}")
+
+        content = "\n\n".join(content_parts) if content_parts else ""
+
+        # Generate name and title if not provided
+        if not name:
+            # Use first few words of first user message as name
+            user_message = next(
+                (msg for msg in messages if msg.get("role") == "user"), None
+            )
+            if user_message and user_message.get("content"):
+                name = " ".join(user_message["content"].split()[:5])
+                if len(name) > 50:
+                    name = name[:47] + "..."
+            else:
+                name = "GitHub Import"
+
+        if not title:
+            title = name
+
+        # Create metadata with GitHub-specific fields
+        metadata = {
+            "format": "messages",
+            "messages": messages,
+            "model": github_data.get("model", "openai/gpt-4o"),
+            "source": "github_import",
+        }
+
+        # Add optional model parameters
+        if "temperature" in github_data:
+            metadata["temperature"] = github_data["temperature"]
+        if "max_tokens" in github_data:
+            metadata["max_tokens"] = github_data["max_tokens"]
+        if "top_p" in github_data:
+            metadata["top_p"] = github_data["top_p"]
+        if "frequency_penalty" in github_data:
+            metadata["frequency_penalty"] = github_data["frequency_penalty"]
+        if "presence_penalty" in github_data:
+            metadata["presence_penalty"] = github_data["presence_penalty"]
+
+        return cls(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            name=name,
+            title=title,
+            content=content,
+            category=category,
+            tags="github,import",
+            metadata=metadata,
+        )
+
+    def to_github_yaml(self) -> str:
+        """
+        Convert prompt to GitHub YAML format string.
+
+        Returns:
+            YAML string representation
+        """
+        github_dict = self.to_github_format()
+        return yaml.dump(github_dict, default_flow_style=False, allow_unicode=True)
+
+    @classmethod
+    def from_github_yaml(
+        cls,
+        yaml_content: str,
+        tenant_id: str,
+        user_id: str,
+        name: Optional[str] = None,
+        title: Optional[str] = None,
+        category: str = "GitHub Import",
+    ) -> "Prompt":
+        """
+        Create Prompt from GitHub YAML format string.
+
+        Args:
+            yaml_content: YAML string content
+            tenant_id: Tenant ID to assign
+            user_id: User ID to assign
+            name: Optional name for the prompt
+            title: Optional title for the prompt
+            category: Category for the prompt
+
+        Returns:
+            Prompt instance
+        """
+        try:
+            github_data = yaml.safe_load(yaml_content)
+            return cls.from_github_format(
+                github_data, tenant_id, user_id, name, title, category
+            )
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML format: {e}")
+
     def __str__(self) -> str:
         """String representation of prompt."""
-        return f"Prompt(name={self.name}, category={self.category}, tenant={self.tenant_id})"
+        return (
+            f"Prompt(name={self.name}, category={self.category}, "
+            f"tenant={self.tenant_id})"
+        )
 
     def __repr__(self) -> str:
         """Detailed string representation of prompt."""

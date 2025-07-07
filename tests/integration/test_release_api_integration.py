@@ -22,9 +22,12 @@ sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from auth_manager import AuthManager
-from release_api_endpoints import create_admin_release_router, create_release_router
-from release_manager import ReleaseManager
+from auth_manager import AuthManager  # noqa: E402
+from release_api_endpoints import (  # noqa: E402
+    create_admin_release_router,
+    create_release_router,
+)
+from release_manager import ReleaseManager  # noqa: E402
 
 try:
     from fastapi.testclient import TestClient

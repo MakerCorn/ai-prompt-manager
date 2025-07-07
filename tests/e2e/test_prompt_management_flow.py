@@ -209,7 +209,10 @@ class TestPromptManagementFlow(E2ETestBase):
 
                         # Look for submit button
                         submit_buttons = page.query_selector_all(
-                            "button[type='submit'], button:has-text('Save'), button:has-text('Create'), button:has-text('Add')"
+                            (
+                                "button[type='submit'], button:has-text('Save'), "
+                                "button:has-text('Create'), button:has-text('Add')"
+                            )
                         )
                         submit_button = next(
                             (btn for btn in submit_buttons if btn.is_visible()), None

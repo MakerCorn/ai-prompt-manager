@@ -51,7 +51,8 @@ class BaseDatabaseManager(ABC):
         """Validate database configuration."""
         if self.config.db_type == DatabaseType.POSTGRES and not POSTGRES_AVAILABLE:
             raise ConfigurationException(
-                "PostgreSQL support requires psycopg2 package. Install with: pip install psycopg2-binary"
+                "PostgreSQL support requires psycopg2 package. "
+                "Install with: pip install psycopg2-binary"
             )
 
         self.config.validate()
@@ -290,7 +291,8 @@ class BaseDatabaseManager(ABC):
 
         except Exception as e:
             self.logger.error(
-                f"Error checking if column {column_name} exists in {table_name}: {str(e)}"
+                f"Error checking if column {column_name} exists in "
+                f"{table_name}: {str(e)}"
             )
             return False
 

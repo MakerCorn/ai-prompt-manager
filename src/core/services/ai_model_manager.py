@@ -467,7 +467,10 @@ class AIModelManager:
             )
 
         # Sort by score (higher is better)
-        recommendations.sort(key=lambda x: x["score"], reverse=True)
+        recommendations.sort(
+            key=lambda x: x["score"] if isinstance(x["score"], (int, float)) else 0.0,
+            reverse=True,
+        )
 
         return recommendations[:5]  # Return top 5 recommendations
 

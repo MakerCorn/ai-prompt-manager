@@ -4,7 +4,6 @@ Test script for API integration
 Tests the combined FastAPI web application with API endpoints including language management
 """
 
-import json
 import os
 import time
 
@@ -237,7 +236,7 @@ def test_api_endpoints(base_port=None, api_port=None):
                     try:
                         data = response.json()
                         print(f"   Switch result: {data.get('success', 'unknown')}")
-                    except:
+                    except (ValueError, KeyError):
                         pass
             else:
                 print(f"⚠️ Language switch endpoint returned: {response.status_code}")
@@ -258,7 +257,7 @@ def test_api_endpoints(base_port=None, api_port=None):
                     print(
                         f"   Validation coverage: {validation_data.get('coverage', 'N/A')}%"
                     )
-                except:
+                except (ValueError, KeyError):
                     pass
             else:
                 print(
@@ -291,7 +290,7 @@ def test_api_endpoints(base_port=None, api_port=None):
                             json=cleanup_data,
                             timeout=2,
                         )
-                except:
+                except (ValueError, KeyError, Exception):
                     pass
             else:
                 print(f"⚠️ Language creation endpoint returned: {response.status_code}")
@@ -307,7 +306,7 @@ def test_api_endpoints(base_port=None, api_port=None):
             manager = get_language_manager()
             available_languages = manager.get_available_languages()
 
-            print(f"✅ Language manager integration working")
+            print("✅ Language manager integration working")
             print(f"   Available languages: {list(available_languages.keys())}")
             print(f"   Current language: {manager.get_current_language()}")
 

@@ -179,7 +179,10 @@ def validate_prompt_name(name: str, max_length: int = 100) -> bool:
     # Character validation - allow letters, numbers, spaces, hyphens, underscores
     if not re.match(r"^[a-zA-Z0-9\s\-_]+$", name):
         raise ValidationException(
-            "Prompt name can only contain letters, numbers, spaces, hyphens, and underscores"
+            (
+                "Prompt name can only contain letters, numbers, spaces, "
+                "hyphens, and underscores"
+            )
         )
 
     # Cannot start or end with special characters
@@ -311,7 +314,10 @@ def validate_category(
 
     if category not in allowed_categories:
         raise ValidationException(
-            f"Invalid category '{category}'. Allowed categories: {', '.join(allowed_categories)}"
+            (
+                f"Invalid category '{category}'. Allowed categories: "
+                f"{', '.join(allowed_categories)}"
+            )
         )
 
     return True
@@ -517,7 +523,10 @@ def validate_api_token_name(name: str) -> bool:
     # Allow letters, numbers, spaces, hyphens, underscores
     if not re.match(r"^[a-zA-Z0-9\s\-_]+$", name):
         raise ValidationException(
-            "Token name can only contain letters, numbers, spaces, hyphens, and underscores"
+            (
+                "Token name can only contain letters, numbers, spaces, "
+                "hyphens, and underscores"
+            )
         )
 
     return True

@@ -956,6 +956,8 @@ class WebUIE2ETest(unittest.TestCase):
             initial_theme = self.page.evaluate(
                 "document.documentElement.getAttribute('data-theme')"
             )
+            # Verify we have a valid initial theme
+            assert initial_theme in [None, "light", "dark", "system"]
 
             # Click theme toggle to go to dark
             self.page.click(".theme-toggle")
@@ -1062,7 +1064,7 @@ class WebUIE2ETest(unittest.TestCase):
             # Verify the actual applied theme matches system preference
             computed_theme = self.page.evaluate(
                 """
-                document.documentElement.getAttribute('data-theme') === 'system' ? 
+                document.documentElement.getAttribute('data-theme') === 'system' ?
                     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') :
                     document.documentElement.getAttribute('data-theme')
             """
@@ -1109,6 +1111,10 @@ class WebUIE2ETest(unittest.TestCase):
             # Get current theme attribute
             current_theme = self.page.evaluate(
                 "document.documentElement.getAttribute('data-theme')"
+            )
+            # Verify the theme matches expected mode
+            assert current_theme == theme_mode or (
+                current_theme is None and theme_mode == "light"
             )
 
             if theme_mode == "light":

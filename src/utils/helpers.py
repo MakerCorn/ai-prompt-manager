@@ -399,7 +399,10 @@ def extract_urls(text: str) -> List[str]:
     Returns:
         List of extracted URLs
     """
-    url_pattern = r"https?://(?:[-\w.])+(?:[:\d]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:#(?:\w.))?)?"
+    url_pattern = (
+        r"https?://(?:[-\w.])+(?:[:\d]+)?"
+        r"(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:#(?:\w.))?)?"
+    )
     return re.findall(url_pattern, text)
 
 

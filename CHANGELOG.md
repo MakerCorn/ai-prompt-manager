@@ -1,5 +1,59 @@
 # Changelog
 
+## [Unreleased] - TBD
+
+### 🏷️ Comprehensive Tagging System
+- **Multi-Entity Tag Support**: Unified tagging system for both prompts and templates
+  - **Tag Management**: Add, remove, and modify tags across all entities
+  - **Cross-Entity Search**: Search prompts and templates using the same tag vocabulary
+  - **Unified Display**: Consistent tag visualization across all UI components
+  - **Data Integrity**: Tag normalization and validation to ensure consistency
+- **Advanced Search Capabilities**: Sophisticated tag-based filtering and discovery
+  - **Boolean Logic**: Support for both AND and OR search logic
+  - **Multi-Tag Filtering**: Filter by multiple tags simultaneously
+  - **Entity-Specific Search**: Search within prompts only, templates only, or both
+  - **Performance Optimization**: Efficient database queries for fast search results
+- **Intelligent Auto-Complete**: Smart tag suggestions and input assistance
+  - **Real-Time Suggestions**: Dynamic tag suggestions as you type
+  - **Existing Tag Detection**: Suggest from existing tags in the system
+  - **Fuzzy Matching**: Find tags even with partial or approximate input
+  - **Limit Controls**: Configurable suggestion limits for optimal UX
+- **Comprehensive Analytics**: Detailed tag usage statistics and insights
+  - **Usage Statistics**: Track tag frequency across prompts and templates
+  - **Popular Tags**: Identify most commonly used tags
+  - **Versatile Tags**: Find tags used across both prompts and templates
+  - **Distribution Analysis**: Understand tag usage patterns and trends
+- **Modern UI Components**: Enhanced user interface for tag management
+  - **Tag Input Component**: Modern tag input with auto-complete and validation
+  - **Visual Tag Display**: Clean, accessible tag badges with proper spacing
+  - **Interactive Elements**: Click-to-remove tags and keyboard navigation
+  - **Mobile Responsive**: Touch-friendly tag interface for mobile devices
+- **REST API Integration**: Complete programmatic access to tag functionality
+  - **6 API Endpoints**: Full CRUD operations plus analytics and suggestions
+  - **Tag Statistics API**: Programmatic access to usage analytics
+  - **Search API**: Flexible tag-based search with multiple parameters
+  - **Auto-Complete API**: Tag suggestion service for external integrations
+
+### ✨ GitHub Format Support
+- **GitHub YAML Import/Export**: Full support for GitHub's standard prompt format
+  - **YAML Structure**: Support for messages array with system/user/assistant roles
+  - **Model Parameters**: Import/export of model configuration (temperature, max_tokens, etc.)
+  - **Automatic Name Generation**: Smart prompt naming from content when not specified
+  - **Content Parsing**: Intelligent parsing of existing prompts to message format
+  - **Format Validation**: Comprehensive validation of GitHub YAML structure
+- **API Endpoints**: RESTful API for GitHub format operations
+  - `POST /api/ai-models/github/import` - Import prompts from GitHub YAML
+  - `GET /api/ai-models/github/export/{id}` - Export prompts to GitHub YAML
+  - `GET /api/ai-models/github/info` - Get format specification and examples
+- **File Operations**: Bulk import/export from directories
+  - **Directory Import**: Scan and import all GitHub format files from a directory
+  - **Batch Export**: Export multiple prompts to individual YAML files
+  - **Format Detection**: Automatic detection of GitHub format files
+- **Integration**: Seamless integration with existing prompt management system
+  - **Metadata Preservation**: Maintain GitHub-specific metadata in prompt objects
+  - **Legacy Compatibility**: Full backward compatibility with existing prompt formats
+  - **Database Storage**: Store GitHub format data alongside traditional prompts
+
 ## [0.5.7] - 2025-07-07
 
 ### 🎨 Comprehensive Theme System Implementation

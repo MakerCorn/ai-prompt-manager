@@ -179,6 +179,12 @@ cython_debug/
 .pypirc
 
 prompts.db
+test.db
+test_check.db
+*.db
+
+# Debug and temporary files
+debug_response.html
 
 # Claude Code files
 .claude/

@@ -7,9 +7,8 @@ import json
 import os
 import tempfile
 import threading
-import time
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -472,6 +471,8 @@ class TestLanguageManager:
 
         # Should have at least default language loaded
         assert len(language_manager._loaded_languages) >= 1
+        # Verify reload actually cleared and reloaded languages
+        assert len(language_manager._loaded_languages) <= initial_loaded
         assert language_manager.current_language == "en"
 
     def test_get_language_stats(self, language_manager):

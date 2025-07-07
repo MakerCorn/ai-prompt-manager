@@ -51,6 +51,11 @@ poetry run python tests/integration/test_ai_services_api_integration.py  # AI se
 poetry run python tests/integration/test_ai_database_integration.py      # AI database operations
 poetry run python tests/e2e/test_enhanced_ai_services_e2e.py            # Enhanced AI services E2E tests
 
+# Testing - Tagging System
+poetry run python tests/unit/test_tag_management.py                      # Tag management unit tests
+poetry run python tests/integration/test_tag_api_simple.py               # Tag API integration tests
+poetry run python tests/e2e/test_tagging_system_e2e.py                  # Tagging system E2E tests
+
 # Docker testing
 ./scripts/docker-test.sh          # Full Docker validation
 docker-compose up -d              # Development stack
@@ -569,6 +574,16 @@ print('✅ Language system operational')
 - **4 Templates**: Sequential, Sections, Layered, Custom
 - **Live Preview**: Real-time combination preview
 - **Integration**: Works with token calculator and optimization
+
+### Comprehensive Tagging System
+- **Multi-Entity Support**: Tags for both prompts and templates with unified management
+- **Advanced Search**: Tag-based search with AND/OR logic for precise filtering
+- **Auto-Complete**: Intelligent tag suggestions based on existing tags
+- **Tag Statistics**: Usage analytics showing popular tags and distribution
+- **Visual UI Components**: Modern tag input with real-time validation and display
+- **API Integration**: Complete REST API with 6 endpoints for programmatic tag management
+- **Database Schema**: Optimized tag storage with efficient search indexing
+- **Tag Analysis**: Comprehensive analytics including versatile tags and usage patterns
 
 ## Development Guidelines
 

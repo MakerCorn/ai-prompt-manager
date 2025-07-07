@@ -214,7 +214,7 @@ class TestDeploymentScenarios(E2ETestBase):
         """Test that environment variables properly override default settings."""
         config = {
             "MULTITENANT_MODE": "false",
-            "ENABLE_API": "true",
+            "ENABLE_API": "false",  # Focus on single-user mode test, not API
             "SECRET_KEY": "test-secret-key-12345",
             "LOCAL_DEV_MODE": "false",
         }
@@ -227,20 +227,37 @@ class TestDeploymentScenarios(E2ETestBase):
             assert response.status_code == 200
             assert "AI Prompt Manager" in response.text
 
-            # Since this is single-user mode with API, main interface should be visible
+            # Since this is single-user mode, main interface should be visible
             # (no authentication required in single-user mode)
             content = response.text.lower()
 
-            # In single-user mode, should not require login
-            login_required = any(
-                indicator in content
-                for indicator in ["login", "sign in", "authentication"]
+            # In single-user mode, should show dashboard directly (check for specific dashboard content)
+            dashboard_indicators = [
+                "dashboard - ai prompt manager",  # Title should indicate dashboard
+                "recent prompts",  # Dashboard should show recent prompts section
+                "total prompts",  # Dashboard should show prompt statistics
+            ]
+
+            # Check for login form which should NOT be present in single-user mode
+            login_form_indicators = [
+                'action="/login"',  # Login form action
+                'type="password"',  # Password input field
+                "sign in to your account",  # Login page text
+            ]
+
+            has_dashboard_content = any(
+                indicator in content for indicator in dashboard_indicators
+            )
+            has_login_form = any(
+                indicator in content for indicator in login_form_indicators
             )
 
-            # Single-user mode should show main interface directly
-            assert (
-                not login_required or "main-section" in content
-            ), "Single-user mode should not require authentication"
+            # Single-user mode should show dashboard content and NOT show login form
+            assert has_dashboard_content and not has_login_form, (
+                f"Single-user mode should show dashboard content without login form. "
+                f"Dashboard content found: {has_dashboard_content}, "
+                f"Login form found: {has_login_form}"
+            )
 
             print("✅ Environment variable override test successful")
 

@@ -22,6 +22,10 @@ sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
+from auth_manager import AuthManager  # noqa: E402
+from release_manager import ReleaseManager  # noqa: E402
+from web_app import create_web_app  # noqa: E402
+
 try:
     from playwright.sync_api import sync_playwright
 
@@ -29,10 +33,6 @@ try:
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
     print("⚠️  Playwright not available. Install with: poetry install --with e2e")
-
-from auth_manager import AuthManager
-from release_manager import ReleaseManager
-from web_app import create_web_app
 
 
 def _run_release_test_server(db_path, port):
@@ -149,7 +149,12 @@ class ReleaseSystemE2ETest(unittest.TestCase):
             {
                 "version": "2.1.0",
                 "title": "Enhanced AI Features",
-                "description": "This release includes new AI model support, improved prompt optimization, and enhanced user interface. Features include multi-model comparison, advanced template system, and performance improvements.",
+                "description": (
+                    "This release includes new AI model support, improved prompt "
+                    "optimization, and enhanced user interface. Features include "
+                    "multi-model comparison, advanced template system, and performance "
+                    "improvements."
+                ),
                 "is_major": False,
                 "is_featured": True,
                 "changelog_url": "https://github.com/makercorn/ai-prompt-manager/releases/tag/v2.1.0",
@@ -157,7 +162,11 @@ class ReleaseSystemE2ETest(unittest.TestCase):
             {
                 "version": "2.0.0",
                 "title": "Major Architecture Update",
-                "description": "Complete redesign of the application architecture with new FastAPI backend, modern React frontend, and enhanced multi-tenant support. Breaking changes include new API endpoints and database schema updates.",
+                "description": (
+                    "Complete redesign of the application architecture with new FastAPI "
+                    "backend, modern React frontend, and enhanced multi-tenant support. "
+                    "Breaking changes include new API endpoints and database schema updates."
+                ),
                 "is_major": True,
                 "is_featured": True,
                 "changelog_url": "https://github.com/makercorn/ai-prompt-manager/releases/tag/v2.0.0",
@@ -166,7 +175,11 @@ class ReleaseSystemE2ETest(unittest.TestCase):
             {
                 "version": "1.5.2",
                 "title": "Bug Fixes and Improvements",
-                "description": "Minor update with bug fixes, security improvements, and performance optimizations. Includes fixes for prompt execution, template handling, and user authentication.",
+                "description": (
+                    "Minor update with bug fixes, security improvements, and "
+                    "performance optimizations. Includes fixes for prompt execution, "
+                    "template handling, and user authentication."
+                ),
                 "is_major": False,
                 "is_featured": False,
                 "changelog_url": "https://github.com/makercorn/ai-prompt-manager/releases/tag/v1.5.2",

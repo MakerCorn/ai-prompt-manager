@@ -65,9 +65,8 @@ try:
 except ImportError:
     pass
 
-print(
-    f"📊 Available optimization services: {[k for k, v in SERVICES_AVAILABLE.items() if v]}"
-)
+available_services = [k for k, v in SERVICES_AVAILABLE.items() if v]
+print(f"📊 Available optimization services: {available_services}")
 
 
 @dataclass
@@ -120,7 +119,7 @@ class PromptOptimizer:
         """Initialize the selected optimization service"""
         if self.service not in self.services_available:
             logging.warning(
-                f"⚠️  Service '{self.service}' not available, falling back to builtin"
+                f"⚠️  Service '{self.service}' not available, " "falling back to builtin"
             )
             self.service = "builtin"
 
@@ -134,7 +133,8 @@ class PromptOptimizer:
 
         if not api_key:
             logging.warning(
-                f"⚠️  {self.service.title()} API key not found, falling back to builtin"
+                f"⚠️  {self.service.title()} API key not found, "
+                "falling back to builtin"
             )
             self.service = "builtin"
             self.initialized = True
@@ -189,10 +189,14 @@ class PromptOptimizer:
                 original_prompt=original_prompt,
                 optimization_score=0.0,
                 suggestions=[f"{self.service.title()} optimization not available"],
-                reasoning=f"{self.service.title()} is not properly configured or available",
+                reasoning=(
+                    f"{self.service.title()} is not properly configured " "or available"
+                ),
                 timestamp=datetime.now(),
                 success=False,
-                error_message=f"{self.service.title()} not available or not configured",
+                error_message=(
+                    f"{self.service.title()} not available or not configured"
+                ),
             )
 
         try:
@@ -203,7 +207,7 @@ class PromptOptimizer:
                     original_prompt=original_prompt,
                     optimization_score=0.0,
                     suggestions=["Empty prompt provided - cannot optimize"],
-                    reasoning="Cannot optimize empty or whitespace-only prompts",
+                    reasoning=("Cannot optimize empty or whitespace-only prompts"),
                     timestamp=datetime.now(),
                     success=False,
                     error_message="Empty prompt provided",
@@ -463,7 +467,8 @@ class PromptOptimizer:
 
         # Length improvement
         if len(optimized) > len(original) and len(original) > 0:
-            score += min(20, (len(optimized) - len(original)) / len(original) * 100)
+            length_ratio = (len(optimized) - len(original)) / len(original)
+            score += min(20, length_ratio * 100)
 
         # Structure indicators
         structure_words = ["step", "first", "then", "format", "organize", "structure"]
@@ -497,16 +502,21 @@ class PromptOptimizer:
 
         # Rule 1: Add structure if missing and "structure" in goals
         if "structure" in goals or "clarity" in goals:
-            if not any(
-                word in prompt.lower() for word in ["step", "first", "then", "finally"]
-            ):
+            structure_words = ["step", "first", "then", "finally"]
+            if not any(word in prompt.lower() for word in structure_words):
                 if len(prompt) > 100:
-                    optimized = f"Please follow these steps:\n\n{optimized}\n\nProvide a structured response."
+                    optimized = (
+                        f"Please follow these steps:\n\n{optimized}\n\n"
+                        "Provide a structured response."
+                    )
 
         # Rule 2: Add context if very short and "effectiveness" in goals
         if "effectiveness" in goals:
             if len(prompt.strip()) < 20:
-                optimized = f"You are an AI assistant. {optimized} Please provide a detailed and helpful response."
+                optimized = (
+                    f"You are an AI assistant. {optimized} "
+                    "Please provide a detailed and helpful response."
+                )
 
         # Rule 3: Add specificity
         if "specificity" in goals or "clarity" in goals:
@@ -517,18 +527,20 @@ class PromptOptimizer:
 
         # Rule 4: Add output format if missing
         if "structure" in goals:
+            format_words = ["format", "structure", "organize"]
             if len(prompt) > 50 and not any(
-                word in prompt.lower() for word in ["format", "structure", "organize"]
+                word in prompt.lower() for word in format_words
             ):
-                optimized += "\n\nPlease organize your response clearly with appropriate formatting."
+                optimized += (
+                    "\n\nPlease organize your response clearly with "
+                    "appropriate formatting."
+                )
 
         # Rule 5: Add role definition for complex tasks
         if "effectiveness" in goals:
             if len(prompt) > 100 and not prompt.lower().startswith("you are"):
-                if any(
-                    word in prompt.lower()
-                    for word in ["analyze", "write", "create", "develop"]
-                ):
+                task_words = ["analyze", "write", "create", "develop"]
+                if any(word in prompt.lower() for word in task_words):
                     optimized = f"You are an expert assistant. {optimized}"
 
         return optimized.strip()
@@ -550,7 +562,9 @@ class PromptOptimizer:
 
         # Add PromptPerfect-specific enhancements for creativity
         if "creativity" in goals:
-            optimized = f"Think creatively and provide innovative insights. {optimized}"
+            optimized = (
+                f"Think creatively and provide innovative insights. " f"{optimized}"
+            )
 
         return optimized
 
@@ -577,7 +591,7 @@ class PromptOptimizer:
     def _generate_suggestions(
         self, original: str, optimized: str, service: str
     ) -> List[str]:
-        f"""Generate optimization suggestions for {service}"""
+        """Generate optimization suggestions for the specified service"""
 
         suggestions = []
 
@@ -605,7 +619,7 @@ class PromptOptimizer:
         return suggestions
 
     def _generate_reasoning(self, original: str, optimized: str, service: str) -> str:
-        f"""Generate reasoning for the optimization using {service}"""
+        """Generate reasoning for the optimization using the specified service"""
 
         improvements = []
 
@@ -619,17 +633,37 @@ class PromptOptimizer:
             improvements.append("added structural elements for clarity")
 
         if improvements:
-            base_reasoning = f"The {service} optimization {', '.join(improvements)} to enhance effectiveness and clarity."
+            base_reasoning = (
+                f"The {service} optimization {', '.join(improvements)} "
+                "to enhance effectiveness and clarity."
+            )
         else:
-            base_reasoning = f"Applied {service} optimization techniques to improve clarity and effectiveness."
+            base_reasoning = (
+                f"Applied {service} optimization techniques to improve "
+                "clarity and effectiveness."
+            )
 
         # Add service-specific reasoning
         service_notes = {
-            "langwatch": "Used enterprise-grade analytics to identify improvement opportunities.",
-            "promptperfect": "Applied specialized refinement algorithms for optimal prompt structure.",
-            "langsmith": "Leveraged LangChain ecosystem best practices for workflow integration.",
-            "helicone": "Incorporated observability-focused optimizations for better monitoring.",
-            "builtin": "Used rule-based optimization with proven improvement patterns.",
+            "langwatch": (
+                "Used enterprise-grade analytics to identify improvement "
+                "opportunities."
+            ),
+            "promptperfect": (
+                "Applied specialized refinement algorithms for optimal "
+                "prompt structure."
+            ),
+            "langsmith": (
+                "Leveraged LangChain ecosystem best practices for "
+                "workflow integration."
+            ),
+            "helicone": (
+                "Incorporated observability-focused optimizations for "
+                "better monitoring."
+            ),
+            "builtin": (
+                "Used rule-based optimization with proven improvement " "patterns."
+            ),
         }
 
         return f"{base_reasoning} {service_notes.get(service, '')}"

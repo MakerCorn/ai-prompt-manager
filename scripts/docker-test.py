@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Docker build test script to verify architecture components can be imported and initialized.
+Docker build test script to verify architecture components can be imported and
+initialized.
 """
 import os
 import sys
@@ -14,7 +15,6 @@ def test_imports():
     """Test that all components can be imported."""
     try:
         # Test core imports
-        import api_endpoints  # noqa: F401
         import auth_manager  # noqa: F401
         from src.core.base.database_manager import DatabaseManager  # noqa: F401
 

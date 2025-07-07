@@ -217,10 +217,14 @@ class PromptRepository(TenantAwareRepository[Prompt]):
             params.append(f"%{search_term}%")
 
         # Build query
-        where_clause = f"tenant_id = {'%s' if self.db_manager.config.db_type.value == 'postgres' else '?'}"
+        postgres_param = (
+            "%s" if self.db_manager.config.db_type.value == "postgres" else "?"
+        )
+        where_clause = f"tenant_id = {postgres_param}"
         where_clause += f" AND ({' OR '.join(conditions)})"
 
-        query = f"SELECT * FROM prompts WHERE {where_clause}"  # nosec B608: where_clause is built from controlled parameters
+        # nosec B608: where_clause is built from controlled parameters
+        query = f"SELECT * FROM prompts WHERE {where_clause}"
         if limit:
             query += f" LIMIT {limit}"
 
@@ -237,7 +241,10 @@ class PromptRepository(TenantAwareRepository[Prompt]):
         """
         self._ensure_tenant_context()
 
-        query = "SELECT DISTINCT category FROM prompts WHERE tenant_id = ? ORDER BY category"
+        query = (
+            "SELECT DISTINCT category FROM prompts WHERE tenant_id = ? "
+            "ORDER BY category"
+        )
         if self.db_manager.config.db_type.value == "postgres":
             query = query.replace("?", "%s")
 
@@ -256,7 +263,10 @@ class PromptRepository(TenantAwareRepository[Prompt]):
         """
         self._ensure_tenant_context()
 
-        query = "SELECT DISTINCT tags FROM prompts WHERE tenant_id = ? AND tags IS NOT NULL AND tags != ''"
+        query = (
+            "SELECT DISTINCT tags FROM prompts WHERE tenant_id = ? "
+            "AND tags IS NOT NULL AND tags != ''"
+        )
         if self.db_manager.config.db_type.value == "postgres":
             query = query.replace("?", "%s")
 
@@ -293,7 +303,10 @@ class PromptRepository(TenantAwareRepository[Prompt]):
         total_prompts = total_result["count"] if total_result else 0
 
         # Enhancement prompts
-        enhancement_query = "SELECT COUNT(*) as count FROM prompts WHERE tenant_id = ? AND is_enhancement_prompt = ?"
+        enhancement_query = (
+            "SELECT COUNT(*) as count FROM prompts WHERE tenant_id = ? "
+            "AND is_enhancement_prompt = ?"
+        )
         if self.db_manager.config.db_type.value == "postgres":
             enhancement_query = enhancement_query.replace("?", "%s")
 

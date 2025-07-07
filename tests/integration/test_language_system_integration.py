@@ -4,18 +4,15 @@ Testing integration between LanguageManager, web application, and user workflows
 """
 
 import json
-import os
 import tempfile
-import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-import requests
 from fastapi.testclient import TestClient
 
 # Import components to test
-from language_manager import LanguageManager, get_language_manager
+from language_manager import LanguageManager
 from text_translator import TextTranslator
 from web_app import create_web_app
 
@@ -518,7 +515,6 @@ class TestLanguageSystemIntegration:
     def test_memory_usage_stability(self, language_manager_with_data):
         """Test memory usage remains stable during operations"""
         import gc
-        import sys
 
         # Force garbage collection
         gc.collect()
@@ -531,12 +527,15 @@ class TestLanguageSystemIntegration:
 
             # Translate text
             text = language_manager_with_data.t("app.title")
+            assert text  # Ensure translation works
 
             # Validate languages
             validation = language_manager_with_data.validate_language_file("fr")
+            assert validation is not None  # Ensure validation runs
 
             # Get stats
             stats = language_manager_with_data.get_language_stats()
+            assert stats  # Ensure stats are returned
 
         # Force garbage collection again
         gc.collect()

@@ -5,7 +5,8 @@ Copyright (c) 2025 MakerCorn
 
 Authentication and user management system with SSO/ADFS support
 
-This software is licensed for non-commercial use only. See LICENSE file for details.
+This software is licensed for non-commercial use only.
+See LICENSE file for details.
 """
 
 import hashlib
@@ -44,6 +45,7 @@ class User:
     is_active: bool
     created_at: datetime
     last_login: Optional[datetime] = None
+    tenant_name: Optional[str] = None  # For admin views
 
 
 @dataclass
@@ -54,6 +56,7 @@ class Tenant:
     is_active: bool
     created_at: datetime
     max_users: int = 100
+    user_count: Optional[int] = None  # For admin views
 
 
 class AuthManager:
@@ -65,7 +68,7 @@ class AuthManager:
             self.dsn = os.getenv("POSTGRES_DSN")
             if not self.dsn:
                 raise ValueError(
-                    "POSTGRES_DSN environment variable must be set for Postgres."
+                    "POSTGRES_DSN environment variable must be set for " "Postgres."
                 )
         else:
             self.db_path = db_path or os.getenv("DB_PATH", "prompts.db")
@@ -797,7 +800,10 @@ class AuthManager:
             "response_mode": "query",
         }
 
-        base_url = f"https://login.microsoftonline.com/{self.entra_tenant_id}/oauth2/v2.0/authorize"
+        base_url = (
+            f"https://login.microsoftonline.com/{self.entra_tenant_id}"
+            "/oauth2/v2.0/authorize"
+        )
         return f"{base_url}?{urlencode(params)}"
 
     def handle_sso_callback(
@@ -849,7 +855,8 @@ class AuthManager:
                 cursor = conn.cursor()
                 if self.db_type == "postgres":
                     cursor.execute(
-                        "SELECT id FROM tenants WHERE subdomain = %s AND is_active = TRUE",
+                        "SELECT id FROM tenants WHERE subdomain = %s "
+                        "AND is_active = TRUE",
                         (subdomain,),
                     )
                 else:
@@ -878,7 +885,8 @@ class AuthManager:
                 cursor.execute(
                     """
                     SELECT * FROM users
-                    WHERE (email = %s OR sso_id = %s) AND tenant_id = %s AND is_active = TRUE
+                    WHERE (email = %s OR sso_id = %s) AND tenant_id = %s
+                    AND is_active = TRUE
                 """,
                     (email, sso_id, tenant_id),
                 )
@@ -1223,7 +1231,10 @@ class AuthManager:
                 "scope": " ".join(self.entra_scopes),
             }
 
-            token_url = f"https://login.microsoftonline.com/{self.entra_tenant_id}/oauth2/v2.0/token"
+            token_url = (
+                f"https://login.microsoftonline.com/{self.entra_tenant_id}"
+                "/oauth2/v2.0/token"
+            )
             token_response = requests.post(token_url, data=token_data, timeout=30)
             token_response.raise_for_status()
             tokens = token_response.json()
@@ -1252,7 +1263,8 @@ class AuthManager:
                 cursor = conn.cursor()
                 if self.db_type == "postgres":
                     cursor.execute(
-                        "SELECT id FROM tenants WHERE subdomain = %s AND is_active = TRUE",
+                        "SELECT id FROM tenants WHERE subdomain = %s "
+                        "AND is_active = TRUE",
                         (subdomain,),
                     )
                 else:
@@ -1280,7 +1292,8 @@ class AuthManager:
                 cursor.execute(
                     """
                     SELECT * FROM users
-                    WHERE (email = %s OR sso_id = %s) AND tenant_id = %s AND is_active = TRUE
+                    WHERE (email = %s OR sso_id = %s) AND tenant_id = %s
+                    AND is_active = TRUE
                 """,
                     (email, object_id, tenant_id),
                 )
@@ -1358,7 +1371,7 @@ class AuthManager:
                 success, message = self.create_user(
                     tenant_id=tenant_id,
                     email=email,
-                    password="",  # nosec B106: No password for Entra ID users is intentional
+                    password="",  # nosec B106: No password for Entra ID users
                     first_name=first_name,
                     last_name=last_name,
                     role="user",
@@ -1447,7 +1460,10 @@ class AuthManager:
             # Test Azure OpenAI if configured
             if "azure_openai" in azure_config:
                 config = azure_config["azure_openai"]
-                test_url = f"{config['endpoint']}/openai/models?api-version={config['api_version']}"
+                test_url = (
+                    f"{config['endpoint']}/openai/models"
+                    f"?api-version={config['api_version']}"
+                )
                 headers = {
                     "api-key": str(config["api_key"]),
                     "Content-Type": "application/json",
@@ -1540,7 +1556,8 @@ class AuthManager:
             # API tokens
             try:
                 cursor.execute(
-                    "SELECT COUNT(*) FROM api_tokens WHERE expires_at > ? OR expires_at IS NULL",
+                    "SELECT COUNT(*) FROM api_tokens WHERE expires_at > ? "
+                    "OR expires_at IS NULL",
                     (datetime.now(),),
                 )
                 stats["api_tokens"] = cursor.fetchone()[0]
@@ -1549,14 +1566,15 @@ class AuthManager:
 
             return stats
 
-    def get_all_users_for_tenant(self, tenant_id: str) -> List[User]:
+    def get_all_users_for_tenant(self, tenant_id: str) -> List["User"]:
         """Get all users for a specific tenant (for admin view)"""
         with self.get_conn() as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
                 SELECT u.id, u.tenant_id, u.email, u.first_name, u.last_name,
-                       u.role, u.is_active, u.created_at, u.last_login, t.name as tenant_name
+                       u.role, u.is_active, u.created_at, u.last_login,
+                       t.name as tenant_name
                 FROM users u
                 LEFT JOIN tenants t ON u.tenant_id = t.id
                 WHERE u.tenant_id = ?
@@ -1591,7 +1609,8 @@ class AuthManager:
             cursor.execute(
                 """
                 SELECT id, name, subdomain, max_users, is_active, created_at,
-                       (SELECT COUNT(*) FROM users WHERE tenant_id = t.id AND is_active = 1) as user_count
+                       (SELECT COUNT(*) FROM users WHERE tenant_id = t.id
+                        AND is_active = 1) as user_count
                 FROM tenants t
                 WHERE id = ?
             """,
@@ -1606,10 +1625,11 @@ class AuthManager:
                     subdomain=row[2],
                     max_users=row[3],
                     is_active=bool(row[4]),
-                    created_at=datetime.fromisoformat(row[5]) if row[5] else None,
+                    created_at=(
+                        datetime.fromisoformat(row[5]) if row[5] else datetime.now()
+                    ),
+                    user_count=row[6],
                 )
-                # Add user count as extra attribute
-                tenant.user_count = row[6]
                 return tenant
 
             return None
@@ -1621,7 +1641,8 @@ class AuthManager:
             cursor.execute(
                 """
                 SELECT id, name, subdomain, max_users, is_active, created_at,
-                       (SELECT COUNT(*) FROM users WHERE tenant_id = t.id AND is_active = 1) as user_count
+                       (SELECT COUNT(*) FROM users WHERE tenant_id = t.id
+                        AND is_active = 1) as user_count
                 FROM tenants t
                 WHERE subdomain = ?
             """,
@@ -1636,10 +1657,11 @@ class AuthManager:
                     subdomain=row[2],
                     max_users=row[3],
                     is_active=bool(row[4]),
-                    created_at=datetime.fromisoformat(row[5]) if row[5] else None,
+                    created_at=(
+                        datetime.fromisoformat(row[5]) if row[5] else datetime.now()
+                    ),
+                    user_count=row[6],
                 )
-                # Add user count as extra attribute
-                tenant.user_count = row[6]
                 return tenant
 
             return None

@@ -21,6 +21,8 @@ from src.core.config.ai_model_config import (
     OperationType,
 )
 from src.core.services.ai_model_manager import get_model_manager
+from src.prompts.models.prompt import Prompt
+from src.utils.github_format import GitHubFormatHandler
 
 logger = logging.getLogger(__name__)
 
@@ -102,11 +104,17 @@ def get_current_user(request: Request) -> Dict[str, Any]:
     if not session_token:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    user_info = auth_manager.get_user_by_session_token(session_token)
-    if not user_info:
+    # Validate session token and get user
+    is_valid, user = auth_manager.validate_session(session_token)
+    if not is_valid or not user:
         raise HTTPException(status_code=401, detail="Invalid session")
 
-    return user_info
+    return {
+        "user_id": user.id,
+        "tenant_id": user.tenant_id,
+        "email": user.email,
+        "role": user.role,
+    }
 
 
 def get_data_manager(
@@ -367,7 +375,7 @@ async def get_providers() -> Dict[str, Any]:
     providers = []
 
     for provider in AIProvider:
-        provider_info = {
+        provider_info: Dict[str, Any] = {
             "id": provider.value,
             "name": provider.value.replace("_", " ").title(),
             "supported_features": [],
@@ -592,6 +600,355 @@ async def import_configuration(
     except Exception as e:
         logger.error(f"Error importing configuration: {e}")
         raise HTTPException(status_code=500, detail="Failed to import configuration")
+
+
+# GitHub Format Endpoints
+class GitHubFormatRequest(BaseModel):
+    """Request model for GitHub format operations."""
+
+    yaml_content: str
+    name: Optional[str] = None
+    title: Optional[str] = None
+    category: str = "GitHub Import"
+
+
+class GitHubFormatResponse(BaseModel):
+    """Response model for GitHub format operations."""
+
+    success: bool
+    message: str
+    prompt_id: Optional[int] = None
+    yaml_content: Optional[str] = None
+
+
+@router.post("/github/import")
+async def import_github_format(
+    request: GitHubFormatRequest,
+    data_manager: PromptDataManager = Depends(get_data_manager),
+    user_info: Dict[str, Any] = Depends(get_current_user),
+) -> GitHubFormatResponse:
+    """
+    Import a prompt from GitHub YAML format.
+
+    Args:
+        request: GitHub format import request
+        data_manager: Data manager instance
+        user_info: Current user information
+
+    Returns:
+        Import result with prompt ID
+    """
+    try:
+        # Create prompt from GitHub format
+        prompt = Prompt.from_github_yaml(
+            request.yaml_content,
+            tenant_id=user_info["tenant_id"],
+            user_id=user_info["user_id"],
+            name=request.name,
+            title=request.title,
+            category=request.category,
+        )
+
+        # Save to database
+        data_manager.add_prompt(
+            name=prompt.name,
+            title=prompt.title,
+            content=prompt.content,
+            category=prompt.category,
+            tags=prompt.tags,
+            is_enhancement_prompt=prompt.is_enhancement_prompt,
+        )
+
+        # Extract prompt ID from result (add_prompt returns a success message)
+        # For now, we'll get the prompt by name to get its data
+        prompt_data = data_manager.get_prompt_by_name(prompt.name)
+        prompt_id = prompt_data.get("id") if prompt_data else None
+
+        # Store GitHub-specific metadata if prompt was created successfully
+        if prompt_id and prompt.metadata:
+            # Note: This would require extending the database schema
+            # to store metadata, for now we'll just return success
+            pass
+
+        return GitHubFormatResponse(
+            success=True,
+            message=f"Successfully imported prompt '{prompt.name}'",
+            prompt_id=prompt_id,
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error importing GitHub format: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to import GitHub format prompt"
+        )
+
+
+@router.get("/github/export/{prompt_id}")
+async def export_github_format(
+    prompt_id: int,
+    data_manager: PromptDataManager = Depends(get_data_manager),
+) -> GitHubFormatResponse:
+    """
+    Export a prompt to GitHub YAML format.
+
+    Args:
+        prompt_id: ID of prompt to export
+        data_manager: Data manager instance
+
+    Returns:
+        Export result with YAML content
+    """
+    try:
+        # Get prompt from database - first get all prompts and find by ID
+        all_prompts = data_manager.get_all_prompts()
+        prompt_data = None
+        for p in all_prompts:
+            if p.get("id") == prompt_id:
+                prompt_data = p
+                break
+
+        if not prompt_data:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+
+        # Convert to Prompt object
+        prompt = Prompt.from_legacy_dict(
+            prompt_data,
+            tenant_id=prompt_data.get("tenant_id", ""),
+            user_id=prompt_data.get("user_id", ""),
+        )
+
+        # Convert to GitHub format
+        yaml_content = prompt.to_github_yaml()
+
+        return GitHubFormatResponse(
+            success=True,
+            message=f"Successfully exported prompt '{prompt.name}'",
+            yaml_content=yaml_content,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error exporting GitHub format: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to export prompt to GitHub format"
+        )
+
+
+@router.get("/github/info")
+async def get_github_format_info() -> Dict[str, Any]:
+    """
+    Get information about the GitHub format.
+
+    Returns:
+        GitHub format specification and example
+    """
+    try:
+        github_handler = GitHubFormatHandler()
+        return {"success": True, "format_info": github_handler.get_format_info()}
+    except Exception as e:
+        logger.error(f"Error getting GitHub format info: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to get GitHub format information"
+        )
+
+
+# Tag Management Endpoints
+
+
+class TagSearchRequest(BaseModel):
+    """Request model for tag-based search operations."""
+
+    tags: List[str]
+    entity_type: str = "prompts"  # "prompts", "templates", "all"
+    match_all: bool = False  # True for AND logic, False for OR logic
+    include_enhancement_prompts: bool = True
+
+
+class TagSuggestionRequest(BaseModel):
+    """Request model for tag suggestions."""
+
+    partial_tag: str
+    limit: int = 5
+
+
+class TagStatisticsResponse(BaseModel):
+    """Response model for tag statistics."""
+
+    success: bool
+    statistics: Dict[str, Dict] = {}
+    popular_tags: List[Dict] = []
+
+
+@router.get("/tags")
+async def get_all_tags(
+    entity_type: str = "all",
+    data_manager: PromptDataManager = Depends(get_data_manager),
+) -> Dict[str, Any]:
+    """Get all unique tags across prompts and/or templates."""
+    try:
+        tags = data_manager.get_all_tags(entity_type)
+        return {
+            "success": True,
+            "tags": tags,
+            "count": len(tags),
+            "entity_type": entity_type,
+        }
+    except Exception as e:
+        logger.error(f"Error getting tags: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve tags")
+
+
+@router.post("/tags/search")
+async def search_by_tags(
+    request: TagSearchRequest,
+    data_manager: PromptDataManager = Depends(get_data_manager),
+) -> Dict[str, Any]:
+    """Search entities by tags with AND/OR logic."""
+    try:
+        results = data_manager.search_by_tags(
+            tags=request.tags,
+            entity_type=request.entity_type,
+            match_all=request.match_all,
+            include_enhancement_prompts=request.include_enhancement_prompts,
+        )
+
+        return {
+            "success": True,
+            "results": results,
+            "count": len(results),
+            "search_params": {
+                "tags": request.tags,
+                "entity_type": request.entity_type,
+                "match_all": request.match_all,
+                "logic": "AND" if request.match_all else "OR",
+            },
+        }
+    except Exception as e:
+        logger.error(f"Error searching by tags: {e}")
+        raise HTTPException(status_code=500, detail="Failed to search by tags")
+
+
+@router.get("/tags/statistics")
+async def get_tag_statistics(
+    data_manager: PromptDataManager = Depends(get_data_manager),
+) -> TagStatisticsResponse:
+    """Get comprehensive tag usage statistics."""
+    try:
+        statistics = data_manager.get_tag_statistics()
+        popular_tags = data_manager.get_popular_tags(entity_type="all", limit=10)
+
+        return TagStatisticsResponse(
+            success=True, statistics=statistics, popular_tags=popular_tags
+        )
+    except Exception as e:
+        logger.error(f"Error getting tag statistics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get tag statistics")
+
+
+@router.get("/tags/popular")
+async def get_popular_tags(
+    entity_type: str = "all",
+    limit: int = 10,
+    data_manager: PromptDataManager = Depends(get_data_manager),
+) -> Dict[str, Any]:
+    """Get most popular tags with usage counts."""
+    try:
+        popular_tags = data_manager.get_popular_tags(entity_type, limit)
+
+        return {
+            "success": True,
+            "popular_tags": popular_tags,
+            "entity_type": entity_type,
+            "limit": limit,
+        }
+    except Exception as e:
+        logger.error(f"Error getting popular tags: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get popular tags")
+
+
+@router.post("/tags/suggest")
+async def suggest_tags(
+    request: TagSuggestionRequest,
+    data_manager: PromptDataManager = Depends(get_data_manager),
+) -> Dict[str, Any]:
+    """Get tag suggestions based on partial input."""
+    try:
+        suggestions = data_manager.suggest_tags(request.partial_tag, request.limit)
+
+        return {
+            "success": True,
+            "suggestions": suggestions,
+            "partial_tag": request.partial_tag,
+            "count": len(suggestions),
+        }
+    except Exception as e:
+        logger.error(f"Error getting tag suggestions: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get tag suggestions")
+
+
+@router.get("/tags/analysis")
+async def analyze_tags(
+    data_manager: PromptDataManager = Depends(get_data_manager),
+) -> Dict[str, Any]:
+    """Get comprehensive tag analysis with insights."""
+    try:
+        statistics = data_manager.get_tag_statistics()
+        popular_tags = data_manager.get_popular_tags(entity_type="all", limit=20)
+
+        # Calculate insights
+        total_tags = len(statistics)
+        total_usage = sum(stats["total"] for stats in statistics.values())
+        avg_usage = total_usage / total_tags if total_tags > 0 else 0
+
+        # Find most versatile tags (used in both prompts and templates)
+        versatile_tags = [
+            {"tag": tag, "stats": stats}
+            for tag, stats in statistics.items()
+            if stats["prompts"] > 0 and stats["templates"] > 0
+        ]
+        versatile_tags.sort(key=lambda x: x["stats"]["total"], reverse=True)
+
+        # Find underutilized tags (used only once)
+        underutilized_tags = [
+            {"tag": tag, "stats": stats}
+            for tag, stats in statistics.items()
+            if stats["total"] == 1
+        ]
+
+        return {
+            "success": True,
+            "overview": {
+                "total_unique_tags": total_tags,
+                "total_tag_usage": total_usage,
+                "average_usage_per_tag": round(avg_usage, 2),
+            },
+            "popular_tags": popular_tags[:10],
+            "versatile_tags": versatile_tags[:5],
+            "underutilized_tags": len(underutilized_tags),
+            "tag_distribution": {
+                "prompt_only": len(
+                    [
+                        t
+                        for t in statistics.values()
+                        if t["prompts"] > 0 and t["templates"] == 0
+                    ]
+                ),
+                "template_only": len(
+                    [
+                        t
+                        for t in statistics.values()
+                        if t["templates"] > 0 and t["prompts"] == 0
+                    ]
+                ),
+                "both": len(versatile_tags),
+            },
+        }
+    except Exception as e:
+        logger.error(f"Error analyzing tags: {e}")
+        raise HTTPException(status_code=500, detail="Failed to analyze tags")
 
 
 # Function to include router in main app

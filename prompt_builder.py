@@ -4,7 +4,8 @@ Non-Commercial License
 Copyright (c) 2025 MakerCorn
 
 Prompt Builder Service for AI Prompt Manager
-Allows users to combine multiple existing prompts into new ones with drag-and-drop interface
+Allows users to combine multiple existing prompts into new ones with drag-and-drop
+interface
 
 This software is licensed for non-commercial use only. See LICENSE file for details.
 """

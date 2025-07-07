@@ -24,7 +24,7 @@ sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from release_manager import ReleaseManager
+from release_manager import ReleaseManager  # noqa: E402
 
 
 class TestReleaseManager(unittest.TestCase):

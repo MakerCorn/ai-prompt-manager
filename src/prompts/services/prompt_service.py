@@ -76,7 +76,10 @@ class PromptService(BaseService):
             if self.repository.name_exists(name.strip()):
                 return ServiceResult(
                     success=False,
-                    error=f"A prompt with name '{name}' already exists in your workspace",
+                    error=(
+                        f"A prompt with name '{name}' already exists in "
+                        "your workspace"
+                    ),
                     error_code="DUPLICATE_NAME",
                 )
 
@@ -115,7 +118,10 @@ class PromptService(BaseService):
             traceback.print_exc()
             return ServiceResult(
                 success=False,
-                error=f"An unexpected error occurred while creating the prompt: {str(e)}",
+                error=(
+                    f"An unexpected error occurred while creating the "
+                    f"prompt: {str(e)}"
+                ),
                 error_code="INTERNAL_ERROR",
             )
 
@@ -177,7 +183,10 @@ class PromptService(BaseService):
                 ):
                     return ServiceResult(
                         success=False,
-                        error=f"A prompt with name '{new_name}' already exists in your workspace",
+                        error=(
+                            f"A prompt with name '{new_name}' already exists "
+                            "in your workspace"
+                        ),
                         error_code="DUPLICATE_NAME",
                     )
 
@@ -375,7 +384,10 @@ class PromptService(BaseService):
             self.logger.error(f"Error retrieving enhancement prompts: {e}")
             return ServiceResult(
                 success=False,
-                error="An unexpected error occurred while retrieving enhancement prompts",
+                error=(
+                    "An unexpected error occurred while retrieving "
+                    "enhancement prompts"
+                ),
                 error_code="INTERNAL_ERROR",
             )
 
@@ -626,7 +638,10 @@ class PromptService(BaseService):
         if not re.match(r"^[a-zA-Z0-9\s\-_]+$", name.strip()):
             return ServiceResult(
                 success=False,
-                error="Prompt name can only contain letters, numbers, spaces, hyphens, and underscores",
+                error=(
+                    "Prompt name can only contain letters, numbers, spaces, "
+                    "hyphens, and underscores"
+                ),
                 error_code="VALIDATION_ERROR",
             )
 
