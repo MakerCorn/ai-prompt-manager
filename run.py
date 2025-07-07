@@ -264,7 +264,7 @@ def main():
                 version="1.0.0",
             )
 
-            # Add API endpoints
+            # Add basic API endpoints
             @api_app.get("/health")
             async def health_check():
                 return {"status": "healthy", "timestamp": datetime.now().isoformat()}
@@ -305,6 +305,26 @@ def main():
             async def prompts_options():
                 """CORS preflight support"""
                 return {"message": "OK"}
+
+            # Add Release Management endpoints
+            try:
+                from release_api_endpoints import (
+                    create_admin_release_router,
+                    create_release_router,
+                )
+
+                # Include release management routes
+                release_router = create_release_router(config["db_path"])
+                admin_release_router = create_admin_release_router(config["db_path"])
+
+                api_app.include_router(release_router)
+                api_app.include_router(admin_release_router)
+
+                print("✅ Release management API endpoints loaded")
+            except ImportError as e:
+                print(f"⚠️  Release management endpoints not available: {e}")
+            except Exception as e:
+                print(f"⚠️  Error loading release management endpoints: {e}")
 
             # Add CORS middleware
             from fastapi.middleware.cors import CORSMiddleware

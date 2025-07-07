@@ -79,7 +79,7 @@ class TestAPITokenIntegration(unittest.TestCase):
             tenant_id=self.tenant_id, **self.user_data
         )
         self.assertTrue(success, "Test user creation should succeed")
-        
+
         # Get the user_id after creation
         user = self.auth_manager.get_user_by_email(
             self.user_data["email"], self.tenant_id
@@ -159,7 +159,7 @@ class TestAPITokenIntegration(unittest.TestCase):
             role="user",
         )
         self.assertTrue(success)
-        
+
         # Get user2_id after creation
         user2 = self.auth_manager.get_user_by_email("test2@example.com", tenant2_id)
         self.assertIsNotNone(user2)
@@ -418,7 +418,7 @@ class TestAPIEndpointsIntegration(unittest.TestCase):
             role="user",
         )
         self.assertTrue(success)
-        
+
         # Get the user_id after creation
         user = self.auth_manager.get_user_by_email("test@example.com", self.tenant_id)
         self.assertIsNotNone(user)
@@ -575,7 +575,7 @@ class TestPerformanceAndScalability(unittest.TestCase):
             role="user",
         )
         self.assertTrue(success)
-        
+
         # Get the user_id after creation
         user = self.auth_manager.get_user_by_email("perf@example.com", self.tenant_id)
         self.assertIsNotNone(user)

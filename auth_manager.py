@@ -386,7 +386,7 @@ class AuthManager:
         """Create a new user
 
         Returns:
-            Tuple[bool, str]: (success, success_message) if successful, 
+            Tuple[bool, str]: (success, success_message) if successful,
                              (False, error_message) if failed
         """
         conn = self.get_conn()

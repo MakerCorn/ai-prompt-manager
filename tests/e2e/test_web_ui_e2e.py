@@ -57,7 +57,7 @@ class WebUIE2ETest(unittest.TestCase):
         success, tenant_message = cls.auth_manager.create_tenant("Test Tenant", "test")
         if not success:
             raise Exception(f"Failed to create test tenant: {tenant_message}")
-            
+
         # Get the tenant_id after creation
         tenant = cls.auth_manager.get_tenant_by_subdomain("test")
         if not tenant:
@@ -74,7 +74,7 @@ class WebUIE2ETest(unittest.TestCase):
         )
         if not success:
             raise Exception(f"Failed to create test admin user: {user_message}")
-            
+
         # Get the user_id after creation
         user = cls.auth_manager.get_user_by_email("admin@test.com", cls.tenant_id)
         if not user:
