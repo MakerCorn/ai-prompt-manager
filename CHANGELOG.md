@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - TBD
+## [0.5.8] - 2025-07-07
 
 ### 🚀 Translation System Enhancement & Button Styling Improvements
 
