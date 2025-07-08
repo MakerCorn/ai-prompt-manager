@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.5.12] - 2025-07-08
+## [0.5.13] - 2025-07-08
 
 ### 🎤 Speech Transcription Fix
 
