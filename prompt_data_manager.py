@@ -1045,7 +1045,7 @@ class PromptDataManager:
             cursor.execute(
                 """
                 SELECT id, tenant_id, user_id, name, title, content, category,
-                       tags, is_enhancement_prompt, created_at, updated_at
+                       tags, is_enhancement_prompt, visibility, created_at, updated_at
                 FROM prompts WHERE name = %s AND tenant_id = %s
             """,
                 (name.strip(), self.tenant_id),
@@ -1067,6 +1067,7 @@ class PromptDataManager:
                         if row["is_enhancement_prompt"] is not None
                         else False
                     ),
+                    "visibility": row["visibility"] if row["visibility"] is not None else "private",
                     "created_at": row["created_at"],
                     "updated_at": row["updated_at"],
                 }
@@ -1074,7 +1075,7 @@ class PromptDataManager:
             cursor.execute(
                 """
                 SELECT id, tenant_id, user_id, name, title, content, category,
-                       tags, is_enhancement_prompt, created_at, updated_at
+                       tags, is_enhancement_prompt, visibility, created_at, updated_at
                 FROM prompts WHERE name = ? AND tenant_id = ?
             """,
                 (name.strip(), self.tenant_id),

@@ -127,6 +127,13 @@
   - **Security Testing**: Penetration testing confirms proper tenant isolation
   - **Documentation**: Complete documentation for administrators and end users
 
+#### **Critical Bug Fixes**
+- **Database Query Fix**: Fixed `IndexError: tuple index out of range` in `get_prompt_by_name` method
+  - **Root Cause**: SELECT queries missing the new `visibility` field, causing index misalignment
+  - **Resolution**: Updated both PostgreSQL and SQLite SELECT statements to include visibility field
+  - **Impact**: Resolved 5 failing unit tests in `test_prompt_data_manager.py`
+  - **Validation**: All 638 unit tests now passing with 100% success rate
+
 ## [0.6.0] - 2025-07-08
 
 ### 🎤 Revolutionary Speech Dictation System
