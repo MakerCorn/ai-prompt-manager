@@ -1363,6 +1363,547 @@ class WebApp:
             except Exception as e:
                 return {"success": False, "error": str(e)}
 
+        # Rules Management Routes
+        @self.app.get("/rules", response_class=HTMLResponse)
+        async def rules_list(request: Request):
+            """Display all rules in a library format"""
+            if self.single_user_mode:
+                # Single-user mode - no authentication required
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                rules = data_manager.get_all_rules()
+                categories = list(
+                    set(rule["category"] for rule in rules if rule["category"])
+                )
+
+                return self.templates.TemplateResponse(
+                    "rules/list.html",
+                    self.get_template_context(
+                        request,
+                        user=None,
+                        rules=rules,
+                        categories=categories,
+                        page_title=t("rules.library"),
+                        single_user_mode=True,
+                    ),
+                )
+            else:
+                # Multi-tenant mode - authentication required
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+                rules = data_manager.get_all_rules()
+                categories = list(
+                    set(rule["category"] for rule in rules if rule["category"])
+                )
+
+                return self.templates.TemplateResponse(
+                    "rules/list.html",
+                    self.get_template_context(
+                        request,
+                        user,
+                        rules=rules,
+                        categories=categories,
+                        page_title=t("rules.library"),
+                        single_user_mode=False,
+                    ),
+                )
+
+        @self.app.get("/rules/new", response_class=HTMLResponse)
+        async def new_rule(request: Request):
+            """Display form to create a new rule"""
+            if self.single_user_mode:
+                # Single-user mode - no authentication required
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                rules = data_manager.get_all_rules()
+                categories = sorted(
+                    list(set(rule["category"] for rule in rules if rule["category"]))
+                )
+                if not categories:
+                    categories = [
+                        "General",
+                        "Coding",
+                        "Analysis",
+                        "Writing",
+                        "Constraints",
+                    ]
+
+                return self.templates.TemplateResponse(
+                    "rules/form.html",
+                    self.get_template_context(
+                        request,
+                        user=None,
+                        categories=categories,
+                        page_title=t("rules.create_new"),
+                        action="create",
+                        name="",
+                        title="",
+                        content="",
+                        category="",
+                        description="",
+                        tags="",
+                        rule_id=None,
+                        error=None,
+                        single_user_mode=True,
+                    ),
+                )
+            else:
+                # Multi-tenant mode - authentication required
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+                rules = data_manager.get_all_rules()
+                categories = sorted(
+                    list(set(rule["category"] for rule in rules if rule["category"]))
+                )
+                if not categories:
+                    categories = [
+                        "General",
+                        "Coding",
+                        "Analysis",
+                        "Writing",
+                        "Constraints",
+                    ]
+
+                return self.templates.TemplateResponse(
+                    "rules/form.html",
+                    self.get_template_context(
+                        request,
+                        user,
+                        categories=categories,
+                        page_title=t("rules.create_new"),
+                        action="create",
+                        name="",
+                        title="",
+                        content="",
+                        category="",
+                        description="",
+                        tags="",
+                        rule_id=None,
+                        error=None,
+                        single_user_mode=False,
+                    ),
+                )
+
+        @self.app.post("/rules/new")
+        async def create_rule(
+            request: Request,
+            name: str = Form(...),
+            title: str = Form(...),
+            content: str = Form(...),
+            category: str = Form(default="General"),
+            tags: str = Form(default=""),
+            description: str = Form(default=""),
+        ):
+            """Create a new rule"""
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                result = data_manager.add_rule(
+                    name=name,
+                    title=title,
+                    content=content,
+                    category=category or "General",
+                    tags=tags,
+                    description=description,
+                )
+
+                if "successfully" in result:
+                    return RedirectResponse(url="/rules", status_code=302)
+                else:
+                    # Error occurred
+                    rules = data_manager.get_all_rules()
+                    categories = sorted(
+                        list(
+                            set(rule["category"] for rule in rules if rule["category"])
+                        )
+                    )
+                    if not categories:
+                        categories = [
+                            "General",
+                            "Coding",
+                            "Analysis",
+                            "Writing",
+                            "Constraints",
+                        ]
+
+                    return self.templates.TemplateResponse(
+                        "rules/form.html",
+                        self.get_template_context(
+                            request,
+                            user=None,
+                            categories=categories,
+                            page_title=t("rules.create_new"),
+                            action="create",
+                            name=name,
+                            title=title,
+                            content=content,
+                            category=category,
+                            description=description,
+                            tags=tags,
+                            rule_id=None,
+                            error=result,
+                            single_user_mode=True,
+                        ),
+                    )
+            else:
+                # Multi-tenant mode
+                user = await self.get_current_user(request)
+                if not user:
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+                result = data_manager.add_rule(
+                    name=name,
+                    title=title,
+                    content=content,
+                    category=category or "General",
+                    tags=tags,
+                    description=description,
+                )
+
+                if "successfully" in result:
+                    return RedirectResponse(url="/rules", status_code=302)
+                else:
+                    # Error occurred
+                    rules = data_manager.get_all_rules()
+                    categories = sorted(
+                        list(
+                            set(rule["category"] for rule in rules if rule["category"])
+                        )
+                    )
+                    if not categories:
+                        categories = [
+                            "General",
+                            "Coding",
+                            "Analysis",
+                            "Writing",
+                            "Constraints",
+                        ]
+
+                    return self.templates.TemplateResponse(
+                        "rules/form.html",
+                        self.get_template_context(
+                            request,
+                            user,
+                            categories=categories,
+                            page_title=t("rules.create_new"),
+                            action="create",
+                            name=name,
+                            title=title,
+                            content=content,
+                            category=category,
+                            description=description,
+                            tags=tags,
+                            rule_id=None,
+                            error=result,
+                            single_user_mode=False,
+                        ),
+                    )
+
+        @self.app.get("/rules/{rule_id}/edit", response_class=HTMLResponse)
+        async def edit_rule(request: Request, rule_id: int):
+            """Display form to edit an existing rule"""
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                # Multi-tenant mode
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+
+            # Get rule by ID
+            rules = data_manager.get_all_rules()
+            rule = next((r for r in rules if r["id"] == rule_id), None)
+
+            if not rule:
+                raise HTTPException(status_code=404, detail="Rule not found")
+
+            categories = sorted(
+                list(set(r["category"] for r in rules if r["category"]))
+            )
+            if not categories:
+                categories = ["General", "Coding", "Analysis", "Writing", "Constraints"]
+
+            return self.templates.TemplateResponse(
+                "rules/form.html",
+                self.get_template_context(
+                    request,
+                    user if not self.single_user_mode else None,
+                    categories=categories,
+                    page_title=t("rules.edit"),
+                    action="edit",
+                    name=rule["name"],
+                    title=rule["title"],
+                    content=rule["content"],
+                    category=rule["category"],
+                    description=rule["description"],
+                    tags=rule["tags"],
+                    rule_id=rule_id,
+                    error=None,
+                    single_user_mode=self.single_user_mode,
+                ),
+            )
+
+        @self.app.post("/rules/{rule_id}/edit")
+        async def update_rule(
+            request: Request,
+            rule_id: int,
+            name: str = Form(...),
+            title: str = Form(...),
+            content: str = Form(...),
+            category: str = Form(default="General"),
+            tags: str = Form(default=""),
+            description: str = Form(default=""),
+        ):
+            """Update an existing rule"""
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                # Multi-tenant mode
+                user = await self.get_current_user(request)
+                if not user:
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+
+            # Get the original rule to get its name
+            rules = data_manager.get_all_rules()
+            original_rule = next((r for r in rules if r["id"] == rule_id), None)
+
+            if not original_rule:
+                raise HTTPException(status_code=404, detail="Rule not found")
+
+            result = data_manager.update_rule(
+                original_name=original_rule["name"],
+                name=name,
+                title=title,
+                content=content,
+                category=category or "General",
+                tags=tags,
+                description=description,
+            )
+
+            if "successfully" in result:
+                return RedirectResponse(url="/rules", status_code=302)
+            else:
+                # Error occurred
+                categories = sorted(
+                    list(set(r["category"] for r in rules if r["category"]))
+                )
+                if not categories:
+                    categories = [
+                        "General",
+                        "Coding",
+                        "Analysis",
+                        "Writing",
+                        "Constraints",
+                    ]
+
+                return self.templates.TemplateResponse(
+                    "rules/form.html",
+                    self.get_template_context(
+                        request,
+                        user if not self.single_user_mode else None,
+                        categories=categories,
+                        page_title=t("rules.edit"),
+                        action="edit",
+                        name=name,
+                        title=title,
+                        content=content,
+                        category=category,
+                        description=description,
+                        tags=tags,
+                        rule_id=rule_id,
+                        error=result,
+                        single_user_mode=self.single_user_mode,
+                    ),
+                )
+
+        @self.app.delete("/rules/{rule_id}")
+        async def delete_rule(request: Request, rule_id: int):
+            """Delete a rule"""
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                # Multi-tenant mode
+                user = await self.get_current_user(request)
+                if not user:
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+
+            # Get rule by ID to get its name
+            rules = data_manager.get_all_rules()
+            rule = next((r for r in rules if r["id"] == rule_id), None)
+
+            if not rule:
+                raise HTTPException(status_code=404, detail="Rule not found")
+
+            result = data_manager.delete_rule(rule["name"])
+
+            if "successfully" in result:
+                return {"success": True, "message": result}
+            else:
+                return {"success": False, "error": result}
+
+        @self.app.get("/rules/search")
+        async def search_rules(request: Request, q: str = "", category: str = "all"):
+            """Search rules with optional category filter"""
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                # Multi-tenant mode
+                user = await self.get_current_user(request)
+                if not user:
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+
+            rules = data_manager.search_rules(
+                search_term=q, category_filter=category if category != "all" else "all"
+            )
+
+            return self.templates.TemplateResponse(
+                "rules/_list_partial.html",
+                self.get_template_context(
+                    request,
+                    user if not self.single_user_mode else None,
+                    rules=rules,
+                    single_user_mode=self.single_user_mode,
+                ),
+            )
+
+        @self.app.get("/rules/filter")
+        async def filter_rules(request: Request, category: str = "all"):
+            """Filter rules by category"""
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                # Multi-tenant mode
+                user = await self.get_current_user(request)
+                if not user:
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+
+            if category == "all":
+                rules = data_manager.get_all_rules()
+            else:
+                rules = data_manager.get_rules_by_category(category)
+
+            return self.templates.TemplateResponse(
+                "rules/_list_partial.html",
+                self.get_template_context(
+                    request,
+                    user if not self.single_user_mode else None,
+                    rules=rules,
+                    single_user_mode=self.single_user_mode,
+                ),
+            )
+
+        @self.app.get("/rules/builder", response_class=HTMLResponse)
+        async def rules_builder(request: Request):
+            """Display the rules combination builder"""
+            if self.single_user_mode:
+                # Single-user mode
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                rules = data_manager.get_all_rules()
+                categories = sorted(
+                    list(set(rule["category"] for rule in rules if rule["category"]))
+                )
+
+                return self.templates.TemplateResponse(
+                    "rules/builder.html",
+                    self.get_template_context(
+                        request,
+                        user=None,
+                        rules=rules,
+                        categories=categories,
+                        page_title=t("rules.builder"),
+                        single_user_mode=True,
+                    ),
+                )
+            else:
+                # Multi-tenant mode
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
+                rules = data_manager.get_all_rules()
+                categories = sorted(
+                    list(set(rule["category"] for rule in rules if rule["category"]))
+                )
+
+                return self.templates.TemplateResponse(
+                    "rules/builder.html",
+                    self.get_template_context(
+                        request,
+                        user,
+                        rules=rules,
+                        categories=categories,
+                        page_title=t("rules.builder"),
+                        single_user_mode=False,
+                    ),
+                )
+
         # Language Management Routes
         @self.app.get("/settings/language/{language_code}", response_class=HTMLResponse)
         async def language_editor_page(request: Request, language_code: str):

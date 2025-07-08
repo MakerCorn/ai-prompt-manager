@@ -20,6 +20,51 @@ graph LR
 
 **Prompts** are instructions you give to AI systems like ChatGPT or Claude - the quality of your prompts directly impacts the quality of AI responses and your costs.
 
+### 📚 Rules Management: The Foundation of Autonomous AI Agents
+
+In today's rapidly evolving AI landscape, **Rules Management** has become the cornerstone of successful autonomous agent systems. As AI agents increasingly handle complex, multi-step tasks independently, having structured guidelines becomes critical for consistent, reliable outcomes.
+
+**Rules** are structured Markdown documents that define guidelines, constraints, and behavioral expectations for AI agents. Unlike prompts that request specific outputs, rules establish the *framework* within which agents operate - ensuring they work together harmoniously while maintaining quality standards.
+
+#### 🤖 Why Rules Matter in the Age of AI Agents
+
+```mermaid
+graph TB
+    subgraph "AI Agent Ecosystem"
+        A[Agent 1: Code Review] --> C[Shared Rules Engine]
+        B[Agent 2: Documentation] --> C
+        D[Agent 3: Testing] --> C
+        E[Agent 4: Deployment] --> C
+    end
+    
+    C --> F[Consistent Quality]
+    C --> G[Reliable Outcomes]
+    C --> H[Predictable Behavior]
+    
+    style C fill:#e3f2fd,stroke:#1976d2,stroke-width:3px,color:#000
+    style F fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style G fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style H fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+```
+
+#### 🎯 The Power of Combined Prompts + Rules
+
+Modern AI workflows require both **prompts** (what to do) and **rules** (how to do it):
+
+- **Prompts**: Define specific tasks and desired outputs
+- **Rules**: Establish quality standards, constraints, and behavioral guidelines
+- **Together**: Create autonomous agents that deliver consistent, high-quality results
+
+#### 🌍 Real-World Applications
+
+**Agentic Coding Systems** like Claude Projects, Amazon Q, and VS Code Copilot rely on rules for:
+- **Code Quality**: Enforcing style guides, security practices, and architecture patterns
+- **Documentation Standards**: Ensuring consistent, comprehensive documentation
+- **Testing Requirements**: Maintaining coverage and quality thresholds
+- **Collaboration Guidelines**: Defining how multiple agents coordinate work
+
+The combination of intelligent prompts and structured rules enables teams to scale AI assistance while maintaining the quality and consistency that enterprise environments demand.
+
 ### The Challenge vs Solution
 
 ```mermaid
@@ -49,9 +94,10 @@ graph LR
 ```
 
 ### Why Instruere?
+- **📚 Rules Management**: Structured AI agent guidance with visual combination builder
 - **💰 Cost Control**: Real-time token estimation prevents expensive mistakes
 - **🚀 Optimization**: AI-powered improvements using LangWatch, PromptPerfect, and more
-- **🧩 Builder Interface**: Drag-and-drop prompt combination
+- **🧩 Builder Interface**: Drag-and-drop prompt and rule combination
 - **🌐 Multi-Language**: 10 languages with automatic translation
 - **🏢 Enterprise Ready**: Multi-tenant with SSO, RBAC, and audit trails
 - **🔌 Developer Friendly**: Complete REST API with comprehensive documentation
@@ -66,6 +112,8 @@ graph LR
 ### 🎯 Core Features  
 - [🤖 Enhanced AI Services Configuration](#-enhanced-ai-services-configuration) - Multi-model AI setup
 - [📝 Prompt Management](#-prompt-management) - Create, organize, and manage prompts
+- [📚 Rules Management](#-rules-management) - AI agent guidance and behavioral rules
+- [🏷️ Advanced Tagging System](#️-advanced-tagging-system) - Intelligent organization and discovery
 - [🧮 Token Calculator](#-token-calculator) - Real-time cost estimation
 - [🚀 AI-Powered Optimization](#-ai-powered-optimization) - Improve prompt quality
 - [🧩 Prompt Builder](#-prompt-builder) - Drag-and-drop prompt combination
@@ -1045,6 +1093,73 @@ graph LR
 3. **🧮 Check costs** with the built-in Token Calculator
 4. **🚀 Optimize** using AI-powered suggestions (optional)
 5. **💾 Save** your prompt to the library
+
+### 🏷️ Advanced Tagging System
+
+**Intelligent organization and discovery for prompts and templates**
+
+The comprehensive tagging system provides powerful categorization and search capabilities across all content types:
+
+#### **🎯 Multi-Entity Tag Support**
+- **Unified Tagging**: Single tag vocabulary across prompts, templates, and rules
+- **Cross-Entity Search**: Find content by tags regardless of type
+- **Consistent Display**: Visual tag badges with unified styling
+- **Data Integrity**: Tag normalization and validation ensures consistency
+
+#### **🔍 Advanced Search Capabilities**
+```mermaid
+graph LR
+    A[🏷️ Tag Input] --> B{Search Logic}
+    B --> C[AND Logic: tag1 + tag2]
+    B --> D[OR Logic: tag1 | tag2]
+    B --> E[Entity Filter: prompts only]
+    
+    C --> F[Precise Results]
+    D --> G[Broad Results] 
+    E --> H[Filtered Results]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style F fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style G fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style H fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+```
+
+#### **🧠 Intelligent Auto-Complete**
+- **Real-Time Suggestions**: Dynamic tag suggestions as you type
+- **Existing Tag Detection**: Suggest from your existing tag vocabulary
+- **Fuzzy Matching**: Find tags with partial or approximate input
+- **Smart Limits**: Configurable suggestion count for optimal UX
+
+#### **📊 Comprehensive Analytics**
+Track tag usage and discover insights:
+```bash
+# Popular Tags
+python, api, automation, testing, documentation
+
+# Usage Statistics
+- Total Tags: 156
+- Most Used: "python" (23 items)
+- Versatile Tags: "documentation" (prompts + templates)
+- Recent: "ai-agents", "rules", "automation"
+```
+
+#### **🎨 Modern UI Components**
+- **Tag Input Component**: Modern interface with auto-complete and validation
+- **Visual Tag Display**: Clean, accessible badges with proper spacing
+- **Interactive Elements**: Click-to-remove tags and keyboard navigation
+- **Mobile Responsive**: Touch-friendly interface for all devices
+
+#### **🔌 REST API Integration**
+Complete programmatic access with 6 dedicated endpoints:
+```bash
+GET    /api/tags/               # List all tags with usage statistics
+GET    /api/tags/suggestions    # Get tag suggestions for auto-complete
+GET    /api/tags/analytics      # Comprehensive tag analytics and insights
+POST   /api/tags/search         # Advanced tag-based search with filters
+GET    /api/tags/popular        # Most frequently used tags
+GET    /api/tags/versatile      # Tags used across multiple content types
+```
 
 ### 🧮 Token Calculator
 

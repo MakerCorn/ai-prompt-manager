@@ -118,6 +118,25 @@ class PromptDataManager:
             )
             cursor.execute(
                 """
+                CREATE TABLE IF NOT EXISTS rules (
+                    id SERIAL PRIMARY KEY,
+                    tenant_id UUID,
+                    user_id UUID,
+                    name TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    category TEXT DEFAULT 'General',
+                    tags TEXT DEFAULT '',
+                    description TEXT,
+                    is_builtin BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(tenant_id, name)
+                )
+            """
+            )
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS ai_models (
                     id SERIAL PRIMARY KEY,
                     tenant_id UUID,
@@ -271,6 +290,25 @@ class PromptDataManager:
                     category TEXT DEFAULT 'Custom',
                     tags TEXT DEFAULT '',
                     variables TEXT,
+                    is_builtin BOOLEAN DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(tenant_id, name)
+                )
+            """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS rules (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT,
+                    user_id TEXT,
+                    name TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    category TEXT DEFAULT 'General',
+                    tags TEXT DEFAULT '',
+                    description TEXT,
                     is_builtin BOOLEAN DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -992,10 +1030,497 @@ class PromptDataManager:
                 }
         return None
 
+    # Rules Management Methods
+
+    def add_rule(
+        self,
+        name: str,
+        title: str,
+        content: str,
+        category: str = "General",
+        tags: str = "",
+        description: str = "",
+        is_builtin: bool = False,
+    ) -> str:
+        """Add a new rule to the database."""
+        if not name.strip() or not title.strip() or not content.strip():
+            return "Name, title, and content are required."
+
+        if not self.tenant_id or not self.user_id:
+            return "Tenant ID and User ID are required."
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    INSERT INTO rules (tenant_id, user_id, name, title, content, category, tags, description, is_builtin)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                    (
+                        self.tenant_id,
+                        self.user_id,
+                        name.strip(),
+                        title.strip(),
+                        content.strip(),
+                        category.strip() or "General",
+                        tags.strip(),
+                        description.strip(),
+                        is_builtin,
+                    ),
+                )
+            else:
+                cursor.execute(
+                    """
+                    INSERT INTO rules (tenant_id, user_id, name, title, content, category, tags, description, is_builtin)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                    (
+                        self.tenant_id,
+                        self.user_id,
+                        name.strip(),
+                        title.strip(),
+                        content.strip(),
+                        category.strip() or "General",
+                        tags.strip(),
+                        description.strip(),
+                        is_builtin,
+                    ),
+                )
+            conn.commit()
+            conn.close()
+            return "Rule added successfully."
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            if "UNIQUE constraint failed" in str(e) or "duplicate key" in str(e):
+                return f"Error: A rule with the name '{name}' already exists."
+            return f"Error adding rule: {str(e)}"
+
+    def update_rule(
+        self,
+        original_name: str,
+        name: str,
+        title: str,
+        content: str,
+        category: str = "General",
+        tags: str = "",
+        description: str = "",
+    ) -> str:
+        """Update an existing rule."""
+        if not name.strip() or not title.strip() or not content.strip():
+            return "Name, title, and content are required."
+
+        if not self.tenant_id:
+            return "Tenant ID is required."
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    UPDATE rules
+                    SET name = %s, title = %s, content = %s, category = %s, tags = %s, description = %s, updated_at = CURRENT_TIMESTAMP
+                    WHERE name = %s AND tenant_id = %s
+                """,
+                    (
+                        name.strip(),
+                        title.strip(),
+                        content.strip(),
+                        category.strip() or "General",
+                        tags.strip(),
+                        description.strip(),
+                        original_name.strip(),
+                        self.tenant_id,
+                    ),
+                )
+            else:
+                cursor.execute(
+                    """
+                    UPDATE rules
+                    SET name = ?, title = ?, content = ?, category = ?, tags = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE name = ? AND tenant_id = ?
+                """,
+                    (
+                        name.strip(),
+                        title.strip(),
+                        content.strip(),
+                        category.strip() or "General",
+                        tags.strip(),
+                        description.strip(),
+                        original_name.strip(),
+                        self.tenant_id,
+                    ),
+                )
+
+            if cursor.rowcount == 0:
+                conn.close()
+                return f"Error: Rule '{original_name}' not found."
+
+            conn.commit()
+            conn.close()
+            return "Rule updated successfully."
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            if "UNIQUE constraint failed" in str(e) or "duplicate key" in str(e):
+                return f"Error: A rule with the name '{name}' already exists."
+            return f"Error updating rule: {str(e)}"
+
+    def delete_rule(self, name: str) -> str:
+        """Delete a rule from the database."""
+        if not name.strip() or not self.tenant_id:
+            return "Rule name and tenant ID are required."
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        try:
+            if self.db_type == "postgres":
+                cursor.execute(
+                    "DELETE FROM rules WHERE name = %s AND tenant_id = %s",
+                    (name.strip(), self.tenant_id),
+                )
+            else:
+                cursor.execute(
+                    "DELETE FROM rules WHERE name = ? AND tenant_id = ?",
+                    (name.strip(), self.tenant_id),
+                )
+
+            if cursor.rowcount == 0:
+                conn.close()
+                return f"Error: Rule '{name}' not found."
+
+            conn.commit()
+            conn.close()
+            return "Rule deleted successfully."
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            return f"Error deleting rule: {str(e)}"
+
+    def get_all_rules(self) -> List[Dict]:
+        """Retrieve all rules for the current tenant."""
+        if not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        if self.db_type == "postgres":
+            cursor.execute(
+                """
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                       tags, description, is_builtin, created_at, updated_at
+                FROM rules WHERE tenant_id = %s
+                ORDER BY created_at DESC
+            """,
+                (self.tenant_id,),
+            )
+            rows = cursor.fetchall()
+            conn.close()
+            return [
+                {
+                    "id": row["id"],
+                    "tenant_id": row["tenant_id"],
+                    "user_id": row["user_id"],
+                    "name": row["name"],
+                    "title": row["title"],
+                    "content": row["content"],
+                    "category": row["category"],
+                    "tags": row["tags"],
+                    "description": row["description"],
+                    "is_builtin": (
+                        bool(row["is_builtin"])
+                        if row["is_builtin"] is not None
+                        else False
+                    ),
+                    "created_at": row["created_at"],
+                    "updated_at": row["updated_at"],
+                }
+                for row in rows
+            ]
+        else:
+            cursor.execute(
+                """
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                       tags, description, is_builtin, created_at, updated_at
+                FROM rules WHERE tenant_id = ?
+                ORDER BY created_at DESC
+            """,
+                (self.tenant_id,),
+            )
+            rows = cursor.fetchall()
+            conn.close()
+            return [
+                {
+                    "id": row[0],
+                    "tenant_id": row[1],
+                    "user_id": row[2],
+                    "name": row[3],
+                    "title": row[4],
+                    "content": row[5],
+                    "category": row[6],
+                    "tags": row[7],
+                    "description": row[8],
+                    "is_builtin": bool(row[9]) if row[9] is not None else False,
+                    "created_at": row[10],
+                    "updated_at": row[11],
+                }
+                for row in rows
+            ]
+
+    def search_rules(
+        self,
+        search_term: str,
+        category_filter: str = "all",
+        tags_filter: List[str] = None,
+    ) -> List[Dict]:
+        """Search rules by name, title, content, or tags."""
+        if not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        # Build search conditions
+        conditions = []
+        params = []
+
+        # Add tenant filter
+        if self.db_type == "postgres":
+            conditions.append("tenant_id = %s")
+            placeholder = "%s"
+        else:
+            conditions.append("tenant_id = ?")
+            placeholder = "?"
+        params.append(self.tenant_id)
+
+        # Add search term filter
+        if search_term.strip():
+            search_condition = (
+                f"(name ILIKE {placeholder} OR title ILIKE {placeholder} OR content ILIKE {placeholder} OR tags ILIKE {placeholder})"
+                if self.db_type == "postgres"
+                else f"(name LIKE {placeholder} OR title LIKE {placeholder} OR content LIKE {placeholder} OR tags LIKE {placeholder})"
+            )
+            conditions.append(search_condition)
+            search_pattern = f"%{search_term.strip()}%"
+            params.extend([search_pattern] * 4)
+
+        # Add category filter
+        if category_filter and category_filter.lower() != "all":
+            conditions.append(f"category = {placeholder}")
+            params.append(category_filter)
+
+        # Add tags filter
+        if tags_filter:
+            for tag in tags_filter:
+                conditions.append(
+                    f"tags ILIKE {placeholder}"
+                    if self.db_type == "postgres"
+                    else f"tags LIKE {placeholder}"
+                )
+                params.append(f"%{tag.strip()}%")
+
+        where_clause = " AND ".join(conditions) if conditions else "1=1"
+
+        query = f"""
+            SELECT id, tenant_id, user_id, name, title, content, category,
+                   tags, description, is_builtin, created_at, updated_at
+            FROM rules WHERE {where_clause}
+            ORDER BY created_at DESC
+        """
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        conn.close()
+
+        if self.db_type == "postgres":
+            return [
+                {
+                    "id": row["id"],
+                    "tenant_id": row["tenant_id"],
+                    "user_id": row["user_id"],
+                    "name": row["name"],
+                    "title": row["title"],
+                    "content": row["content"],
+                    "category": row["category"],
+                    "tags": row["tags"],
+                    "description": row["description"],
+                    "is_builtin": (
+                        bool(row["is_builtin"])
+                        if row["is_builtin"] is not None
+                        else False
+                    ),
+                    "created_at": row["created_at"],
+                    "updated_at": row["updated_at"],
+                }
+                for row in rows
+            ]
+        else:
+            return [
+                {
+                    "id": row[0],
+                    "tenant_id": row[1],
+                    "user_id": row[2],
+                    "name": row[3],
+                    "title": row[4],
+                    "content": row[5],
+                    "category": row[6],
+                    "tags": row[7],
+                    "description": row[8],
+                    "is_builtin": bool(row[9]) if row[9] is not None else False,
+                    "created_at": row[10],
+                    "updated_at": row[11],
+                }
+                for row in rows
+            ]
+
+    def get_rules_by_category(self, category: str) -> List[Dict]:
+        """Get all rules in a specific category."""
+        if not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        if self.db_type == "postgres":
+            cursor.execute(
+                """
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                       tags, description, is_builtin, created_at, updated_at
+                FROM rules WHERE tenant_id = %s AND category = %s
+                ORDER BY created_at DESC
+            """,
+                (self.tenant_id, category),
+            )
+            rows = cursor.fetchall()
+            conn.close()
+            return [
+                {
+                    "id": row["id"],
+                    "tenant_id": row["tenant_id"],
+                    "user_id": row["user_id"],
+                    "name": row["name"],
+                    "title": row["title"],
+                    "content": row["content"],
+                    "category": row["category"],
+                    "tags": row["tags"],
+                    "description": row["description"],
+                    "is_builtin": (
+                        bool(row["is_builtin"])
+                        if row["is_builtin"] is not None
+                        else False
+                    ),
+                    "created_at": row["created_at"],
+                    "updated_at": row["updated_at"],
+                }
+                for row in rows
+            ]
+        else:
+            cursor.execute(
+                """
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                       tags, description, is_builtin, created_at, updated_at
+                FROM rules WHERE tenant_id = ? AND category = ?
+                ORDER BY created_at DESC
+            """,
+                (self.tenant_id, category),
+            )
+            rows = cursor.fetchall()
+            conn.close()
+            return [
+                {
+                    "id": row[0],
+                    "tenant_id": row[1],
+                    "user_id": row[2],
+                    "name": row[3],
+                    "title": row[4],
+                    "content": row[5],
+                    "category": row[6],
+                    "tags": row[7],
+                    "description": row[8],
+                    "is_builtin": bool(row[9]) if row[9] is not None else False,
+                    "created_at": row[10],
+                    "updated_at": row[11],
+                }
+                for row in rows
+            ]
+
+    def get_rule_by_name(self, name: str) -> Optional[Dict]:
+        """Get a specific rule by name."""
+        if not name.strip() or not self.tenant_id:
+            return None
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        if self.db_type == "postgres":
+            cursor.execute(
+                """
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                       tags, description, is_builtin, created_at, updated_at
+                FROM rules WHERE name = %s AND tenant_id = %s
+            """,
+                (name.strip(), self.tenant_id),
+            )
+            row = cursor.fetchone()
+            conn.close()
+            if row:
+                return {
+                    "id": row["id"],
+                    "tenant_id": row["tenant_id"],
+                    "user_id": row["user_id"],
+                    "name": row["name"],
+                    "title": row["title"],
+                    "content": row["content"],
+                    "category": row["category"],
+                    "tags": row["tags"],
+                    "description": row["description"],
+                    "is_builtin": (
+                        bool(row["is_builtin"])
+                        if row["is_builtin"] is not None
+                        else False
+                    ),
+                    "created_at": row["created_at"],
+                    "updated_at": row["updated_at"],
+                }
+        else:
+            cursor.execute(
+                """
+                SELECT id, tenant_id, user_id, name, title, content, category,
+                       tags, description, is_builtin, created_at, updated_at
+                FROM rules WHERE name = ? AND tenant_id = ?
+            """,
+                (name.strip(), self.tenant_id),
+            )
+            row = cursor.fetchone()
+            conn.close()
+            if row:
+                return {
+                    "id": row[0],
+                    "tenant_id": row[1],
+                    "user_id": row[2],
+                    "name": row[3],
+                    "title": row[4],
+                    "content": row[5],
+                    "category": row[6],
+                    "tags": row[7],
+                    "description": row[8],
+                    "is_builtin": bool(row[9]) if row[9] is not None else False,
+                    "created_at": row[10],
+                    "updated_at": row[11],
+                }
+        return None
+
     # Tag Management Methods
 
     def get_all_tags(self, entity_type: str = "all") -> List[str]:
-        """Get all unique tags across prompts and/or templates."""
+        """Get all unique tags across prompts, templates, and/or rules."""
         if not self.tenant_id:
             return []
 
@@ -1032,6 +1557,24 @@ class PromptDataManager:
                 else:
                     cursor.execute(
                         "SELECT tags FROM templates WHERE tenant_id = ? AND tags IS NOT NULL",
+                        (self.tenant_id,),
+                    )
+
+                for row in cursor.fetchall():
+                    if row[0]:
+                        tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                        all_tags.update(tags)
+
+            # Get tags from rules
+            if entity_type in ["all", "rules"]:
+                if self.db_type == "postgres":
+                    cursor.execute(
+                        "SELECT tags FROM rules WHERE tenant_id = %s AND tags IS NOT NULL",
+                        (self.tenant_id,),
+                    )
+                else:
+                    cursor.execute(
+                        "SELECT tags FROM rules WHERE tenant_id = ? AND tags IS NOT NULL",
                         (self.tenant_id,),
                     )
 
@@ -1171,7 +1714,7 @@ class PromptDataManager:
             return []
 
     def get_tag_statistics(self) -> Dict[str, Dict]:
-        """Get statistics about tag usage across prompts and templates."""
+        """Get statistics about tag usage across prompts, templates, and rules."""
         if not self.tenant_id:
             return {}
 
@@ -1197,7 +1740,12 @@ class PromptDataManager:
                     tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
                     for tag in tags:
                         if tag not in tag_stats:
-                            tag_stats[tag] = {"prompts": 0, "templates": 0, "total": 0}
+                            tag_stats[tag] = {
+                                "prompts": 0,
+                                "templates": 0,
+                                "rules": 0,
+                                "total": 0,
+                            }
                         tag_stats[tag]["prompts"] += 1
                         tag_stats[tag]["total"] += 1
 
@@ -1218,8 +1766,39 @@ class PromptDataManager:
                     tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
                     for tag in tags:
                         if tag not in tag_stats:
-                            tag_stats[tag] = {"prompts": 0, "templates": 0, "total": 0}
+                            tag_stats[tag] = {
+                                "prompts": 0,
+                                "templates": 0,
+                                "rules": 0,
+                                "total": 0,
+                            }
                         tag_stats[tag]["templates"] += 1
+                        tag_stats[tag]["total"] += 1
+
+            # Count tags in rules
+            if self.db_type == "postgres":
+                cursor.execute(
+                    "SELECT tags FROM rules WHERE tenant_id = %s AND tags IS NOT NULL",
+                    (self.tenant_id,),
+                )
+            else:
+                cursor.execute(
+                    "SELECT tags FROM rules WHERE tenant_id = ? AND tags IS NOT NULL",
+                    (self.tenant_id,),
+                )
+
+            for row in cursor.fetchall():
+                if row[0]:
+                    tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                    for tag in tags:
+                        if tag not in tag_stats:
+                            tag_stats[tag] = {
+                                "prompts": 0,
+                                "templates": 0,
+                                "rules": 0,
+                                "total": 0,
+                            }
+                        tag_stats[tag]["rules"] += 1
                         tag_stats[tag]["total"] += 1
 
             conn.close()
