@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.5.9] - 2025-07-08
+## [0.5.10] - 2025-07-08
 
 ### 📚 Comprehensive Rules Management System
 
