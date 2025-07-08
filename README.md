@@ -130,7 +130,8 @@ graph LR
 - [🔒 Production Deployment](#-production-deployment) - Scale and security
 - [🛠️ Development](#️-development) - Contributing and extending
 
-### 📚 Resources
+### 📚 Documentation & Resources
+- [📚 Documentation](#-documentation) - Comprehensive guides and references
 - [🚀 Quick Reference](#-quick-reference) - Commands and shortcuts
 - [🔧 Troubleshooting](#-troubleshooting) - Common issues and solutions
 - [📄 License](#-license) - Usage terms
@@ -212,7 +213,7 @@ graph TB
 - **🐳 Container Ready**: Full Docker support with Redis caching and health monitoring
 
 **📖 Architecture Documentation:**
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Complete system architecture with diagrams and implementation details
+- **[Development Guide](docs/DEVELOPMENT.md)** - Complete system architecture with diagrams and implementation details
 
 ### 🔑 Key Architectural Principles
 - **🏗️ Unified Codebase**: Single application, multiple deployment modes
@@ -221,7 +222,18 @@ graph TB
 - **🔌 API-First**: RESTful API with comprehensive OpenAPI documentation
 - **⚡ Performance**: Efficient database queries and caching strategies
 
-> 📖 **[Complete Architecture Documentation](ARCHITECTURE.md)** - Detailed system design, data flows, and deployment patterns
+## 📚 Documentation
+
+### 📖 Comprehensive Guides
+
+- **[🚀 Quick Start](#-quick-start)** - Get up and running in 5 minutes
+- **[👤 User Guide](docs/USER_GUIDE.md)** - Complete user documentation for all features
+- **[⚙️ Configuration](docs/CONFIGURATION.md)** - AI services, deployment, and system setup
+- **[🛠️ Development](docs/DEVELOPMENT.md)** - Architecture, testing, and development workflows
+- **[🔌 API Reference](docs/API_REFERENCE.md)** - Complete REST API documentation with examples
+- **[✨ Features Guide](docs/FEATURES.md)** - Speech dictation, rules management, and advanced features
+- **[🚀 Release Management](docs/RELEASE_MANAGEMENT.md)** - Versioning, releases, and deployment automation
+- **[🤖 Deployment Automation](docs/DEPLOYMENT_AUTOMATION.md)** - CI/CD pipelines and automation setup
 
 ---
 
@@ -1119,14 +1131,14 @@ The comprehensive tagging system provides powerful categorization and search cap
 #### **🔍 Advanced Search Capabilities**
 ```mermaid
 graph LR
-    A[🏷️ Tag Input] --> B{Search Logic}
-    B --> C[AND Logic: tag1 + tag2]
-    B --> D[OR Logic: tag1 | tag2]
-    B --> E[Entity Filter: prompts only]
+    A["🏷️ Tag Input"] --> B{"Search Logic"}
+    B --> C["AND Logic: tag1 + tag2"]
+    B --> D["OR Logic: tag1 | tag2"]
+    B --> E["Entity Filter: prompts only"]
     
-    C --> F[Precise Results]
-    D --> G[Broad Results] 
-    E --> H[Filtered Results]
+    C --> F["Precise Results"]
+    D --> G["Broad Results"] 
+    E --> H["Filtered Results"]
     
     style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
     style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
@@ -3074,7 +3086,7 @@ print('✅ All components available in container')
 - **Release Management** - Automated PyPI publishing and Docker image releases
 - **Security** - Sigstore/Cosign signing for supply chain security and container verification
 
-**📋 Setup Guide:** See [GITHUB_WORKFLOWS_SETUP.md](GITHUB_WORKFLOWS_SETUP.md) for complete workflow configuration instructions.
+**📋 Setup Guide:** See [Deployment Automation](docs/DEPLOYMENT_AUTOMATION.md) for complete workflow configuration instructions.
 
 #### **Release Process**
 
