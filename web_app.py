@@ -701,9 +701,7 @@ class WebApp:
             target_lang: str = Form(default="en"),
         ):
             """Translate text to target language"""
-            user = await self.get_current_user(request)
-            if not user:
-                raise HTTPException(status_code=401, detail="Authentication required")
+            user, data_manager = await self.get_current_user_or_default(request)
 
             success, translated_text, error = text_translator.translate_to_english(text)
 
@@ -722,9 +720,7 @@ class WebApp:
             type: str = Form(default="dictation"),
         ):
             """Enhance dictated text for better readability and structure"""
-            user = await self.get_current_user(request)
-            if not user:
-                raise HTTPException(status_code=401, detail="Authentication required")
+            user, data_manager = await self.get_current_user_or_default(request)
 
             try:
                 # Use the optimization service to enhance the text
@@ -795,9 +791,7 @@ Enhanced text:"""
         @self.app.post("/optimize")
         async def optimize_prompt(request: Request, prompt: str = Form(...)):
             """Optimize a prompt using available optimization services"""
-            user = await self.get_current_user(request)
-            if not user:
-                raise HTTPException(status_code=401, detail="Authentication required")
+            user, data_manager = await self.get_current_user_or_default(request)
 
             try:
                 result = langwatch_optimizer.optimize_prompt(prompt)

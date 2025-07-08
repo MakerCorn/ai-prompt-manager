@@ -2,6 +2,18 @@
 
 ## [0.5.12] - 2025-07-08
 
+### 🎤 Speech Transcription Fix
+
+#### **Authentication Error Resolution**
+- **Fixed Server Errors**: Resolved authentication issues with speech transcription API endpoints
+  - **Enhanced Text Endpoint**: Fixed `/enhance-text` to properly handle single-user mode authentication
+  - **Translation Endpoint**: Fixed `/translate` to work correctly in both single-user and multi-tenant modes
+  - **Optimization Endpoint**: Fixed `/optimize` to use proper authentication handling
+  - **Root Cause**: Endpoints were using `get_current_user()` which returns 401 errors in single-user mode
+  - **Solution**: Updated to use `get_current_user_or_default()` for proper mode detection
+- **Comprehensive Testing**: All 31 speech-related tests passing (19 unit + 12 integration tests)
+- **Validated Functionality**: Speech pause/resume, text enhancement, and translation now work without server errors
+
 ### 🎨 Enhanced Dashboard & UI Improvements
 
 #### **Dashboard Redesign & Optimization**
