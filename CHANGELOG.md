@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.6.1] - 2025-07-08
+## [0.5.11] - 2025-07-08
 
 ### 🔒 Advanced Prompt Visibility System
 

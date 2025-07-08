@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "promptman"
-version = "0.5.10"
+version = "0.5.11"
 description = "Modern AI Prompt Management System with FastAPI Web UI, Dynamic Multi-Language Support, and AI-Powered Optimization"
 authors = ["MakerCorn <corn.mendoza@outlook.com>"]
 license = "Non-Commercial"
