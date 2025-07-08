@@ -470,7 +470,9 @@
 
         // Enhanced Theme Toggle Functionality
         function getSystemTheme() {
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            console.log('System theme detected:', isDark ? 'dark' : 'light');
+            return isDark ? 'dark' : 'light';
         }
 
         function getStoredTheme() {
@@ -510,23 +512,33 @@
             const root = document.documentElement;
             const effectiveTheme = theme === 'system' ? getSystemTheme() : theme;
             
-            // Apply theme attribute
-            if (effectiveTheme === 'dark') {
-                root.setAttribute('data-theme', 'dark');
-            } else {
-                root.removeAttribute('data-theme');
-            }
+            console.log('Applying theme:', theme, '-> effective:', effectiveTheme);
             
-            // Update icon
-            updateThemeIcon(theme);
+            // Clear any existing theme attributes first
+            root.removeAttribute('data-theme');
             
-            // Store preference
+            // Apply new theme attribute after a small delay to ensure change is detected
+            requestAnimationFrame(() => {
+                if (effectiveTheme === 'dark') {
+                    root.setAttribute('data-theme', 'dark');
+                    console.log('Applied dark theme attribute');
+                } else {
+                    console.log('Applied light theme (no attribute)');
+                }
+                
+                // Update icon after theme is applied
+                updateThemeIcon(theme);
+            });
+            
+            // Store preference immediately
             setStoredTheme(theme);
         }
 
         function toggleTheme() {
             const currentStored = getStoredTheme();
             let nextTheme;
+            
+            console.log('Current stored theme:', currentStored);
             
             // Cycle through: light -> dark -> system -> light
             switch (currentStored) {
@@ -542,6 +554,7 @@
                     break;
             }
             
+            console.log('Switching to theme:', nextTheme);
             applyTheme(nextTheme);
             
             // Show toast notification
