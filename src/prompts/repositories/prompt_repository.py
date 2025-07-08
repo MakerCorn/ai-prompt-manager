@@ -224,11 +224,13 @@ class PromptRepository(TenantAwareRepository[Prompt]):
             params.append(f"%{search_term}%")
 
         # Build base conditions
-        base_conditions = [f"tenant_id = {'%s' if self.db_manager.config.db_type.value == 'postgres' else '?'}"]
-        
+        base_conditions = [
+            f"tenant_id = {'%s' if self.db_manager.config.db_type.value == 'postgres' else '?'}"
+        ]
+
         # Add search conditions
         base_conditions.append(f"({' OR '.join(search_conditions)})")
-        
+
         # Add visibility filtering
         if user_id and include_public_from_tenant:
             # User's own prompts OR public prompts from tenant
@@ -237,7 +239,9 @@ class PromptRepository(TenantAwareRepository[Prompt]):
             params.append(user_id)
         elif user_id:
             # Only user's own prompts
-            base_conditions.append(f"user_id = {'%s' if self.db_manager.config.db_type.value == 'postgres' else '?'}")
+            base_conditions.append(
+                f"user_id = {'%s' if self.db_manager.config.db_type.value == 'postgres' else '?'}"
+            )
             params.append(user_id)
         elif include_public_from_tenant:
             # Only public prompts
@@ -245,7 +249,7 @@ class PromptRepository(TenantAwareRepository[Prompt]):
 
         # Build final query
         where_clause = " AND ".join(base_conditions)
-        
+
         # nosec B608: where_clause is built from controlled parameters
         query = f"SELECT * FROM prompts WHERE {where_clause}"
         if limit:
@@ -446,10 +450,10 @@ class PromptRepository(TenantAwareRepository[Prompt]):
     ) -> List[Prompt]:
         """
         Find all prompts with visibility filtering.
-        
+
         - Always includes user's own prompts (private + public)
         - Optionally includes public prompts from other users in the tenant
-        
+
         Args:
             include_enhancement_prompts: Whether to include enhancement prompts
             include_public_from_tenant: Whether to include public prompts from other users
@@ -458,20 +462,20 @@ class PromptRepository(TenantAwareRepository[Prompt]):
             offset: Number of results to skip
             order_by: Field to order by
             order_desc: Whether to order in descending order
-            
+
         Returns:
             List of prompts with visibility filtering applied
         """
         self._ensure_tenant_context()
-        
+
         # Build query with visibility conditions
         query_parts = ["SELECT * FROM prompts"]
         params = []
-        
+
         # Base tenant filtering
         conditions = ["tenant_id = ?"]
         params.append(self.current_tenant_id)
-        
+
         # Visibility filtering
         if user_id and include_public_from_tenant:
             # User's own prompts OR public prompts from tenant
@@ -485,36 +489,36 @@ class PromptRepository(TenantAwareRepository[Prompt]):
         elif include_public_from_tenant:
             # Only public prompts
             conditions.append("visibility = 'public'")
-        
+
         # Enhancement prompts filter
         if not include_enhancement_prompts:
             conditions.append("is_enhancement_prompt = ?")
             params.append(False)
-        
+
         # Add WHERE clause
         if conditions:
             query_parts.append("WHERE " + " AND ".join(conditions))
-        
+
         # Add ORDER BY clause
         if order_by:
             direction = "DESC" if order_desc else "ASC"
             query_parts.append(f"ORDER BY {order_by} {direction}")
-        
+
         # Add pagination
         if limit:
             query_parts.append(f"LIMIT {limit}")
             if offset:
                 query_parts.append(f"OFFSET {offset}")
-        
+
         query = " ".join(query_parts)
-        
+
         # Convert to PostgreSQL syntax if needed
         if self.db_manager.config.db_type.value == "postgres":
             query = query.replace("?", "%s")
-        
+
         rows = self.db_manager.execute_query(query, tuple(params), fetch_all=True)
         return [self._row_to_entity(row) for row in rows]
-    
+
     def find_public_prompts_in_tenant(
         self,
         include_enhancement_prompts: bool = True,
@@ -525,21 +529,21 @@ class PromptRepository(TenantAwareRepository[Prompt]):
     ) -> List[Prompt]:
         """
         Find all public prompts within current tenant.
-        
+
         Args:
             include_enhancement_prompts: Whether to include enhancement prompts
             limit: Maximum number of results
             offset: Number of results to skip
             order_by: Field to order by
             order_desc: Whether to order in descending order
-            
+
         Returns:
             List of public prompts in the tenant
         """
         filters = {"visibility": "public"}
         if not include_enhancement_prompts:
             filters["is_enhancement_prompt"] = False
-            
+
         return self.find_all(
             filters=filters,
             limit=limit,
@@ -547,7 +551,7 @@ class PromptRepository(TenantAwareRepository[Prompt]):
             order_by=order_by,
             order_desc=order_desc,
         )
-    
+
     def find_by_visibility(
         self,
         visibility: str,
@@ -556,40 +560,40 @@ class PromptRepository(TenantAwareRepository[Prompt]):
     ) -> List[Prompt]:
         """
         Find prompts by visibility level.
-        
+
         Args:
             visibility: 'private' or 'public'
             user_id: Optional user ID for filtering
             limit: Maximum number of results
-            
+
         Returns:
             List of prompts with specified visibility
         """
         filters = {"visibility": visibility}
         if user_id:
             filters["user_id"] = user_id
-            
+
         return self.find_all(filters=filters, limit=limit)
-    
+
     def get_visibility_statistics(self) -> Dict[str, Any]:
         """
         Get visibility statistics for current tenant.
-        
+
         Returns:
             Dictionary with visibility statistics
         """
         self._ensure_tenant_context()
-        
+
         # Total prompts
         total_query = "SELECT COUNT(*) as count FROM prompts WHERE tenant_id = ?"
         if self.db_manager.config.db_type.value == "postgres":
             total_query = total_query.replace("?", "%s")
-            
+
         total_result = self.db_manager.execute_query(
             total_query, (self.current_tenant_id,), fetch_one=True
         )
         total_prompts = total_result["count"] if total_result else 0
-        
+
         # Private prompts
         private_query = (
             "SELECT COUNT(*) as count FROM prompts WHERE tenant_id = ? "
@@ -597,12 +601,12 @@ class PromptRepository(TenantAwareRepository[Prompt]):
         )
         if self.db_manager.config.db_type.value == "postgres":
             private_query = private_query.replace("?", "%s")
-            
+
         private_result = self.db_manager.execute_query(
             private_query, (self.current_tenant_id, "private"), fetch_one=True
         )
         private_prompts = private_result["count"] if private_result else 0
-        
+
         # Public prompts
         public_query = (
             "SELECT COUNT(*) as count FROM prompts WHERE tenant_id = ? "
@@ -610,16 +614,20 @@ class PromptRepository(TenantAwareRepository[Prompt]):
         )
         if self.db_manager.config.db_type.value == "postgres":
             public_query = public_query.replace("?", "%s")
-            
+
         public_result = self.db_manager.execute_query(
             public_query, (self.current_tenant_id, "public"), fetch_one=True
         )
         public_prompts = public_result["count"] if public_result else 0
-        
+
         return {
             "total_prompts": total_prompts,
             "private_prompts": private_prompts,
             "public_prompts": public_prompts,
-            "private_percentage": (private_prompts / total_prompts * 100) if total_prompts > 0 else 0,
-            "public_percentage": (public_prompts / total_prompts * 100) if total_prompts > 0 else 0,
+            "private_percentage": (
+                (private_prompts / total_prompts * 100) if total_prompts > 0 else 0
+            ),
+            "public_percentage": (
+                (public_prompts / total_prompts * 100) if total_prompts > 0 else 0
+            ),
         }

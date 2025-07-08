@@ -66,7 +66,9 @@ class PromptService(BaseService):
             self.repository.set_tenant_context(tenant_id)
 
             # Validate inputs
-            validation_result = self._validate_prompt_data(name, title, content, visibility)
+            validation_result = self._validate_prompt_data(
+                name, title, content, visibility
+            )
             if not validation_result.success:
                 return ServiceResult(
                     success=False,
@@ -164,7 +166,9 @@ class PromptService(BaseService):
             self.repository.set_tenant_context(tenant_id)
 
             # Validate inputs
-            validation_result = self._validate_prompt_data(new_name, title, content, visibility)
+            validation_result = self._validate_prompt_data(
+                new_name, title, content, visibility
+            )
             if not validation_result.success:
                 return ServiceResult(
                     success=False,
@@ -428,18 +432,18 @@ class PromptService(BaseService):
             if not search_term or not search_term.strip():
                 # Return all prompts with visibility filtering if no search term
                 return self.get_all_prompts_with_visibility(
-                    tenant_id, 
+                    tenant_id,
                     user_id=user_id,
                     include_enhancement_prompts=include_enhancement_prompts,
-                    include_public_from_tenant=include_public_from_tenant
+                    include_public_from_tenant=include_public_from_tenant,
                 )
 
             prompts = self.repository.search_prompts(
-                search_term.strip(), 
-                search_in=search_in, 
+                search_term.strip(),
+                search_in=search_in,
                 limit=limit,
                 user_id=user_id,
-                include_public_from_tenant=include_public_from_tenant
+                include_public_from_tenant=include_public_from_tenant,
             )
 
             # Filter out enhancement prompts if not requested
@@ -978,7 +982,9 @@ class PromptService(BaseService):
                 error_code="INTERNAL_ERROR",
             )
 
-    def get_visibility_statistics(self, tenant_id: str) -> ServiceResult[Dict[str, Any]]:
+    def get_visibility_statistics(
+        self, tenant_id: str
+    ) -> ServiceResult[Dict[str, Any]]:
         """
         Get visibility statistics for current tenant.
 

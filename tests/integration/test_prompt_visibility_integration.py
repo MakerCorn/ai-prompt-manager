@@ -5,16 +5,16 @@ This module tests the complete integration of visibility features
 across the web interface, API endpoints, and database operations.
 """
 
-import pytest
-import json
-from datetime import datetime, timezone
-from unittest.mock import patch, MagicMock
+from datetime import datetime
+from unittest.mock import MagicMock, patch
 
+import pytest
+
+from src.core.base.database_manager import BaseDatabaseManager
+from src.core.config.settings import AppConfig, DatabaseType
 from src.prompts.models.prompt import Prompt
 from src.prompts.repositories.prompt_repository import PromptRepository
 from src.prompts.services.prompt_service import PromptService
-from src.core.base.database_manager import BaseDatabaseManager
-from src.core.config.settings import AppConfig, DatabaseConfig, DatabaseType
 
 
 class TestPromptVisibilityIntegration:
@@ -26,7 +26,7 @@ class TestPromptVisibilityIntegration:
         from src.core.config.settings import DatabaseConfig
 
         db_config = DatabaseConfig(db_type=DatabaseType.SQLITE, db_path=":memory:")
-        config = AppConfig(database=db_config)
+        AppConfig(database=db_config)
         db_manager = MagicMock(spec=BaseDatabaseManager)
         db_manager.config = db_config
         return db_manager
@@ -51,7 +51,7 @@ class TestPromptVisibilityIntegration:
             return service, mock_repo
 
     def test_end_to_end_prompt_creation_with_visibility(self, service):
-        """Test complete workflow of creating prompts with different visibility levels."""
+        """Test complete workflow of creating prompts with visibility."""
         prompt_service, mock_repo = service
 
         # Mock repository responses

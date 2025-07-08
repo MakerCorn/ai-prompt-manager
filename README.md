@@ -1066,6 +1066,14 @@ curl -X POST http://localhost:7860/api/ai-models/import \
 
 Create, organize, and manage your AI prompts with powerful tools for optimization and collaboration.
 
+### 🆕 Recent Enhancements
+
+- **🔍 Visibility Control**: Public/private prompt sharing with granular access control
+- **🎨 Enhanced Dashboard**: Redesigned dashboard with clean actions and better organization  
+- **🏷️ Advanced Tagging**: Smart tag management with auto-complete and analytics
+- **📊 Real-time Updates**: HTMX-powered interface for seamless user experience
+- **🌐 Multi-language UI**: Full internationalization with 10 language support
+
 ### 🚀 Quick Start Workflow
 
 ```mermaid

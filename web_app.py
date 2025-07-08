@@ -155,7 +155,11 @@ class WebApp:
             return self.templates.TemplateResponse(
                 "prompts/dashboard.html",
                 self.get_template_context(
-                    request, user, prompts=prompts, page_title="Dashboard", is_multi_tenant_mode=True
+                    request,
+                    user,
+                    prompts=prompts,
+                    page_title="Dashboard",
+                    is_multi_tenant_mode=True,
                 ),
             )
 
@@ -599,7 +603,10 @@ class WebApp:
 
         @self.app.get("/prompts/filter")
         async def filter_prompts(
-            request: Request, category: str = "", sort: str = "created_desc", visibility: str = ""
+            request: Request,
+            category: str = "",
+            sort: str = "created_desc",
+            visibility: str = "",
         ):
             if self.single_user_mode:
                 data_manager = PromptDataManager(
@@ -624,7 +631,11 @@ class WebApp:
                 elif visibility == "private":
                     # Only user's own private prompts
                     all_prompts = data_manager.get_all_prompts()
-                    prompts = [p for p in all_prompts if p.get("visibility", "private") == "private"]
+                    prompts = [
+                        p
+                        for p in all_prompts
+                        if p.get("visibility", "private") == "private"
+                    ]
                 elif visibility == "mine":
                     prompts = data_manager.get_all_prompts()  # Only user's own prompts
                 else:

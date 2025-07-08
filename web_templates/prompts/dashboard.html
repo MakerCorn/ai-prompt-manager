@@ -10,14 +10,14 @@
                     <i class="fas fa-robot text-white text-2xl"></i>
                 </div>
                 <div class="flex-1">
-                    <h1 class="text-3xl font-bold text-gray-900">
+                    <h1 class="text-3xl font-bold" style="color: var(--text-primary);">
                         {% if user %}
                             {{ t('dashboard.welcome_back', name=user.first_name) }}
                         {% else %}
                             {{ t('dashboard.welcome') }}
                         {% endif %}
                     </h1>
-                    <p class="text-lg mt-2 text-secondary">
+                    <p class="text-lg mt-2" style="color: var(--text-secondary);">
                         {{ t('dashboard.subtitle') }}
                     </p>
                 </div>
@@ -39,18 +39,18 @@
     </div>
 
     <!-- Enhanced Quick actions -->
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
         <!-- Create New Prompt -->
         <a href="/prompts/new" class="group block">
             <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-green-200 hover:shadow-lg">
-                <div class="card-body text-center">
+                <div class="card-body text-center flex flex-col h-full">
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
                         <i class="fas fa-plus-circle text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ t('prompts.new') }}</h3>
-                    <p class="text-sm text-secondary">{{ t('dashboard.create_desc') }}</p>
-                    <div class="mt-4">
-                        <span class="btn btn-success btn-sm">
+                    <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary);">{{ t('prompts.new') }}</h3>
+                    <p class="text-sm flex-grow" style="color: var(--text-secondary);">{{ t('dashboard.create_desc') }}</p>
+                    <div class="mt-4 flex justify-center">
+                        <span class="btn btn-success btn-sm text-white">
                             <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.get_started') }}
                         </span>
                     </div>
@@ -58,18 +58,36 @@
             </div>
         </a>
 
-        <!-- Browse Library -->
+        <!-- Browse Prompts -->
         <a href="/prompts" class="group block">
             <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-blue-200 hover:shadow-lg">
-                <div class="card-body text-center">
+                <div class="card-body text-center flex flex-col h-full">
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center">
                         <i class="fas fa-file-text text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ t('nav.library') }}</h3>
-                    <p class="text-sm text-secondary">{{ prompts|length }} saved prompts</p>
-                    <div class="mt-4">
-                        <span class="btn btn-primary btn-sm">
+                    <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary);">{{ t('nav.prompts') }}</h3>
+                    <p class="text-sm flex-grow" style="color: var(--text-secondary);">{{ t('dashboard.prompts_desc', count=prompts|length) }}</p>
+                    <div class="mt-4 flex justify-center">
+                        <span class="btn btn-primary btn-sm text-white">
                             <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.explore') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Rules Library -->
+        <a href="/rules" class="group block">
+            <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-indigo-200 hover:shadow-lg">
+                <div class="card-body text-center flex flex-col h-full">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-indigo-400 to-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-book text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary);">{{ t('nav.rules') }}</h3>
+                    <p class="text-sm flex-grow" style="color: var(--text-secondary);">{{ t('dashboard.rules_desc') }}</p>
+                    <div class="mt-4 flex justify-center">
+                        <span class="btn btn-sm text-white" style="background: linear-gradient(to right, rgb(99 102 241), rgb(79 70 229));">
+                            <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.browse') }}
                         </span>
                     </div>
                 </div>
@@ -79,15 +97,33 @@
         <!-- Templates -->
         <a href="/templates" class="group block">
             <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-purple-200 hover:shadow-lg">
-                <div class="card-body text-center">
+                <div class="card-body text-center flex flex-col h-full">
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center">
                         <i class="fas fa-layer-group text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ t('nav.library') }}</h3>
-                    <p class="text-sm text-secondary">{{ t('dashboard.templates_desc') }}</p>
-                    <div class="mt-4">
-                        <span class="btn btn-secondary btn-sm">
+                    <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary);">{{ t('nav.templates') }}</h3>
+                    <p class="text-sm flex-grow" style="color: var(--text-secondary);">{{ t('dashboard.templates_desc') }}</p>
+                    <div class="mt-4 flex justify-center">
+                        <span class="btn btn-sm text-white" style="background: linear-gradient(to right, rgb(147 51 234), rgb(126 34 206));">
                             <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.browse') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Prompt Builder -->
+        <a href="/prompts/builder" class="group block">
+            <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-orange-200 hover:shadow-lg">
+                <div class="card-body text-center flex flex-col h-full">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center">
+                        <i class="fas fa-hammer text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary);">{{ t('nav.builder') }}</h3>
+                    <p class="text-sm flex-grow" style="color: var(--text-secondary);">{{ t('dashboard.builder_desc') }}</p>
+                    <div class="mt-4 flex justify-center">
+                        <span class="btn btn-sm text-white" style="background: linear-gradient(to right, rgb(251 146 60), rgb(249 115 22));">
+                            <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.build') }}
                         </span>
                     </div>
                 </div>
@@ -97,14 +133,14 @@
         <!-- Settings -->
         <a href="/settings" class="group block">
             <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-gray-200 hover:shadow-lg">
-                <div class="card-body text-center">
+                <div class="card-body text-center flex flex-col h-full">
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center">
                         <i class="fas fa-cog text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2 text-primary">{{ t('nav.settings') }}</h3>
-                    <p class="text-sm text-secondary">{{ t('dashboard.settings_desc') }}</p>
-                    <div class="mt-4">
-                        <span class="btn btn-secondary btn-sm">
+                    <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary);">{{ t('nav.settings') }}</h3>
+                    <p class="text-sm flex-grow" style="color: var(--text-secondary);">{{ t('dashboard.settings_desc') }}</p>
+                    <div class="mt-4 flex justify-center">
+                        <span class="btn btn-sm text-white" style="background: linear-gradient(to right, rgb(156 163 175), rgb(107 114 128));">
                             <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.configure') }}
                         </span>
                     </div>
@@ -170,9 +206,18 @@
                                     <h4 class="text-sm font-medium text-primary">
                                         {{ prompt.name }}
                                     </h4>
-                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ prompt.category_color|default('blue') }}-100 text-{{ prompt.category_color|default('blue') }}-800">
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                         {{ prompt.category }}
                                     </span>
+                                    {% if prompt.visibility == 'public' %}
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-globe mr-1"></i>{{ t('prompts.visibility_public') }}
+                                    </span>
+                                    {% else %}
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-lock mr-1"></i>{{ t('prompts.visibility_private') }}
+                                    </span>
+                                    {% endif %}
                                 </div>
                                 <p class="mt-1 text-sm text-slate-500 truncate">
                                     {{ prompt.description or prompt.content[:100] + '...' if prompt.content|length > 100 else prompt.content }}
@@ -180,6 +225,12 @@
                                 <div class="mt-2 flex items-center text-xs text-slate-400">
                                     <i class="fas fa-calendar mr-1"></i>
                                     {{ t('prompts.recently_created') }}
+                                    {% if prompt.tags %}
+                                    <span class="ml-2">
+                                        <i class="fas fa-tags mr-1"></i>
+                                        {{ prompt.tags.split(',')[0] }}{% if prompt.tags.split(',')|length > 1 %} +{{ prompt.tags.split(',')|length - 1 }}{% endif %}
+                                    </span>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
@@ -304,7 +355,8 @@ async function loadReleaseAnnouncements() {
             loadingEl.classList.add('hidden');
             
             if (releases.length === 0) {
-                noReleasesEl.classList.remove('hidden');
+                // Hide the entire what's new section if no releases
+                document.getElementById('whats-new-section').style.display = 'none';
             } else {
                 containerEl.classList.remove('hidden');
                 renderReleases(releases);
@@ -325,13 +377,15 @@ async function loadReleaseAnnouncements() {
         } else {
             // Handle API not available or authentication issues
             loadingEl.classList.add('hidden');
-            noReleasesEl.classList.remove('hidden');
+            // Hide the entire what's new section if API is not available
+            document.getElementById('whats-new-section').style.display = 'none';
             console.warn('Release API not available:', releasesResponse.status);
         }
     } catch (error) {
         console.warn('Could not load release announcements:', error);
         loadingEl.classList.add('hidden');
-        noReleasesEl.classList.remove('hidden');
+        // Hide the entire what's new section if there's an error
+        document.getElementById('whats-new-section').style.display = 'none';
     }
 }
 
@@ -433,8 +487,8 @@ async function dismissRelease(releaseId) {
                     // Check if no releases left
                     const container = document.getElementById('releases-container');
                     if (container.children.length === 0) {
-                        container.classList.add('hidden');
-                        document.getElementById('no-releases').classList.remove('hidden');
+                        // Hide the entire what's new section if no releases left
+                        document.getElementById('whats-new-section').style.display = 'none';
                     }
                 }, 300);
             }
@@ -472,11 +526,8 @@ async function dismissAllReleases() {
             
             await Promise.all(promises);
             
-            // Update UI
-            const container = document.getElementById('releases-container');
-            container.classList.add('hidden');
-            document.getElementById('no-releases').classList.remove('hidden');
-            document.getElementById('unread-count-badge').classList.add('hidden');
+            // Update UI - hide the entire what's new section
+            document.getElementById('whats-new-section').style.display = 'none';
             
         } catch (error) {
             console.error('Error dismissing all releases:', error);

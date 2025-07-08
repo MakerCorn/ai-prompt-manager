@@ -1,6 +1,24 @@
 # Changelog
 
-## [0.5.11] - 2025-07-08
+## [0.5.12] - 2025-07-08
+
+### 🎨 Enhanced Dashboard & UI Improvements
+
+#### **Dashboard Redesign & Optimization**
+- **Improved Quick Actions**: Redesigned dashboard with 6-column responsive grid layout
+  - **Rules Library**: Added dedicated Rules section to dashboard quick actions
+  - **Prompt Builder**: Enhanced builder access with visual improvements
+  - **Consistent Theming**: All action buttons now match their corresponding logo colors
+  - **Responsive Layout**: Better mobile and tablet support with flexible grid system
+- **Better Organization**: Fixed confusing "Library" labels - now clearly shows "Prompts", "Rules", "Templates"
+- **Theme Compatibility**: All dashboard elements now properly support light/dark mode switching
+- **Smart Hiding**: "What's New" panel automatically hides when empty or unavailable
+
+#### **Translation & Internationalization**
+- **Dashboard Translations**: Complete translation coverage for all dashboard elements
+- **Parameter Support**: Fixed count parameter handling in dashboard descriptions (e.g., "Browse and manage your {count} prompts")
+- **Multi-language Coverage**: Updated all 9 supported languages with proper dashboard translations
+- **Translation Validation**: Ensured all UI elements have proper translation keys
 
 ### 🔒 Advanced Prompt Visibility System
 

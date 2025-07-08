@@ -17,6 +17,30 @@
 
 ## Getting Started
 
+### Enhanced Dashboard Experience
+
+The AI Prompt Manager features a redesigned dashboard with improved organization and user experience:
+
+#### **Quick Actions Panel**
+- **📝 Create New Prompt**: Start building your perfect prompt with guided creation
+- **📄 Browse Prompts**: Access your personal prompt library with advanced filtering
+- **📚 Rules Library**: Manage AI behavior guidelines and constraints
+- **📋 Templates**: Use pre-built templates to save time
+- **🔧 Prompt Builder**: Combine multiple prompts visually with drag-and-drop
+- **⚙️ Settings**: Configure preferences and integrations
+
+#### **Recent Prompts Section**
+- View your most recently created and modified prompts
+- Quick access to edit and execute actions
+- Visual indicators for prompt visibility (🔒 Private, 🌐 Public)
+- Tag display and category organization
+
+#### **Smart Interface Features**
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **Theme Compatibility**: Full light/dark mode support with system preference detection
+- **Dynamic Content**: Panels automatically hide when empty for cleaner interface
+- **Multi-language Support**: All dashboard elements available in 10 languages
+
 ### Installation
 
 The AI Prompt Manager can be installed via PyPI or run directly from the source code:

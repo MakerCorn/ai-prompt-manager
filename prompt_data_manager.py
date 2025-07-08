@@ -408,7 +408,9 @@ class PromptDataManager:
                 cursor.execute("ALTER TABLE prompts ADD COLUMN name TEXT")
                 cursor.execute("UPDATE prompts SET name = title WHERE name IS NULL")
             if "visibility" not in columns:
-                cursor.execute("ALTER TABLE prompts ADD COLUMN visibility TEXT DEFAULT 'private'")
+                cursor.execute(
+                    "ALTER TABLE prompts ADD COLUMN visibility TEXT DEFAULT 'private'"
+                )
 
             # Update templates table structure
             cursor.execute("PRAGMA table_info(templates)")
@@ -416,7 +418,9 @@ class PromptDataManager:
             if "tags" not in template_columns:
                 cursor.execute("ALTER TABLE templates ADD COLUMN tags TEXT DEFAULT ''")
             if "visibility" not in template_columns:
-                cursor.execute("ALTER TABLE templates ADD COLUMN visibility TEXT DEFAULT 'private'")
+                cursor.execute(
+                    "ALTER TABLE templates ADD COLUMN visibility TEXT DEFAULT 'private'"
+                )
 
             # Update config table structure
             cursor.execute("PRAGMA table_info(config)")
@@ -688,16 +692,21 @@ class PromptDataManager:
 
         # Check if single-user mode by environment variable
         import os
-        is_single_user = os.getenv('MULTITENANT_MODE', 'true').lower() == 'false'
-        
+
+        is_single_user = os.getenv("MULTITENANT_MODE", "true").lower() == "false"
+
         if is_single_user or not self.user_id:
             # Single-user mode or no user context - show all prompts
             return self._get_all_prompts_no_visibility(include_enhancement_prompts)
         else:
             # Multi-tenant mode - use visibility filtering
-            return self.get_all_prompts_with_visibility(include_enhancement_prompts, include_public_from_tenant=True)
-    
-    def _get_all_prompts_no_visibility(self, include_enhancement_prompts: bool = True) -> List[Dict]:
+            return self.get_all_prompts_with_visibility(
+                include_enhancement_prompts, include_public_from_tenant=True
+            )
+
+    def _get_all_prompts_no_visibility(
+        self, include_enhancement_prompts: bool = True
+    ) -> List[Dict]:
         """Internal method for single-user mode - shows all prompts regardless of visibility"""
         if not self.tenant_id:
             return []
@@ -853,10 +862,11 @@ class PromptDataManager:
             return self.get_all_prompts(include_enhancement_prompts)
         if not self.tenant_id:
             return []
-        
+
         # Check if single-user mode by environment variable
         import os
-        is_single_user = os.getenv('MULTITENANT_MODE', 'true').lower() == 'false'
+
+        is_single_user = os.getenv("MULTITENANT_MODE", "true").lower() == "false"
 
         conn = self.get_conn()
         cursor = conn.cursor()
@@ -877,7 +887,7 @@ class PromptDataManager:
         if self.db_type == "postgres":
             like = f"%{search_term}%"
             base_params = [self.tenant_id, like, like, like, like]
-            
+
             if include_enhancement_prompts:
                 query = f"""
                     SELECT id, tenant_id, user_id, name, title, content, category,
@@ -908,7 +918,7 @@ class PromptDataManager:
                 f"%{search_term}%",
                 f"%{search_term}%",
             ]
-            
+
             if include_enhancement_prompts:
                 query = f"""
                     SELECT id, tenant_id, user_id, name, title, content, category,
@@ -1067,7 +1077,11 @@ class PromptDataManager:
                         if row["is_enhancement_prompt"] is not None
                         else False
                     ),
-                    "visibility": row["visibility"] if row["visibility"] is not None else "private",
+                    "visibility": (
+                        row["visibility"]
+                        if row["visibility"] is not None
+                        else "private"
+                    ),
                     "created_at": row["created_at"],
                     "updated_at": row["updated_at"],
                 }
@@ -2907,8 +2921,9 @@ class PromptDataManager:
             return False
 
     def get_all_prompts_with_visibility(
-        self, include_enhancement_prompts: bool = True, 
-        include_public_from_tenant: bool = True
+        self,
+        include_enhancement_prompts: bool = True,
+        include_public_from_tenant: bool = True,
     ) -> List[Dict]:
         """
         Get prompts with visibility filtering.
@@ -2922,24 +2937,36 @@ class PromptDataManager:
         cursor = conn.cursor()
 
         # Base query conditions
-        conditions = ["tenant_id = %s" if self.db_type == "postgres" else "tenant_id = ?"]
+        conditions = [
+            "tenant_id = %s" if self.db_type == "postgres" else "tenant_id = ?"
+        ]
         params = [self.tenant_id]
 
         # Visibility filtering
         if include_public_from_tenant:
             # Include user's own prompts AND public prompts from others
-            visibility_condition = "(user_id = %s OR visibility = 'public')" if self.db_type == "postgres" else "(user_id = ? OR visibility = 'public')"
+            visibility_condition = (
+                "(user_id = %s OR visibility = 'public')"
+                if self.db_type == "postgres"
+                else "(user_id = ? OR visibility = 'public')"
+            )
             conditions.append(visibility_condition)
             params.append(self.user_id)
         else:
             # Only user's own prompts
-            user_condition = "user_id = %s" if self.db_type == "postgres" else "user_id = ?"
+            user_condition = (
+                "user_id = %s" if self.db_type == "postgres" else "user_id = ?"
+            )
             conditions.append(user_condition)
             params.append(self.user_id)
 
         # Enhancement prompt filtering
         if not include_enhancement_prompts:
-            enhancement_condition = "is_enhancement_prompt = FALSE" if self.db_type == "postgres" else "is_enhancement_prompt = 0"
+            enhancement_condition = (
+                "is_enhancement_prompt = FALSE"
+                if self.db_type == "postgres"
+                else "is_enhancement_prompt = 0"
+            )
             conditions.append(enhancement_condition)
 
         where_clause = " AND ".join(conditions)
@@ -2975,7 +3002,9 @@ class PromptDataManager:
         conn.close()
         return prompts
 
-    def get_public_prompts_in_tenant(self, include_enhancement_prompts: bool = True) -> List[Dict]:
+    def get_public_prompts_in_tenant(
+        self, include_enhancement_prompts: bool = True
+    ) -> List[Dict]:
         """Get all public prompts within the tenant (excluding user's own prompts)"""
         if not self.tenant_id or not self.user_id:
             return []

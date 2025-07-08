@@ -5,15 +5,16 @@ This module tests the visibility features including model validation,
 repository filtering, service logic, and API endpoints.
 """
 
-import pytest
-from datetime import datetime, timezone
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+from src.core.base.database_manager import BaseDatabaseManager
+from src.core.config.settings import AppConfig, DatabaseType
 from src.prompts.models.prompt import Prompt
 from src.prompts.repositories.prompt_repository import PromptRepository
 from src.prompts.services.prompt_service import PromptService
-from src.core.base.database_manager import BaseDatabaseManager
-from src.core.config.settings import AppConfig, DatabaseConfig, DatabaseType
 
 
 class TestPromptVisibilityModel:
@@ -197,7 +198,7 @@ class TestPromptVisibilityRepository:
         from src.core.config.settings import DatabaseConfig
 
         db_config = DatabaseConfig(db_type=DatabaseType.SQLITE, db_path=":memory:")
-        config = AppConfig(database=db_config)
+        AppConfig(database=db_config)
         db_manager = MagicMock(spec=BaseDatabaseManager)
         db_manager.config = db_config
         return db_manager
@@ -442,7 +443,7 @@ class TestPromptVisibilityService:
         from src.core.config.settings import DatabaseConfig
 
         db_config = DatabaseConfig(db_type=DatabaseType.SQLITE, db_path=":memory:")
-        config = AppConfig(database=db_config)
+        AppConfig(database=db_config)
         db_manager = MagicMock(spec=BaseDatabaseManager)
         db_manager.config = db_config
         return db_manager

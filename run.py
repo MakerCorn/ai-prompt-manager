@@ -309,7 +309,7 @@ def main():
             # Include comprehensive prompt API endpoints
             try:
                 from prompt_api_endpoints import create_prompt_router
-                
+
                 prompt_router = create_prompt_router(config["db_path"])
                 api_app.include_router(prompt_router)
                 print("✅ Comprehensive prompt API endpoints loaded")

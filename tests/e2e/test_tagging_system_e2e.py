@@ -18,6 +18,7 @@ sys.path.insert(
 
 try:
     from playwright.sync_api import sync_playwright
+
     from prompt_data_manager import PromptDataManager
 
     PLAYWRIGHT_AVAILABLE = True
