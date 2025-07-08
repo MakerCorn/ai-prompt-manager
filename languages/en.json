@@ -117,7 +117,15 @@
     "get_started_message": "Get started by creating your first prompt",
     "create_first": "Create Your First Prompt",
     "delete_title": "Delete Prompt",
-    "delete_confirmation": "Are you sure you want to delete"
+    "delete_confirmation": "Are you sure you want to delete",
+    "visibility": "Visibility",
+    "visibility_private": "Private",
+    "visibility_public": "Public",
+    "visibility_help": "Control who can see this prompt. Private prompts are only visible to you, while public prompts are visible to all users in your organization.",
+    "all_visibility": "All Visibility",
+    "private_only": "Private Only",
+    "public_only": "Public Only",
+    "my_prompts": "My Prompts"
   },
   "rules": {
     "title": "Rules Management",

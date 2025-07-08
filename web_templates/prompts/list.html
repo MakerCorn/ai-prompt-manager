@@ -74,6 +74,19 @@
                         <option value="category_asc">{{ t('prompts.sort_category') }}</option>
                     </select>
                 </div>
+                {% if is_multi_tenant_mode %}
+                <div>
+                    <select id="visibility-filter" name="visibility" class="form-select"
+                            hx-get="/prompts/filter" 
+                            hx-trigger="change" 
+                            hx-target="#prompts-list">
+                        <option value="">{{ t('prompts.all_visibility') }}</option>
+                        <option value="private">{{ t('prompts.private_only') }}</option>
+                        <option value="public">{{ t('prompts.public_only') }}</option>
+                        <option value="mine">{{ t('prompts.my_prompts') }}</option>
+                    </select>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -127,6 +140,17 @@
                                                     <i class="fas fa-align-left mr-1"></i>
                                                     {{ prompt.content|length if prompt.content else 0 }} {{ t('prompts.characters') }}
                                                 </div>
+                                                {% if is_multi_tenant_mode %}
+                                                <div class="ml-4 flex items-center">
+                                                    {% if prompt.visibility == 'public' %}
+                                                        <i class="fas fa-globe mr-1 text-green-500"></i>
+                                                        <span class="text-green-600">{{ t('prompts.public') }}</span>
+                                                    {% else %}
+                                                        <i class="fas fa-lock mr-1 text-gray-400"></i>
+                                                        <span>{{ t('prompts.private') }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>

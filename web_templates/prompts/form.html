@@ -113,6 +113,28 @@
                         </div>
                     </div>
 
+                    <!-- Visibility Control (Multi-tenant only) -->
+                    {% if is_multi_tenant_mode %}
+                    <div>
+                        <label for="visibility" class="block text-sm font-medium text-gray-700">
+                            {{ i18n.t('prompt.visibility') }}
+                        </label>
+                        <div class="mt-1">
+                            <select name="visibility" id="visibility" class="form-select">
+                                <option value="private" {% if visibility == 'private' or not visibility %}selected{% endif %}>
+                                    <i class="fas fa-lock mr-2"></i>{{ i18n.t('prompt.visibility_private') }}
+                                </option>
+                                <option value="public" {% if visibility == 'public' %}selected{% endif %}>
+                                    <i class="fas fa-globe mr-2"></i>{{ i18n.t('prompt.visibility_public') }}
+                                </option>
+                            </select>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">
+                            {{ i18n.t('prompt.visibility_help') }}
+                        </p>
+                    </div>
+                    {% endif %}
+
                     <!-- Description -->
                     <div>
                         <label for="description" class="block text-sm font-medium text-gray-700">

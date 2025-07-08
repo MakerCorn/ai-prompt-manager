@@ -32,6 +32,7 @@ class Prompt:
     id: Optional[int] = None
     category: str = "Uncategorized"
     tags: str = ""
+    visibility: str = "private"
     is_enhancement_prompt: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -76,6 +77,10 @@ class Prompt:
                 "Prompt name can only contain letters, numbers, spaces, "
                 "hyphens, and underscores"
             )
+
+        # Validate visibility field
+        if self.visibility not in ["private", "public"]:
+            raise ValueError("Visibility must be either 'private' or 'public'")
 
     @property
     def tag_list(self) -> List[str]:
@@ -135,6 +140,21 @@ class Prompt:
         self.is_enhancement_prompt = is_enhancement
         self.updated_at = datetime.now(timezone.utc)
 
+    def set_visibility(self, visibility: str) -> None:
+        """Set prompt visibility."""
+        if visibility not in ["private", "public"]:
+            raise ValueError("Visibility must be either 'private' or 'public'")
+        self.visibility = visibility
+        self.updated_at = datetime.now(timezone.utc)
+
+    def is_public(self) -> bool:
+        """Check if prompt is public."""
+        return self.visibility == "public"
+
+    def is_private(self) -> bool:
+        """Check if prompt is private."""
+        return self.visibility == "private"
+
     def get_metadata(self, key: str, default: Any = None) -> Any:
         """Get metadata value."""
         return self.metadata.get(key, default)
@@ -164,6 +184,7 @@ class Prompt:
             "category": self.category,
             "tags": self.tags,
             "tag_list": self.tag_list,
+            "visibility": self.visibility,
             "is_enhancement_prompt": self.is_enhancement_prompt,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
@@ -215,6 +236,7 @@ class Prompt:
             content=data["content"],
             category=data.get("category", "Uncategorized"),
             tags=data.get("tags", ""),
+            visibility=data.get("visibility", "private"),
             is_enhancement_prompt=data.get("is_enhancement_prompt", False),
             created_at=created_at,
             updated_at=updated_at,
@@ -245,6 +267,7 @@ class Prompt:
             content=data["content"],
             category=data.get("category", "Uncategorized"),
             tags=data.get("tags", ""),
+            visibility=data.get("visibility", "private"),
             is_enhancement_prompt=data.get("is_enhancement_prompt", False),
             created_at=data.get("created_at"),
             updated_at=data.get("updated_at"),
@@ -264,6 +287,7 @@ class Prompt:
             "content": self.content,
             "category": self.category,
             "tags": self.tags,
+            "visibility": self.visibility,
             "is_enhancement_prompt": self.is_enhancement_prompt,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
@@ -292,6 +316,7 @@ class Prompt:
             content=self.content,
             category=self.category,
             tags=self.tags,
+            visibility=self.visibility,
             is_enhancement_prompt=self.is_enhancement_prompt,
             metadata=self.metadata.copy(),
         )

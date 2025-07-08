@@ -41,6 +41,7 @@ class PromptService(BaseService):
         content: str,
         category: str = "Uncategorized",
         tags: str = "",
+        visibility: str = "private",
         is_enhancement_prompt: bool = False,
     ) -> ServiceResult[Prompt]:
         """
@@ -54,6 +55,7 @@ class PromptService(BaseService):
             content: Prompt content
             category: Category classification
             tags: Comma-separated tags
+            visibility: Prompt visibility ('private' or 'public')
             is_enhancement_prompt: Whether this is an enhancement prompt
 
         Returns:
@@ -64,7 +66,7 @@ class PromptService(BaseService):
             self.repository.set_tenant_context(tenant_id)
 
             # Validate inputs
-            validation_result = self._validate_prompt_data(name, title, content)
+            validation_result = self._validate_prompt_data(name, title, content, visibility)
             if not validation_result.success:
                 return ServiceResult(
                     success=False,
@@ -92,6 +94,7 @@ class PromptService(BaseService):
                 content=content.strip(),
                 category=category.strip() or "Uncategorized",
                 tags=tags.strip(),
+                visibility=visibility,
                 is_enhancement_prompt=is_enhancement_prompt,
             )
 
@@ -135,6 +138,7 @@ class PromptService(BaseService):
         content: str,
         category: str = "Uncategorized",
         tags: str = "",
+        visibility: str = "private",
         is_enhancement_prompt: bool = False,
     ) -> ServiceResult[Prompt]:
         """
@@ -149,6 +153,7 @@ class PromptService(BaseService):
             content: Updated content
             category: Updated category
             tags: Updated tags
+            visibility: Updated visibility ('private' or 'public')
             is_enhancement_prompt: Updated enhancement flag
 
         Returns:
@@ -159,7 +164,7 @@ class PromptService(BaseService):
             self.repository.set_tenant_context(tenant_id)
 
             # Validate inputs
-            validation_result = self._validate_prompt_data(new_name, title, content)
+            validation_result = self._validate_prompt_data(new_name, title, content, visibility)
             if not validation_result.success:
                 return ServiceResult(
                     success=False,
@@ -196,6 +201,7 @@ class PromptService(BaseService):
             existing_prompt.content = content.strip()
             existing_prompt.category = category.strip() or "Uncategorized"
             existing_prompt.tags = tags.strip()
+            existing_prompt.visibility = visibility
             existing_prompt.is_enhancement_prompt = is_enhancement_prompt
             existing_prompt.updated_at = datetime.now(timezone.utc)
 
@@ -398,9 +404,11 @@ class PromptService(BaseService):
         search_in: Optional[List[str]] = None,
         include_enhancement_prompts: bool = True,
         limit: Optional[int] = None,
+        user_id: Optional[str] = None,
+        include_public_from_tenant: bool = True,
     ) -> ServiceResult[List[Prompt]]:
         """
-        Search prompts by content.
+        Search prompts by content with visibility filtering.
 
         Args:
             tenant_id: Tenant context
@@ -408,19 +416,30 @@ class PromptService(BaseService):
             search_in: Fields to search in
             include_enhancement_prompts: Whether to include enhancement prompts
             limit: Maximum number of results
+            user_id: User ID for visibility filtering (optional)
+            include_public_from_tenant: Whether to include public prompts from other users
 
         Returns:
-            ServiceResult containing matching prompts
+            ServiceResult containing matching prompts with visibility filtering
         """
         try:
             self.repository.set_tenant_context(tenant_id)
 
             if not search_term or not search_term.strip():
-                # Return all prompts if no search term
-                return self.get_all_prompts(tenant_id, include_enhancement_prompts)
+                # Return all prompts with visibility filtering if no search term
+                return self.get_all_prompts_with_visibility(
+                    tenant_id, 
+                    user_id=user_id,
+                    include_enhancement_prompts=include_enhancement_prompts,
+                    include_public_from_tenant=include_public_from_tenant
+                )
 
             prompts = self.repository.search_prompts(
-                search_term.strip(), search_in=search_in, limit=limit
+                search_term.strip(), 
+                search_in=search_in, 
+                limit=limit,
+                user_id=user_id,
+                include_public_from_tenant=include_public_from_tenant
             )
 
             # Filter out enhancement prompts if not requested
@@ -600,7 +619,7 @@ class PromptService(BaseService):
             )
 
     def _validate_prompt_data(
-        self, name: str, title: str, content: str
+        self, name: str, title: str, content: str, visibility: str = "private"
     ) -> ServiceResult[bool]:
         """
         Validate prompt data.
@@ -609,6 +628,7 @@ class PromptService(BaseService):
             name: Prompt name
             title: Prompt title
             content: Prompt content
+            visibility: Prompt visibility
 
         Returns:
             ServiceResult indicating validation success or failure
@@ -642,6 +662,14 @@ class PromptService(BaseService):
                     "Prompt name can only contain letters, numbers, spaces, "
                     "hyphens, and underscores"
                 ),
+                error_code="VALIDATION_ERROR",
+            )
+
+        # Validate visibility
+        if visibility not in ["private", "public"]:
+            return ServiceResult(
+                success=False,
+                error="Visibility must be either 'private' or 'public'",
                 error_code="VALIDATION_ERROR",
             )
 
@@ -811,5 +839,166 @@ class PromptService(BaseService):
             return ServiceResult(
                 success=False,
                 error="An unexpected error occurred while creating template",
+                error_code="INTERNAL_ERROR",
+            )
+
+    def get_all_prompts_with_visibility(
+        self,
+        tenant_id: str,
+        user_id: Optional[str] = None,
+        include_enhancement_prompts: bool = True,
+        include_public_from_tenant: bool = True,
+        category: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> ServiceResult[List[Prompt]]:
+        """
+        Get all prompts with visibility filtering.
+
+        Args:
+            tenant_id: Tenant context
+            user_id: User ID for filtering (optional)
+            include_enhancement_prompts: Whether to include enhancement prompts
+            include_public_from_tenant: Whether to include public prompts from other users
+            category: Optional category filter
+            limit: Maximum number of results
+
+        Returns:
+            ServiceResult containing list of prompts with visibility filtering
+        """
+        try:
+            self.repository.set_tenant_context(tenant_id)
+
+            prompts = self.repository.find_all_with_visibility(
+                include_enhancement_prompts=include_enhancement_prompts,
+                include_public_from_tenant=include_public_from_tenant,
+                user_id=user_id,
+                limit=limit,
+                order_by="category, name",
+            )
+
+            # Apply category filter if specified
+            if category and category != "All":
+                prompts = [p for p in prompts if p.category == category]
+
+            return ServiceResult(success=True, data=prompts)
+
+        except Exception as e:
+            self.logger.error(f"Error retrieving prompts with visibility: {e}")
+            return ServiceResult(
+                success=False,
+                error="An unexpected error occurred while retrieving prompts",
+                error_code="INTERNAL_ERROR",
+            )
+
+    def get_public_prompts_in_tenant(
+        self,
+        tenant_id: str,
+        include_enhancement_prompts: bool = True,
+        category: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> ServiceResult[List[Prompt]]:
+        """
+        Get all public prompts within current tenant.
+
+        Args:
+            tenant_id: Tenant context
+            include_enhancement_prompts: Whether to include enhancement prompts
+            category: Optional category filter
+            limit: Maximum number of results
+
+        Returns:
+            ServiceResult containing list of public prompts
+        """
+        try:
+            self.repository.set_tenant_context(tenant_id)
+
+            prompts = self.repository.find_public_prompts_in_tenant(
+                include_enhancement_prompts=include_enhancement_prompts,
+                limit=limit,
+                order_by="category, name",
+            )
+
+            # Apply category filter if specified
+            if category and category != "All":
+                prompts = [p for p in prompts if p.category == category]
+
+            return ServiceResult(success=True, data=prompts)
+
+        except Exception as e:
+            self.logger.error(f"Error retrieving public prompts: {e}")
+            return ServiceResult(
+                success=False,
+                error="An unexpected error occurred while retrieving public prompts",
+                error_code="INTERNAL_ERROR",
+            )
+
+    def get_prompts_by_visibility(
+        self,
+        tenant_id: str,
+        visibility: str,
+        user_id: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> ServiceResult[List[Prompt]]:
+        """
+        Get prompts by visibility level.
+
+        Args:
+            tenant_id: Tenant context
+            visibility: 'private' or 'public'
+            user_id: Optional user ID for filtering
+            limit: Maximum number of results
+
+        Returns:
+            ServiceResult containing list of prompts with specified visibility
+        """
+        try:
+            self.repository.set_tenant_context(tenant_id)
+
+            # Validate visibility parameter
+            if visibility not in ["private", "public"]:
+                return ServiceResult(
+                    success=False,
+                    error="Visibility must be either 'private' or 'public'",
+                    error_code="VALIDATION_ERROR",
+                )
+
+            prompts = self.repository.find_by_visibility(
+                visibility=visibility,
+                user_id=user_id,
+                limit=limit,
+            )
+
+            return ServiceResult(success=True, data=prompts)
+
+        except Exception as e:
+            self.logger.error(f"Error retrieving prompts by visibility: {e}")
+            return ServiceResult(
+                success=False,
+                error="An unexpected error occurred while retrieving prompts by visibility",
+                error_code="INTERNAL_ERROR",
+            )
+
+    def get_visibility_statistics(self, tenant_id: str) -> ServiceResult[Dict[str, Any]]:
+        """
+        Get visibility statistics for current tenant.
+
+        Args:
+            tenant_id: Tenant context
+
+        Returns:
+            ServiceResult containing visibility statistics
+        """
+        try:
+            self.repository.set_tenant_context(tenant_id)
+
+            stats = self.repository.get_visibility_statistics()
+
+            return ServiceResult(success=True, data=stats)
+
+        except Exception as e:
+            self.logger.error(f"Error retrieving visibility statistics: {e}")
+            return ServiceResult(
+                success=False,
+                error="An unexpected error occurred while retrieving visibility statistics",
                 error_code="INTERNAL_ERROR",
             )

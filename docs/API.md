@@ -153,6 +153,8 @@ Authorization: Bearer {token}
 - `category` (string, optional): Filter by category
 - `search` (string, optional): Search in name, title, content
 - `include_enhancement` (boolean, default: true): Include enhancement prompts
+- `visibility` (string, optional): Filter by visibility ('private', 'public', or 'all')
+- `include_public` (boolean, default: true): Include public prompts from other users
 
 **Response:**
 ```json
@@ -165,6 +167,7 @@ Authorization: Bearer {token}
       "content": "Write an engaging introduction for a blog post about {topic}...",
       "category": "Writing",
       "tags": "blog, introduction, content",
+      "visibility": "public",
       "is_enhancement_prompt": false,
       "user_id": "user-123",
       "created_at": "2025-01-08T09:00:00.000Z",
@@ -194,6 +197,14 @@ curl -H "Authorization: Bearer apm_your_token_here" \
 # Search prompts
 curl -H "Authorization: Bearer apm_your_token_here" \
      "http://localhost:7861/api/prompts?search=blog"
+
+# Filter by visibility
+curl -H "Authorization: Bearer apm_your_token_here" \
+     "http://localhost:7861/api/prompts?visibility=public"
+
+# Show only your own prompts (private + public)
+curl -H "Authorization: Bearer apm_your_token_here" \
+     "http://localhost:7861/api/prompts?include_public=false"
 ```
 
 ---
@@ -220,6 +231,7 @@ Authorization: Bearer {token}
       "content": "Write an engaging introduction for a blog post about {topic}...",
       "category": "Writing",
       "tags": "blog, introduction, content",
+      "visibility": "public",
       "is_enhancement_prompt": false,
       "user_id": "user-123",
       "created_at": "2025-01-08T09:00:00.000Z",
@@ -285,6 +297,8 @@ Authorization: Bearer {token}
 - `page` (integer, default: 1): Page number
 - `page_size` (integer, default: 50, max: 100): Items per page
 - `include_enhancement` (boolean, default: true): Include enhancement prompts
+- `visibility` (string, optional): Filter by visibility ('private', 'public', or 'all')
+- `include_public` (boolean, default: true): Include public prompts from other users
 
 **Response:**
 ```json
@@ -297,6 +311,7 @@ Authorization: Bearer {token}
       "content": "Write an engaging introduction for a blog post...",
       "category": "Writing",
       "tags": "blog, introduction, content",
+      "visibility": "public",
       "is_enhancement_prompt": false,
       "user_id": "user-123",
       "created_at": "2025-01-08T09:00:00.000Z",
@@ -314,6 +329,183 @@ Authorization: Bearer {token}
 curl -H "Authorization: Bearer apm_your_token_here" \
      "http://localhost:7861/api/search?q=blog"
 ```
+
+---
+
+## 👁️ Prompt Visibility
+
+The AI Prompt Manager supports a comprehensive visibility system that allows users to control who can see and access their prompts within a tenant. This feature is only available in multi-tenant mode.
+
+### Visibility Levels
+
+- **Private**: Only visible to the prompt creator
+- **Public**: Visible to all users within the same tenant
+
+### Get Prompts by Visibility
+
+Filter prompts by their visibility level.
+
+```http
+GET /api/prompts/visibility/{visibility_level}
+Authorization: Bearer {token}
+```
+
+**Path Parameters:**
+- `visibility_level` (string): 'private' or 'public'
+
+**Query Parameters:**
+- `page` (integer, default: 1): Page number
+- `page_size` (integer, default: 50, max: 100): Items per page
+- `include_enhancement` (boolean, default: true): Include enhancement prompts
+
+**Response:**
+```json
+{
+  "prompts": [
+    {
+      "id": 1,
+      "name": "public-prompt",
+      "title": "Public Prompt Example",
+      "content": "This is a public prompt visible to all users in the tenant...",
+      "category": "Public",
+      "tags": "public, shared",
+      "visibility": "public",
+      "is_enhancement_prompt": false,
+      "user_id": "user-456",
+      "created_at": "2025-01-08T09:00:00.000Z",
+      "updated_at": "2025-01-08T09:00:00.000Z"
+    }
+  ],
+  "total": 8,
+  "page": 1,
+  "page_size": 50
+}
+```
+
+**Examples:**
+```bash
+# Get all public prompts in tenant
+curl -H "Authorization: Bearer apm_your_token_here" \
+     http://localhost:7861/api/prompts/visibility/public
+
+# Get all private prompts (user's own only)
+curl -H "Authorization: Bearer apm_your_token_here" \
+     http://localhost:7861/api/prompts/visibility/private
+```
+
+---
+
+### Get Public Prompts
+
+Get all public prompts within the current tenant.
+
+```http
+GET /api/prompts/public
+Authorization: Bearer {token}
+```
+
+**Query Parameters:**
+- `page` (integer, default: 1): Page number
+- `page_size` (integer, default: 50, max: 100): Items per page
+- `category` (string, optional): Filter by category
+- `include_enhancement` (boolean, default: true): Include enhancement prompts
+
+**Response:**
+```json
+{
+  "prompts": [
+    {
+      "id": 2,
+      "name": "shared-template",
+      "title": "Shared Template for Team",
+      "content": "This template is shared with the entire team...",
+      "category": "Templates",
+      "tags": "team, shared, template",
+      "visibility": "public",
+      "is_enhancement_prompt": false,
+      "user_id": "user-789",
+      "created_at": "2025-01-08T08:30:00.000Z",
+      "updated_at": "2025-01-08T08:30:00.000Z"
+    }
+  ],
+  "total": 15,
+  "page": 1,
+  "page_size": 50
+}
+```
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer apm_your_token_here" \
+     http://localhost:7861/api/prompts/public
+```
+
+---
+
+### Get Visibility Statistics
+
+Get statistics about prompt visibility within the current tenant.
+
+```http
+GET /api/prompts/visibility-stats
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Visibility statistics retrieved successfully",
+  "data": {
+    "total_prompts": 50,
+    "private_prompts": 32,
+    "public_prompts": 18,
+    "private_percentage": 64.0,
+    "public_percentage": 36.0
+  }
+}
+```
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer apm_your_token_here" \
+     http://localhost:7861/api/prompts/visibility-stats
+```
+
+---
+
+### Visibility Filtering Examples
+
+The visibility system affects all prompt listing and search endpoints:
+
+```bash
+# Get all prompts (user's own + public from others) - DEFAULT
+curl -H "Authorization: Bearer apm_your_token_here" \
+     "http://localhost:7861/api/prompts"
+
+# Get only user's own prompts (private + public)
+curl -H "Authorization: Bearer apm_your_token_here" \
+     "http://localhost:7861/api/prompts?include_public=false"
+
+# Get only public prompts from other users
+curl -H "Authorization: Bearer apm_your_token_here" \
+     "http://localhost:7861/api/prompts/public"
+
+# Filter by specific visibility level
+curl -H "Authorization: Bearer apm_your_token_here" \
+     "http://localhost:7861/api/prompts?visibility=private"
+
+# Search with visibility filtering
+curl -H "Authorization: Bearer apm_your_token_here" \
+     "http://localhost:7861/api/search?q=template&visibility=public"
+```
+
+### Visibility Behavior
+
+1. **Default Behavior**: By default, users see their own prompts (both private and public) plus public prompts from other users in their tenant
+2. **Privacy Protection**: Private prompts are never visible to other users
+3. **Tenant Isolation**: Public prompts are only visible within the same tenant
+4. **Single-User Mode**: In single-user mode, all prompts are treated as accessible (visibility filtering is disabled)
 
 ---
 
@@ -610,6 +802,22 @@ response = requests.get(
 prompts = response.json()
 print(f"Found {prompts['total']} writing prompts")
 
+# List only public prompts
+response = requests.get(
+    f"{API_BASE}/prompts/public",
+    headers=HEADERS,
+    params={"page_size": 20}
+)
+public_prompts = response.json()
+print(f"Found {public_prompts['total']} public prompts")
+
+# Get visibility statistics
+response = requests.get(f"{API_BASE}/prompts/visibility-stats", headers=HEADERS)
+stats = response.json()
+if stats["success"]:
+    data = stats["data"]
+    print(f"Visibility Stats: {data['private_prompts']} private, {data['public_prompts']} public")
+
 # Search prompts
 response = requests.get(
     f"{API_BASE}/search",
@@ -647,15 +855,36 @@ async function getUserInfo() {
 }
 
 // List prompts with filtering
-async function listPrompts(category = null, search = null) {
+async function listPrompts(category = null, search = null, visibility = null) {
   const params = new URLSearchParams();
   if (category) params.append('category', category);
   if (search) params.append('search', search);
+  if (visibility) params.append('visibility', visibility);
   
   const response = await fetch(`${API_BASE}/prompts?${params}`, { headers });
   const data = await response.json();
   console.log(`Found ${data.total} prompts`);
   return data.prompts;
+}
+
+// Get public prompts only
+async function getPublicPrompts() {
+  const response = await fetch(`${API_BASE}/prompts/public`, { headers });
+  const data = await response.json();
+  console.log(`Found ${data.total} public prompts`);
+  return data.prompts;
+}
+
+// Get visibility statistics
+async function getVisibilityStats() {
+  const response = await fetch(`${API_BASE}/prompts/visibility-stats`, { headers });
+  const data = await response.json();
+  if (data.success) {
+    const stats = data.data;
+    console.log(`Visibility: ${stats.private_prompts} private, ${stats.public_prompts} public`);
+    return stats;
+  }
+  return null;
 }
 
 // Get specific prompt
@@ -712,6 +941,18 @@ curl -s -H "$AUTH_HEADER" "$API_BASE/prompts/1" | jq '.data.prompt | {name, cont
 # List categories
 echo "=== Categories ==="
 curl -s -H "$AUTH_HEADER" "$API_BASE/categories" | jq '.data.categories'
+
+# Get public prompts
+echo "=== Public Prompts ==="
+curl -s -H "$AUTH_HEADER" "$API_BASE/prompts/public" | jq '.prompts[] | {name, title, visibility}'
+
+# Get visibility statistics
+echo "=== Visibility Statistics ==="
+curl -s -H "$AUTH_HEADER" "$API_BASE/prompts/visibility-stats" | jq '.data'
+
+# Filter by visibility
+echo "=== Private Prompts Only ==="
+curl -s -H "$AUTH_HEADER" "$API_BASE/prompts?visibility=private" | jq '.prompts[] | .name'
 ```
 
 ## 🔧 Configuration

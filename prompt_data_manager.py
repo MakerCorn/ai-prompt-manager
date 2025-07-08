@@ -79,9 +79,11 @@ class PromptDataManager:
                     category TEXT DEFAULT 'Uncategorized',
                     tags TEXT,
                     is_enhancement_prompt BOOLEAN DEFAULT FALSE,
+                    visibility TEXT DEFAULT 'private',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(tenant_id, name)
+                    UNIQUE(tenant_id, name),
+                    CHECK (visibility IN ('private', 'public'))
                 )
             """
             )
@@ -110,9 +112,11 @@ class PromptDataManager:
                     tags TEXT DEFAULT '',
                     variables TEXT,
                     is_builtin BOOLEAN DEFAULT FALSE,
+                    visibility TEXT DEFAULT 'private',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(tenant_id, name)
+                    UNIQUE(tenant_id, name),
+                    CHECK (visibility IN ('private', 'public'))
                 )
             """
             )
@@ -206,6 +210,14 @@ class PromptDataManager:
                     ) THEN
                         ALTER TABLE prompts ADD COLUMN user_id UUID;
                     END IF;
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='prompts' AND column_name='visibility'
+                    ) THEN
+                        ALTER TABLE prompts ADD COLUMN visibility TEXT DEFAULT 'private';
+                        ALTER TABLE prompts ADD CONSTRAINT prompts_visibility_check 
+                            CHECK (visibility IN ('private', 'public'));
+                    END IF;
                 END $$;
             """
             )
@@ -244,6 +256,14 @@ class PromptDataManager:
                     ) THEN
                         ALTER TABLE templates ADD COLUMN tags TEXT DEFAULT '';
                     END IF;
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='templates' AND column_name='visibility'
+                    ) THEN
+                        ALTER TABLE templates ADD COLUMN visibility TEXT DEFAULT 'private';
+                        ALTER TABLE templates ADD CONSTRAINT templates_visibility_check 
+                            CHECK (visibility IN ('private', 'public'));
+                    END IF;
                 END $$;
             """
             )
@@ -260,9 +280,11 @@ class PromptDataManager:
                     category TEXT DEFAULT 'Uncategorized',
                     tags TEXT,
                     is_enhancement_prompt BOOLEAN DEFAULT 0,
+                    visibility TEXT DEFAULT 'private',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(tenant_id, name)
+                    UNIQUE(tenant_id, name),
+                    CHECK (visibility IN ('private', 'public'))
                 )
             """
             )
@@ -291,9 +313,11 @@ class PromptDataManager:
                     tags TEXT DEFAULT '',
                     variables TEXT,
                     is_builtin BOOLEAN DEFAULT 0,
+                    visibility TEXT DEFAULT 'private',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(tenant_id, name)
+                    UNIQUE(tenant_id, name),
+                    CHECK (visibility IN ('private', 'public'))
                 )
             """
             )
@@ -383,12 +407,16 @@ class PromptDataManager:
             if "name" not in columns:
                 cursor.execute("ALTER TABLE prompts ADD COLUMN name TEXT")
                 cursor.execute("UPDATE prompts SET name = title WHERE name IS NULL")
+            if "visibility" not in columns:
+                cursor.execute("ALTER TABLE prompts ADD COLUMN visibility TEXT DEFAULT 'private'")
 
             # Update templates table structure
             cursor.execute("PRAGMA table_info(templates)")
             template_columns = [column[1] for column in cursor.fetchall()]
             if "tags" not in template_columns:
                 cursor.execute("ALTER TABLE templates ADD COLUMN tags TEXT DEFAULT ''")
+            if "visibility" not in template_columns:
+                cursor.execute("ALTER TABLE templates ADD COLUMN visibility TEXT DEFAULT 'private'")
 
             # Update config table structure
             cursor.execute("PRAGMA table_info(config)")
@@ -426,6 +454,7 @@ class PromptDataManager:
         category: str,
         tags: str,
         is_enhancement_prompt: bool = False,
+        visibility: str = "private",
     ) -> str:
         if not name.strip():
             return "Error: Name is required!"
@@ -433,6 +462,8 @@ class PromptDataManager:
             return "Error: Title and content are required!"
         if not self.tenant_id:
             return "Error: No tenant context available!"
+        if visibility not in ["private", "public"]:
+            return "Error: Visibility must be 'private' or 'public'!"
 
         name = name.strip()
         category = category.strip() or "Uncategorized"
@@ -461,8 +492,8 @@ class PromptDataManager:
             cursor.execute(
                 """
                 INSERT INTO prompts (tenant_id, user_id, name, title, content,
-                category, tags, is_enhancement_prompt, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                category, tags, is_enhancement_prompt, visibility, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
                 (
                     self.tenant_id,
@@ -473,6 +504,7 @@ class PromptDataManager:
                     category,
                     tags.strip(),
                     is_enhancement_prompt,
+                    visibility,
                     datetime.now(),
                     datetime.now(),
                 ),
@@ -481,8 +513,8 @@ class PromptDataManager:
             cursor.execute(
                 """
                 INSERT INTO prompts (tenant_id, user_id, name, title, content,
-                category, tags, is_enhancement_prompt, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                category, tags, is_enhancement_prompt, visibility, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 (
                     self.tenant_id,
@@ -493,6 +525,7 @@ class PromptDataManager:
                     category,
                     tags.strip(),
                     is_enhancement_prompt,
+                    visibility,
                     datetime.now().isoformat(),
                     datetime.now().isoformat(),
                 ),
@@ -512,6 +545,7 @@ class PromptDataManager:
         category: str,
         tags: str,
         is_enhancement_prompt: bool = False,
+        visibility: str = "private",
     ) -> str:
         if not original_name.strip() or not new_name.strip():
             return "Error: Original name and new name are required!"
@@ -519,6 +553,8 @@ class PromptDataManager:
             return "Error: Title and content are required!"
         if not self.tenant_id:
             return "Error: No tenant context available!"
+        if visibility not in ["private", "public"]:
+            return "Error: Visibility must be 'private' or 'public'!"
 
         original_name = original_name.strip()
         new_name = new_name.strip()
@@ -567,7 +603,7 @@ class PromptDataManager:
                 """
                 UPDATE prompts
                 SET name=%s, title=%s, content=%s, category=%s, tags=%s,
-                is_enhancement_prompt=%s, updated_at=%s
+                is_enhancement_prompt=%s, visibility=%s, updated_at=%s
                 WHERE name=%s AND tenant_id=%s
             """,
                 (
@@ -577,6 +613,7 @@ class PromptDataManager:
                     category,
                     tags.strip(),
                     is_enhancement_prompt,
+                    visibility,
                     datetime.now(),
                     original_name,
                     self.tenant_id,
@@ -587,7 +624,7 @@ class PromptDataManager:
                 """
                 UPDATE prompts
                 SET name=?, title=?, content=?, category=?, tags=?,
-                is_enhancement_prompt=?, updated_at=?
+                is_enhancement_prompt=?, visibility=?, updated_at=?
                 WHERE name=? AND tenant_id=?
             """,
                 (
@@ -597,6 +634,7 @@ class PromptDataManager:
                     category,
                     tags.strip(),
                     is_enhancement_prompt,
+                    visibility,
                     datetime.now().isoformat(),
                     original_name,
                     self.tenant_id,
@@ -640,6 +678,27 @@ class PromptDataManager:
             return f"Error: Prompt '{name}' not found in your workspace!"
 
     def get_all_prompts(self, include_enhancement_prompts: bool = True) -> List[Dict]:
+        """
+        Get all prompts with visibility filtering.
+        In multi-tenant mode: user's own prompts + public prompts from tenant
+        In single-user mode: all prompts (visibility ignored)
+        """
+        if not self.tenant_id:
+            return []
+
+        # Check if single-user mode by environment variable
+        import os
+        is_single_user = os.getenv('MULTITENANT_MODE', 'true').lower() == 'false'
+        
+        if is_single_user or not self.user_id:
+            # Single-user mode or no user context - show all prompts
+            return self._get_all_prompts_no_visibility(include_enhancement_prompts)
+        else:
+            # Multi-tenant mode - use visibility filtering
+            return self.get_all_prompts_with_visibility(include_enhancement_prompts, include_public_from_tenant=True)
+    
+    def _get_all_prompts_no_visibility(self, include_enhancement_prompts: bool = True) -> List[Dict]:
+        """Internal method for single-user mode - shows all prompts regardless of visibility"""
         if not self.tenant_id:
             return []
 
@@ -651,7 +710,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts WHERE tenant_id = %s ORDER BY category, name
                 """,
                     (self.tenant_id,),
@@ -660,7 +719,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts WHERE tenant_id = %s
                     AND is_enhancement_prompt = FALSE ORDER BY category, name
                 """,
@@ -671,7 +730,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts WHERE tenant_id = ? ORDER BY category, name
                 """,
                     (self.tenant_id,),
@@ -680,7 +739,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts WHERE tenant_id = ?
                     AND is_enhancement_prompt = 0 ORDER BY category, name
                 """,
@@ -702,8 +761,9 @@ class PromptDataManager:
                     "is_enhancement_prompt": (
                         bool(row[8]) if row[8] is not None else False
                     ),
-                    "created_at": row[9],
-                    "updated_at": row[10],
+                    "visibility": row[9] if row[9] is not None else "private",
+                    "created_at": row[10],
+                    "updated_at": row[11],
                 }
             )
         conn.close()
@@ -720,7 +780,7 @@ class PromptDataManager:
             cursor.execute(
                 """
                 SELECT id, tenant_id, user_id, name, title, content, category,
-                tags, is_enhancement_prompt, created_at, updated_at
+                tags, is_enhancement_prompt, visibility, created_at, updated_at
                 FROM prompts WHERE tenant_id = %s AND is_enhancement_prompt = TRUE
                 ORDER BY name
             """,
@@ -730,7 +790,7 @@ class PromptDataManager:
             cursor.execute(
                 """
                 SELECT id, tenant_id, user_id, name, title, content, category,
-                tags, is_enhancement_prompt, created_at, updated_at
+                tags, is_enhancement_prompt, visibility, created_at, updated_at
                 FROM prompts WHERE tenant_id = ? AND is_enhancement_prompt = 1
                 ORDER BY name
             """,
@@ -793,77 +853,84 @@ class PromptDataManager:
             return self.get_all_prompts(include_enhancement_prompts)
         if not self.tenant_id:
             return []
+        
+        # Check if single-user mode by environment variable
+        import os
+        is_single_user = os.getenv('MULTITENANT_MODE', 'true').lower() == 'false'
 
         conn = self.get_conn()
         cursor = conn.cursor()
 
+        # Build visibility conditions
+        if is_single_user or not self.user_id:
+            # Single-user mode or no user context - no visibility filtering
+            visibility_condition = ""
+            visibility_params = []
+        else:
+            # Multi-tenant mode - include user's own prompts + public prompts
+            if self.db_type == "postgres":
+                visibility_condition = " AND (user_id = %s OR visibility = 'public')"
+            else:
+                visibility_condition = " AND (user_id = ? OR visibility = 'public')"
+            visibility_params = [self.user_id]
+
         if self.db_type == "postgres":
             like = f"%{search_term}%"
+            base_params = [self.tenant_id, like, like, like, like]
+            
             if include_enhancement_prompts:
-                cursor.execute(
-                    """
+                query = f"""
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts
                     WHERE tenant_id = %s
                     AND (name ILIKE %s OR title ILIKE %s OR content ILIKE %s
-                    OR tags ILIKE %s)
+                    OR tags ILIKE %s){visibility_condition}
                     ORDER BY category, name
-                """,
-                    (self.tenant_id, like, like, like, like),
-                )
+                """
+                cursor.execute(query, base_params + visibility_params)
             else:
-                cursor.execute(
-                    """
+                query = f"""
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts
                     WHERE tenant_id = %s
                     AND (name ILIKE %s OR title ILIKE %s OR content ILIKE %s
-                    OR tags ILIKE %s) AND is_enhancement_prompt = FALSE
+                    OR tags ILIKE %s) AND is_enhancement_prompt = FALSE{visibility_condition}
                     ORDER BY category, name
-                """,
-                    (self.tenant_id, like, like, like, like),
-                )
+                """
+                cursor.execute(query, base_params + visibility_params)
         else:
+            base_params = [
+                self.tenant_id,
+                f"%{search_term}%",
+                f"%{search_term}%",
+                f"%{search_term}%",
+                f"%{search_term}%",
+            ]
+            
             if include_enhancement_prompts:
-                cursor.execute(
-                    """
+                query = f"""
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts
                     WHERE tenant_id = ?
                     AND (name LIKE ? OR title LIKE ? OR content LIKE ?
-                    OR tags LIKE ?)
+                    OR tags LIKE ?){visibility_condition}
                     ORDER BY category, name
-                """,
-                    (
-                        self.tenant_id,
-                        f"%{search_term}%",
-                        f"%{search_term}%",
-                        f"%{search_term}%",
-                        f"%{search_term}%",
-                    ),
-                )
+                """
+                cursor.execute(query, base_params + visibility_params)
             else:
-                cursor.execute(
-                    """
+                query = f"""
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts
                     WHERE tenant_id = ?
                     AND (name LIKE ? OR title LIKE ? OR content LIKE ?
-                    OR tags LIKE ?) AND is_enhancement_prompt = 0
+                    OR tags LIKE ?) AND is_enhancement_prompt = 0{visibility_condition}
                     ORDER BY category, name
-                """,
-                    (
-                        self.tenant_id,
-                        f"%{search_term}%",
-                        f"%{search_term}%",
-                        f"%{search_term}%",
-                        f"%{search_term}%",
-                    ),
-                )
+                """
+                cursor.execute(query, base_params + visibility_params)
 
         prompts = []
         for row in cursor.fetchall():
@@ -880,8 +947,9 @@ class PromptDataManager:
                     "is_enhancement_prompt": (
                         bool(row[8]) if row[8] is not None else False
                     ),
-                    "created_at": row[9],
-                    "updated_at": row[10],
+                    "visibility": row[9] if row[9] is not None else "private",
+                    "created_at": row[10],
+                    "updated_at": row[11],
                 }
             )
         conn.close()
@@ -903,7 +971,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts WHERE tenant_id = %s AND category = %s
                     ORDER BY name
                 """,
@@ -913,7 +981,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts WHERE tenant_id = %s AND category = %s
                     AND is_enhancement_prompt = FALSE
                     ORDER BY name
@@ -925,7 +993,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts WHERE tenant_id = ? AND category = ?
                     ORDER BY name
                 """,
@@ -935,7 +1003,7 @@ class PromptDataManager:
                 cursor.execute(
                     """
                     SELECT id, tenant_id, user_id, name, title, content, category,
-                    tags, is_enhancement_prompt, created_at, updated_at
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
                     FROM prompts WHERE tenant_id = ? AND category = ?
                     AND is_enhancement_prompt = 0
                     ORDER BY name
@@ -958,8 +1026,9 @@ class PromptDataManager:
                     "is_enhancement_prompt": (
                         bool(row[8]) if row[8] is not None else False
                     ),
-                    "created_at": row[9],
-                    "updated_at": row[10],
+                    "visibility": row[9] if row[9] is not None else "private",
+                    "created_at": row[10],
+                    "updated_at": row[11],
                 }
             )
         conn.close()
@@ -1025,8 +1094,9 @@ class PromptDataManager:
                     "is_enhancement_prompt": (
                         bool(row[8]) if row[8] is not None else False
                     ),
-                    "created_at": row[9],
-                    "updated_at": row[10],
+                    "visibility": row[9] if row[9] is not None else "private",
+                    "created_at": row[10],
+                    "updated_at": row[11],
                 }
         return None
 
@@ -2834,3 +2904,152 @@ class PromptDataManager:
         except Exception:
             conn.close()
             return False
+
+    def get_all_prompts_with_visibility(
+        self, include_enhancement_prompts: bool = True, 
+        include_public_from_tenant: bool = True
+    ) -> List[Dict]:
+        """
+        Get prompts with visibility filtering.
+        - Always includes user's own prompts (private + public)
+        - Optionally includes public prompts from other users in the same tenant
+        """
+        if not self.tenant_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        # Base query conditions
+        conditions = ["tenant_id = %s" if self.db_type == "postgres" else "tenant_id = ?"]
+        params = [self.tenant_id]
+
+        # Visibility filtering
+        if include_public_from_tenant:
+            # Include user's own prompts AND public prompts from others
+            visibility_condition = "(user_id = %s OR visibility = 'public')" if self.db_type == "postgres" else "(user_id = ? OR visibility = 'public')"
+            conditions.append(visibility_condition)
+            params.append(self.user_id)
+        else:
+            # Only user's own prompts
+            user_condition = "user_id = %s" if self.db_type == "postgres" else "user_id = ?"
+            conditions.append(user_condition)
+            params.append(self.user_id)
+
+        # Enhancement prompt filtering
+        if not include_enhancement_prompts:
+            enhancement_condition = "is_enhancement_prompt = FALSE" if self.db_type == "postgres" else "is_enhancement_prompt = 0"
+            conditions.append(enhancement_condition)
+
+        where_clause = " AND ".join(conditions)
+
+        query = f"""
+            SELECT id, tenant_id, user_id, name, title, content, category,
+            tags, is_enhancement_prompt, visibility, created_at, updated_at
+            FROM prompts WHERE {where_clause} ORDER BY category, name
+        """
+
+        cursor.execute(query, tuple(params))
+
+        prompts = []
+        for row in cursor.fetchall():
+            prompts.append(
+                {
+                    "id": row[0],
+                    "tenant_id": row[1],
+                    "user_id": row[2],
+                    "name": row[3],
+                    "title": row[4],
+                    "content": row[5],
+                    "category": row[6],
+                    "tags": row[7],
+                    "is_enhancement_prompt": (
+                        bool(row[8]) if row[8] is not None else False
+                    ),
+                    "visibility": row[9] if row[9] is not None else "private",
+                    "created_at": row[10],
+                    "updated_at": row[11],
+                }
+            )
+        conn.close()
+        return prompts
+
+    def get_public_prompts_in_tenant(self, include_enhancement_prompts: bool = True) -> List[Dict]:
+        """Get all public prompts within the tenant (excluding user's own prompts)"""
+        if not self.tenant_id or not self.user_id:
+            return []
+
+        conn = self.get_conn()
+        cursor = conn.cursor()
+
+        if self.db_type == "postgres":
+            if include_enhancement_prompts:
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
+                    FROM prompts 
+                    WHERE tenant_id = %s AND visibility = 'public' AND user_id != %s
+                    ORDER BY category, name
+                """,
+                    (self.tenant_id, self.user_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
+                    FROM prompts 
+                    WHERE tenant_id = %s AND visibility = 'public' AND user_id != %s
+                    AND is_enhancement_prompt = FALSE
+                    ORDER BY category, name
+                """,
+                    (self.tenant_id, self.user_id),
+                )
+        else:
+            if include_enhancement_prompts:
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
+                    FROM prompts 
+                    WHERE tenant_id = ? AND visibility = 'public' AND user_id != ?
+                    ORDER BY category, name
+                """,
+                    (self.tenant_id, self.user_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT id, tenant_id, user_id, name, title, content, category,
+                    tags, is_enhancement_prompt, visibility, created_at, updated_at
+                    FROM prompts 
+                    WHERE tenant_id = ? AND visibility = 'public' AND user_id != ?
+                    AND is_enhancement_prompt = 0
+                    ORDER BY category, name
+                """,
+                    (self.tenant_id, self.user_id),
+                )
+
+        prompts = []
+        for row in cursor.fetchall():
+            prompts.append(
+                {
+                    "id": row[0],
+                    "tenant_id": row[1],
+                    "user_id": row[2],
+                    "name": row[3],
+                    "title": row[4],
+                    "content": row[5],
+                    "category": row[6],
+                    "tags": row[7],
+                    "is_enhancement_prompt": (
+                        bool(row[8]) if row[8] is not None else False
+                    ),
+                    "visibility": row[9] if row[9] is not None else "private",
+                    "created_at": row[10],
+                    "updated_at": row[11],
+                }
+            )
+        conn.close()
+        return prompts

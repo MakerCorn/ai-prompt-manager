@@ -37,6 +37,15 @@ try:
     AI_MODELS_API_AVAILABLE = True
 except ImportError:
     AI_MODELS_API_AVAILABLE = False
+
+# Import prompt API endpoints
+try:
+    from prompt_api_endpoints import create_prompt_router
+
+    PROMPT_API_AVAILABLE = True
+except ImportError:
+    PROMPT_API_AVAILABLE = False
+
 from token_calculator import token_calculator
 
 
@@ -95,6 +104,15 @@ class WebApp:
             except Exception as e:
                 print(f"Warning: Could not include AI models router: {e}")
 
+        # Include prompt API router if available
+        if PROMPT_API_AVAILABLE:
+            try:
+                prompt_router = create_prompt_router(self.db_path)
+                self.app.include_router(prompt_router)
+                print("✅ Prompt API endpoints loaded")
+            except Exception as e:
+                print(f"Warning: Could not include prompt API router: {e}")
+
         # Set up routes
         self._setup_routes()
 
@@ -118,6 +136,7 @@ class WebApp:
                         prompts=prompts,
                         page_title="Dashboard",
                         single_user_mode=True,
+                        is_multi_tenant_mode=False,
                     ),
                 )
 
@@ -136,7 +155,7 @@ class WebApp:
             return self.templates.TemplateResponse(
                 "prompts/dashboard.html",
                 self.get_template_context(
-                    request, user, prompts=prompts, page_title="Dashboard"
+                    request, user, prompts=prompts, page_title="Dashboard", is_multi_tenant_mode=True
                 ),
             )
 
@@ -205,7 +224,11 @@ class WebApp:
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
 
-            prompts = data_manager.get_all_prompts()
+            # Use visibility-aware method in multi-tenant mode
+            if self.single_user_mode:
+                prompts = data_manager.get_all_prompts()
+            else:
+                prompts = data_manager.get_all_prompts_with_visibility()
             categories = data_manager.get_categories()
 
             return self.templates.TemplateResponse(
@@ -217,6 +240,7 @@ class WebApp:
                     categories=categories,
                     page_title=t("nav.prompts"),
                     single_user_mode=self.single_user_mode,
+                    is_multi_tenant_mode=not self.single_user_mode,
                 ),
             )
 
@@ -242,9 +266,11 @@ class WebApp:
                         category="",
                         description="",
                         tags="",
+                        visibility="private",
                         prompt_id=None,
                         error=None,
                         single_user_mode=True,
+                        is_multi_tenant_mode=False,
                     ),
                 )
 
@@ -272,9 +298,11 @@ class WebApp:
                     category="",
                     description="",
                     tags="",
+                    visibility="private",
                     prompt_id=None,
                     error=None,
                     single_user_mode=self.single_user_mode,
+                    is_multi_tenant_mode=not self.single_user_mode,
                 ),
             )
 
@@ -286,6 +314,7 @@ class WebApp:
             category: str = Form(...),
             description: str = Form(default=""),
             tags: str = Form(default=""),
+            visibility: str = Form(default="private"),
         ):
             if self.single_user_mode:
                 # Single-user mode
@@ -306,13 +335,24 @@ class WebApp:
             # Process tags
             tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
 
-            result = data_manager.add_prompt(
-                name=name,
-                title=name,  # Using name as title
-                content=content,
-                category=category,
-                tags=", ".join(tag_list),  # Convert list to string
-            )
+            # Only pass visibility in multi-tenant mode
+            if self.single_user_mode:
+                result = data_manager.add_prompt(
+                    name=name,
+                    title=name,  # Using name as title
+                    content=content,
+                    category=category,
+                    tags=", ".join(tag_list),  # Convert list to string
+                )
+            else:
+                result = data_manager.add_prompt(
+                    name=name,
+                    title=name,  # Using name as title
+                    content=content,
+                    category=category,
+                    tags=", ".join(tag_list),  # Convert list to string
+                    visibility=visibility,
+                )
 
             if not result.startswith("Error:"):
                 return RedirectResponse(url="/prompts", status_code=302)
@@ -332,7 +372,9 @@ class WebApp:
                         category=category,
                         description=description,
                         tags=tags,
+                        visibility=visibility,
                         single_user_mode=self.single_user_mode,
+                        is_multi_tenant_mode=not self.single_user_mode,
                     ),
                 )
 
@@ -374,7 +416,9 @@ class WebApp:
                     category=prompt.get("category", ""),
                     description=prompt.get("description", ""),
                     tags=prompt.get("tags", ""),
+                    visibility=prompt.get("visibility", "private"),
                     single_user_mode=self.single_user_mode,
+                    is_multi_tenant_mode=not self.single_user_mode,
                 ),
             )
 
@@ -387,6 +431,7 @@ class WebApp:
             category: str = Form(...),
             description: str = Form(default=""),
             tags: str = Form(default=""),
+            visibility: str = Form(default="private"),
         ):
             if self.single_user_mode:
                 # Single-user mode
@@ -410,14 +455,26 @@ class WebApp:
             if not original_prompt:
                 raise HTTPException(status_code=404, detail="Prompt not found")
 
-            result = data_manager.update_prompt(
-                original_name=original_prompt["name"],
-                new_name=name,
-                title=name,  # Using name as title
-                content=content,
-                category=category,
-                tags=tags,
-            )
+            # Only pass visibility in multi-tenant mode
+            if self.single_user_mode:
+                result = data_manager.update_prompt(
+                    original_name=original_prompt["name"],
+                    new_name=name,
+                    title=name,  # Using name as title
+                    content=content,
+                    category=category,
+                    tags=tags,
+                )
+            else:
+                result = data_manager.update_prompt(
+                    original_name=original_prompt["name"],
+                    new_name=name,
+                    title=name,  # Using name as title
+                    content=content,
+                    category=category,
+                    tags=tags,
+                    visibility=visibility,
+                )
 
             if not result.startswith("Error:"):
                 return RedirectResponse(url="/prompts", status_code=302)
@@ -438,7 +495,9 @@ class WebApp:
                         category=category,
                         description=description,
                         tags=tags,
+                        visibility=visibility,
                         single_user_mode=self.single_user_mode,
+                        is_multi_tenant_mode=not self.single_user_mode,
                     ),
                 )
 
@@ -469,7 +528,11 @@ class WebApp:
             success = data_manager.delete_prompt(prompt["name"])
             if success:
                 # Return updated prompts list for HTMX
-                prompts = data_manager.get_all_prompts()
+                # Use visibility-aware method in multi-tenant mode
+                if self.single_user_mode:
+                    prompts = data_manager.get_all_prompts()
+                else:
+                    prompts = data_manager.get_all_prompts_with_visibility()
                 categories = data_manager.get_categories()
 
                 return self.templates.TemplateResponse(
@@ -483,6 +546,7 @@ class WebApp:
                         "available_languages": i18n.get_available_languages(),
                         "current_language": i18n.current_language,
                         "single_user_mode": self.single_user_mode,
+                        "is_multi_tenant_mode": not self.single_user_mode,
                     },
                 )
             else:
@@ -490,16 +554,25 @@ class WebApp:
 
         @self.app.get("/prompts/search")
         async def search_prompts(request: Request, q: str = ""):
-            user = await self.get_current_user(request)
-            if not user:
-                return RedirectResponse(url="/login", status_code=302)
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                user = None
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
 
-            data_manager = PromptDataManager(
-                db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
-            )
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
 
-            # Simple search implementation
-            all_prompts = data_manager.get_all_prompts()
+            # Simple search implementation using visibility-aware method
+            if self.single_user_mode:
+                all_prompts = data_manager.get_all_prompts()
+            else:
+                all_prompts = data_manager.get_all_prompts_with_visibility()
             if q:
                 prompts = [
                     p
@@ -520,23 +593,42 @@ class WebApp:
                     user,
                     prompts=prompts,
                     categories=categories,
+                    is_multi_tenant_mode=not self.single_user_mode,
                 ),
             )
 
         @self.app.get("/prompts/filter")
         async def filter_prompts(
-            request: Request, category: str = "", sort: str = "created_desc"
+            request: Request, category: str = "", sort: str = "created_desc", visibility: str = ""
         ):
-            user = await self.get_current_user(request)
-            if not user:
-                return RedirectResponse(url="/login", status_code=302)
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                user = None
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
 
-            data_manager = PromptDataManager(
-                db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
-            )
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
 
-            # Get and filter prompts
-            prompts = data_manager.get_all_prompts()
+            # Get prompts using visibility-aware method
+            if self.single_user_mode:
+                prompts = data_manager.get_all_prompts()
+            else:
+                if visibility == "public":
+                    prompts = data_manager.get_public_prompts_in_tenant()
+                elif visibility == "private":
+                    # Only user's own private prompts
+                    all_prompts = data_manager.get_all_prompts()
+                    prompts = [p for p in all_prompts if p.get("visibility", "private") == "private"]
+                elif visibility == "mine":
+                    prompts = data_manager.get_all_prompts()  # Only user's own prompts
+                else:
+                    prompts = data_manager.get_all_prompts_with_visibility()
 
             if category:
                 prompts = [p for p in prompts if p.get("category") == category]
@@ -562,6 +654,7 @@ class WebApp:
                     user,
                     prompts=prompts,
                     categories=categories,
+                    is_multi_tenant_mode=not self.single_user_mode,
                 ),
             )
 

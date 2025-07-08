@@ -306,6 +306,18 @@ def main():
                 """CORS preflight support"""
                 return {"message": "OK"}
 
+            # Include comprehensive prompt API endpoints
+            try:
+                from prompt_api_endpoints import create_prompt_router
+                
+                prompt_router = create_prompt_router(config["db_path"])
+                api_app.include_router(prompt_router)
+                print("✅ Comprehensive prompt API endpoints loaded")
+            except ImportError as e:
+                print(f"⚠️  Prompt API endpoints not available: {e}")
+            except Exception as e:
+                print(f"⚠️  Error loading prompt API endpoints: {e}")
+
             # Add Release Management endpoints
             try:
                 from release_api_endpoints import (
