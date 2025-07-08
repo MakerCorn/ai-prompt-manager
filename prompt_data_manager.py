@@ -1278,7 +1278,7 @@ class PromptDataManager:
         self,
         search_term: str,
         category_filter: str = "all",
-        tags_filter: List[str] = None,
+        tags_filter: Optional[List[str]] = None,
     ) -> List[Dict]:
         """Search rules by name, title, content, or tags."""
         if not self.tenant_id:

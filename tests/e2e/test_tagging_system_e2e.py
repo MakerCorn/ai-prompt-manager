@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import unittest
+from typing import Any
 
 # Add project root to path for imports
 sys.path.insert(
@@ -17,13 +18,11 @@ sys.path.insert(
 
 try:
     from playwright.sync_api import sync_playwright
+    from prompt_data_manager import PromptDataManager
 
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
-
-from auth_manager import AuthManager
-from prompt_data_manager import PromptDataManager
 
 
 @unittest.skipUnless(PLAYWRIGHT_AVAILABLE, "Playwright not available")
@@ -33,14 +32,14 @@ class TestTaggingSystemE2E(unittest.TestCase):
     # Class attributes for type checking
     headless: bool
     slow_mo: int
-    playwright: any
-    browser: any
-    context: any
-    page: any
+    playwright: Any
+    browser: Any
+    context: Any
+    page: Any
     test_port: int
     base_url: str
-    server_process: any
-    temp_db: any
+    server_process: Any
+    temp_db: Any
 
     @classmethod
     def setUpClass(cls):

@@ -56,6 +56,11 @@ poetry run python tests/unit/test_tag_management.py                      # Tag m
 poetry run python tests/integration/test_tag_api_simple.py               # Tag API integration tests
 poetry run python tests/e2e/test_tagging_system_e2e.py                  # Tagging system E2E tests
 
+# Testing - Rules Management System (NEW in v0.5.9)
+poetry run python tests/unit/test_rules_management.py                    # Rules management unit tests
+poetry run python tests/integration/test_rules_api_integration.py        # Rules API integration tests
+poetry run python tests/e2e/test_rules_system_e2e.py                    # Rules system E2E tests
+
 # Docker testing
 ./scripts/docker-test.sh          # Full Docker validation
 docker-compose up -d              # Development stack
@@ -90,9 +95,9 @@ This project now uses a **modern web interface** as the default, built with Fast
 
 **Core Application Components (Root Level):**
 - `run.py` - Universal launcher supporting all deployment modes
-- `web_app.py` - Modern FastAPI web application
+- `web_app.py` - Modern FastAPI web application with Rules Management
 - `auth_manager.py` - Authentication, user management, and tenant isolation
-- `prompt_data_manager.py` - Database operations with tenant-aware data access
+- `prompt_data_manager.py` - Database operations with tenant-aware data access (includes Rules)
 - `token_calculator.py` - AI model cost estimation and token calculation
 - `langwatch_optimizer.py` - AI-powered prompt optimization services
 - `api_endpoints_enhanced.py` - Enhanced AI services REST API with 14 endpoints
@@ -113,6 +118,11 @@ web_templates/
 │   ├── execute.html               # Prompt execution interface
 │   ├── builder.html               # Drag-and-drop prompt builder
 │   └── _list_partial.html         # HTMX partial for dynamic updates
+├── rules/                         # Rules Management System (NEW in v0.5.9)
+│   ├── list.html                  # Rules library with search/filter/preview
+│   ├── form.html                  # Create/edit rule with Markdown editor
+│   ├── builder.html               # Rules combination builder with drag-and-drop
+│   └── _list_partial.html         # HTMX partial for dynamic rule updates
 ├── ai_services/
 │   ├── config.html                # Legacy AI service configuration
 │   └── enhanced_config.html       # Enhanced AI services with multi-model support
@@ -138,8 +148,9 @@ web_templates/
 - **HTMX Integration**: Dynamic content updates without page reloads
 - **Modern Components**: Clean forms, navigation, and interactive elements
 - **Accessibility**: ARIA labels, keyboard navigation, screen reader support
-- **Complete CRUD Operations**: Full Create, Read, Update, Delete for prompts and templates
-- **Drag-and-Drop Builder**: Visual prompt combination with live preview
+- **Complete CRUD Operations**: Full Create, Read, Update, Delete for prompts, templates, and rules
+- **Drag-and-Drop Builders**: Visual prompt and rules combination with live preview
+- **Rules Management**: AI agent guidance with Markdown-based directives (NEW in v0.5.9)
 - **AI Integration**: Built-in optimization, translation, and token calculation
 - **Single-User & Multi-Tenant**: Seamless mode switching with proper isolation
 
@@ -362,6 +373,12 @@ ai_operation_configs(
     id, tenant_id, user_id, operation_type, primary_model, fallback_models,
     is_enabled, custom_parameters, created_at, updated_at
 )
+
+-- Rules Management System tables (NEW in v0.5.9)
+rules(
+    id, tenant_id, user_id, name, title, content, category, tags,
+    description, is_builtin, created_at, updated_at
+)
 ```
 
 ### Testing Coverage
@@ -406,7 +423,7 @@ POST   /api/ai-models/import              # Import configuration
 ### Tenant Isolation
 All database operations include `tenant_id` filtering to ensure complete data separation:
 - Users belong to specific tenants and cannot access cross-tenant data
-- Prompts, configurations, and API tokens are tenant-scoped
+- Prompts, rules, configurations, and API tokens are tenant-scoped
 - Admin users can only manage their own tenant
 
 ### Database Schema Key Points
@@ -415,6 +432,7 @@ All database operations include `tenant_id` filtering to ensure complete data se
 tenants(id, name, subdomain, max_users, is_active)
 users(id, tenant_id, email, role, sso_id, is_active)
 prompts(id, tenant_id, user_id, name, content, category)
+rules(id, tenant_id, user_id, name, title, content, category, tags, description, is_builtin, created_at, updated_at)
 api_tokens(id, user_id, tenant_id, token_hash, expires_at)
 ```
 
@@ -583,6 +601,18 @@ print('✅ Language system operational')
 - **API Integration**: Complete REST API with 6 endpoints for programmatic tag management
 - **Database Schema**: Optimized tag storage with efficient search indexing
 - **Tag Analysis**: Comprehensive analytics including versatile tags and usage patterns
+
+### Rules Management System (NEW in v0.5.9)
+- **AI Agent Guidance**: Structured Markdown-based rules for AI coding assistants
+- **Complete CRUD Operations**: Create, read, update, delete rules with full web interface
+- **Visual Rules Builder**: Drag-and-drop interface for combining multiple rules
+- **Multi-Language Support**: Fully internationalized across all 10 supported languages
+- **Advanced Search & Filtering**: Real-time search with category and tag-based filtering
+- **Preview & Export**: Modal preview and one-click export for AI tool integration
+- **Database Integration**: Comprehensive schema with tenant isolation and indexing
+- **Testing Coverage**: 100% test coverage (unit, integration, and E2E testing)
+- **AI Tool Integration**: Optimized for Claude, Amazon Q, VS Code, and GitHub Copilot
+- **Markdown Editor**: Full-featured editor with syntax highlighting and live preview
 
 ## Development Guidelines
 
@@ -925,3 +955,18 @@ docker run -p 7860:7860 -p 7861:7861 -e ENABLE_API=true ghcr.io/makercorn/ai-pro
 ```
 
 Always update the CHANGELOG.md when making changes to code.
+
+---
+
+## 🆕 Recent Updates (v0.5.9)
+
+**Rules Management System** - A comprehensive new feature for AI agent guidance:
+- Complete Markdown-based rules system for AI coding assistants
+- Visual drag-and-drop Rules Builder for combining guidance sets  
+- Multi-language support with 10 fully translated languages
+- Advanced search, filtering, and export capabilities
+- Full testing coverage with 100% passing test suite
+- Integration with Claude, Amazon Q, VS Code, and GitHub Copilot
+- Complete API endpoints and database schema implementation
+
+This major release transforms the application into a complete AI workflow management platform, supporting both prompts and structured rules for autonomous AI agent systems.

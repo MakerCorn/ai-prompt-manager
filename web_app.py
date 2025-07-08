@@ -610,6 +610,83 @@ class WebApp:
                 "original_text": text,
             }
 
+        # Text enhancement route for speech dictation
+        @self.app.post("/enhance-text")
+        async def enhance_text(
+            request: Request,
+            text: str = Form(...),
+            type: str = Form(default="dictation"),
+        ):
+            """Enhance dictated text for better readability and structure"""
+            user = await self.get_current_user(request)
+            if not user:
+                raise HTTPException(status_code=401, detail="Authentication required")
+
+            try:
+                # Use the optimization service to enhance the text
+                from langwatch_optimizer import PromptOptimizer
+
+                optimizer = PromptOptimizer()
+
+                # Create a prompt for text enhancement
+                enhancement_prompt = f"""
+Please clean up and enhance the following dictated text:
+
+Original text: {text}
+
+Instructions:
+1. Fix any grammar and punctuation errors
+2. Improve sentence structure and flow
+3. Remove filler words and repetitions
+4. Maintain the original meaning and intent
+5. Format as clear, well-structured text
+6. Don't change the core content or add new information
+7. Make it suitable for use as a prompt or instruction
+
+Enhanced text:"""
+
+                try:
+                    enhanced_result = optimizer.optimize_prompt(enhancement_prompt)
+                    if enhanced_result.get("success"):
+                        enhanced_text = enhanced_result.get(
+                            "optimized_prompt", ""
+                        ).strip()
+
+                        # Extract just the enhanced text part
+                        if "Enhanced text:" in enhanced_text:
+                            enhanced_text = enhanced_text.split("Enhanced text:")[
+                                -1
+                            ].strip()
+
+                        return {
+                            "success": True,
+                            "enhanced_text": enhanced_text,
+                            "original_text": text,
+                        }
+                    else:
+                        # Fallback to basic text cleaning
+                        enhanced_text = basic_text_enhancement(text)
+                        return {
+                            "success": True,
+                            "enhanced_text": enhanced_text,
+                            "original_text": text,
+                        }
+                except Exception:
+                    # Fallback to basic enhancement
+                    enhanced_text = basic_text_enhancement(text)
+                    return {
+                        "success": True,
+                        "enhanced_text": enhanced_text,
+                        "original_text": text,
+                    }
+
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": str(e),
+                    "original_text": text,
+                }
+
         # Optimization route
         @self.app.post("/optimize")
         async def optimize_prompt(request: Request, prompt: str = Form(...)):
@@ -2400,6 +2477,86 @@ class WebApp:
             **kwargs,
         }
         return context
+
+
+def basic_text_enhancement(text: str) -> str:
+    """
+    Basic text enhancement for dictated speech when AI services are unavailable
+    """
+    import re
+
+    if not text or not text.strip():
+        return ""
+
+    # Remove extra whitespace
+    text = re.sub(r"\s+", " ", text).strip()
+
+    # Fix common dictation issues - be more precise with word boundaries
+    replacements = {
+        r"\buh\b": "",
+        r"\bum\b": "",
+        r"\ber\b": "",
+        r"\bah\b": "",
+        r"\byou know\b": "",
+        r"\bbasically\b": "",
+        r"\bactually\b": "",
+        r"\bokay\b": "",
+        # Only remove "so" when followed by lowercase word
+        r"\bso\b(?=\s+[a-z])": "",
+        # Only remove "well" when followed by lowercase word
+        r"\bwell\b(?=\s+[a-z])": "",
+        r"\bi mean\b": "",
+        r"\byeah\b": "",
+        # Only remove "right" when followed by "around" (filler phrase)
+        r"\bright\b(?=\s+around\b)": "",
+        r"\.{2,}": ".",
+        r",{2,}": ",",
+    }
+
+    for pattern, replacement in replacements.items():
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+
+    # Clean up extra spaces created by removals
+    text = re.sub(r"\s+", " ", text).strip()
+
+    # Handle standalone "like" at the end after other removals
+    text = re.sub(r"\blike\b(?=\s*$|\s*[,.!?])", "", text, flags=re.IGNORECASE)
+
+    # Handle duplicate words more carefully - only remove actual duplicates
+    # Split into words and remove consecutive duplicates
+    words = text.split()
+    filtered_words = []
+    prev_word = None
+
+    for word in words:
+        # Clean word for comparison (remove punctuation)
+        clean_word = re.sub(r"[^\w]", "", word.lower())
+        clean_prev = re.sub(r"[^\w]", "", prev_word.lower()) if prev_word else ""
+
+        if clean_word != clean_prev:
+            filtered_words.append(word)
+
+        prev_word = word
+
+    text = " ".join(filtered_words)
+
+    # Clean up extra spaces created by removals
+    text = re.sub(r"\s+", " ", text).strip()
+
+    if not text:
+        return ""
+
+    # Capitalize first letter of sentences
+    text = re.sub(r"(^|\.\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), text)
+
+    # Ensure proper punctuation at the end
+    if text and not text.endswith((".", "!", "?", ":")):
+        text += "."
+
+    # Final cleanup of spaces before punctuation
+    text = re.sub(r"\s+([.!?:,])", r"\1", text)
+
+    return text
 
 
 # Create the web application instance

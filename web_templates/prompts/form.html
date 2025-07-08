@@ -135,6 +135,31 @@
                                 {{ i18n.t('prompt.content') }} <span class="text-red-500">*</span>
                             </label>
                             <div class="flex items-center space-x-2">
+                                <!-- Speech Dictation Controls -->
+                                <div class="flex items-center space-x-1 border-r border-gray-300 pr-2 mr-2">
+                                    <button type="button" 
+                                            id="speech-btn"
+                                            class="text-sm text-red-600 hover:text-red-500 transition-colors duration-200"
+                                            onclick="toggleSpeechRecognition()"
+                                            title="{{ i18n.t('speech.start_dictation') }}">
+                                        <i id="speech-icon" class="fas fa-microphone mr-1"></i>
+                                        <span id="speech-text">{{ i18n.t('speech.dictate') }}</span>
+                                    </button>
+                                    <button type="button" 
+                                            id="enhance-btn"
+                                            class="text-sm text-blue-600 hover:text-blue-500 transition-colors duration-200 hidden"
+                                            onclick="enhanceDictatedText()"
+                                            title="{{ i18n.t('speech.enhance_text') }}">
+                                        <i class="fas fa-magic mr-1"></i>{{ i18n.t('speech.enhance') }}
+                                    </button>
+                                    <button type="button" 
+                                            id="translate-speech-btn"
+                                            class="text-sm text-green-600 hover:text-green-500 transition-colors duration-200 hidden"
+                                            onclick="translateDictatedText()"
+                                            title="{{ i18n.t('speech.translate_to_english') }}">
+                                        <i class="fas fa-language mr-1"></i>{{ i18n.t('speech.translate') }}
+                                    </button>
+                                </div>
                                 <button type="button" 
                                         class="text-sm text-primary-600 hover:text-primary-500"
                                         onclick="insertTemplate()">
@@ -157,6 +182,49 @@
                                 </button>
                                 <span id="char-count" class="text-sm text-gray-500">0 {{ i18n.t('prompt.characters') }}</span>
                                 <span id="token-count" class="text-sm text-gray-500 ml-2">0 {{ i18n.t('prompt.tokens') }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Speech Recognition Status -->
+                        <div id="speech-status" class="hidden mb-3">
+                            <div class="bg-blue-50 border border-blue-200 rounded-md p-3">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i id="speech-status-icon" class="fas fa-microphone text-blue-400"></i>
+                                    </div>
+                                    <div class="ml-3 flex-1">
+                                        <p id="speech-status-text" class="text-sm font-medium text-blue-800">
+                                            {{ i18n.t('speech.listening') }}
+                                        </p>
+                                        <div class="mt-2 flex items-center space-x-2">
+                                            <div class="flex items-center space-x-1">
+                                                <span class="text-xs text-blue-600">{{ i18n.t('speech.language') }}:</span>
+                                                <select id="speech-language" class="text-xs border-blue-300 rounded px-2 py-1" onchange="updateSpeechLanguage()">
+                                                    <option value="en-US">English (US)</option>
+                                                    <option value="en-GB">English (UK)</option>
+                                                    <option value="es-ES">Español</option>
+                                                    <option value="fr-FR">Français</option>
+                                                    <option value="de-DE">Deutsch</option>
+                                                    <option value="it-IT">Italiano</option>
+                                                    <option value="pt-PT">Português</option>
+                                                    <option value="ru-RU">Русский</option>
+                                                    <option value="ja-JP">日本語</option>
+                                                    <option value="zh-CN">中文</option>
+                                                    <option value="ar-SA">العربية</option>
+                                                    <option value="hi-IN">हिन्दी</option>
+                                                </select>
+                                            </div>
+                                            <span id="speech-confidence" class="text-xs text-blue-600"></span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4 flex-shrink-0">
+                                        <button type="button" 
+                                                onclick="stopSpeechRecognition()"
+                                                class="text-sm text-blue-600 hover:text-blue-500">
+                                            <i class="fas fa-stop mr-1"></i>{{ i18n.t('speech.stop') }}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="mt-1">
@@ -887,6 +955,390 @@ const tagStyles = `
 
 // Inject styles
 document.head.insertAdjacentHTML('beforeend', tagStyles);
+
+// ==================== SPEECH RECOGNITION FUNCTIONALITY ====================
+
+// Global speech recognition variables
+let recognition = null;
+let isRecording = false;
+let isPaused = false;
+let speechLanguage = 'en-US';
+let transcriptBuffer = '';
+let lastSpeechTimestamp = 0;
+
+// Initialize speech recognition
+function initializeSpeechRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        console.warn('Speech recognition not supported');
+        document.getElementById('speech-btn').style.display = 'none';
+        return false;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = speechLanguage;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = function() {
+        console.log('Speech recognition started');
+        updateSpeechUI('listening');
+    };
+
+    recognition.onresult = function(event) {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            const confidence = event.results[i][0].confidence;
+            
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript + ' ';
+                lastSpeechTimestamp = Date.now();
+            } else {
+                interimTranscript += transcript;
+            }
+            
+            // Update confidence display
+            if (confidence !== undefined) {
+                document.getElementById('speech-confidence').textContent = 
+                    `Confidence: ${Math.round(confidence * 100)}%`;
+            }
+        }
+
+        if (finalTranscript) {
+            appendToPromptContent(finalTranscript);
+            transcriptBuffer += finalTranscript;
+            
+            // Show enhancement and translation buttons after getting some text
+            document.getElementById('enhance-btn').classList.remove('hidden');
+            document.getElementById('translate-speech-btn').classList.remove('hidden');
+        }
+
+        // Show interim results in status
+        if (interimTranscript) {
+            document.getElementById('speech-status-text').innerHTML = 
+                `<strong>Listening:</strong> ${interimTranscript}`;
+        } else if (finalTranscript) {
+            document.getElementById('speech-status-text').innerHTML = 
+                `<strong>Added:</strong> ${finalTranscript.trim()}`;
+        }
+    };
+
+    recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        let errorMessage = 'Speech recognition error';
+        
+        switch(event.error) {
+            case 'no-speech':
+                errorMessage = 'No speech detected. Try speaking louder.';
+                break;
+            case 'audio-capture':
+                errorMessage = 'Microphone not accessible. Check permissions.';
+                break;
+            case 'not-allowed':
+                errorMessage = 'Microphone access denied. Please allow microphone access.';
+                break;
+            case 'network':
+                errorMessage = 'Network error. Check your internet connection.';
+                break;
+            case 'language-not-supported':
+                errorMessage = 'Selected language not supported.';
+                break;
+        }
+        
+        showToast(errorMessage, 'error');
+        resetSpeechRecognition();
+    };
+
+    recognition.onend = function() {
+        console.log('Speech recognition ended');
+        if (isRecording && !isPaused) {
+            // Restart if we were recording and not intentionally stopped
+            setTimeout(() => {
+                if (isRecording && !isPaused) {
+                    recognition.start();
+                }
+            }, 100);
+        } else {
+            resetSpeechRecognition();
+        }
+    };
+
+    return true;
+}
+
+// Toggle speech recognition
+function toggleSpeechRecognition() {
+    if (!recognition && !initializeSpeechRecognition()) {
+        showToast('Speech recognition not supported in this browser', 'error');
+        return;
+    }
+
+    if (!isRecording) {
+        startSpeechRecognition();
+    } else if (isPaused) {
+        resumeSpeechRecognition();
+    } else {
+        pauseSpeechRecognition();
+    }
+}
+
+// Start speech recognition
+function startSpeechRecognition() {
+    try {
+        recognition.start();
+        isRecording = true;
+        isPaused = false;
+        transcriptBuffer = '';
+        updateSpeechUI('listening');
+        showToast('Started voice dictation', 'success');
+    } catch (error) {
+        console.error('Error starting speech recognition:', error);
+        showToast('Failed to start voice dictation', 'error');
+    }
+}
+
+// Pause speech recognition
+function pauseSpeechRecognition() {
+    recognition.stop();
+    isPaused = true;
+    updateSpeechUI('paused');
+    showToast('Voice dictation paused', 'info');
+}
+
+// Resume speech recognition
+function resumeSpeechRecognition() {
+    try {
+        recognition.start();
+        isPaused = false;
+        updateSpeechUI('listening');
+        showToast('Voice dictation resumed', 'success');
+    } catch (error) {
+        console.error('Error resuming speech recognition:', error);
+        showToast('Failed to resume voice dictation', 'error');
+    }
+}
+
+// Stop speech recognition
+function stopSpeechRecognition() {
+    if (recognition) {
+        recognition.stop();
+    }
+    resetSpeechRecognition();
+    showToast('Voice dictation stopped', 'info');
+}
+
+// Reset speech recognition state
+function resetSpeechRecognition() {
+    isRecording = false;
+    isPaused = false;
+    updateSpeechUI('stopped');
+}
+
+// Update speech recognition UI
+function updateSpeechUI(state) {
+    const speechBtn = document.getElementById('speech-btn');
+    const speechIcon = document.getElementById('speech-icon');
+    const speechText = document.getElementById('speech-text');
+    const speechStatus = document.getElementById('speech-status');
+    const statusIcon = document.getElementById('speech-status-icon');
+    const statusText = document.getElementById('speech-status-text');
+
+    switch (state) {
+        case 'listening':
+            speechBtn.className = 'text-sm text-red-600 hover:text-red-500 transition-colors duration-200';
+            speechIcon.className = 'fas fa-microphone-slash mr-1 animate-pulse';
+            speechText.textContent = t('speech.pause') || 'Pause';
+            speechBtn.title = t('speech.pause_dictation') || 'Pause dictation';
+            speechStatus.classList.remove('hidden');
+            statusIcon.className = 'fas fa-microphone text-red-400 animate-pulse';
+            statusText.innerHTML = '<strong>' + (t('speech.listening') || 'Listening') + '</strong> - ' + (t('speech.speak_now') || 'Speak now...');
+            break;
+        case 'paused':
+            speechBtn.className = 'text-sm text-orange-600 hover:text-orange-500 transition-colors duration-200';
+            speechIcon.className = 'fas fa-play mr-1';
+            speechText.textContent = t('speech.resume') || 'Resume';
+            speechBtn.title = t('speech.resume_dictation') || 'Resume dictation';
+            statusIcon.className = 'fas fa-pause text-orange-400';
+            statusText.innerHTML = '<strong>' + (t('speech.paused') || 'Paused') + '</strong> - ' + (t('speech.click_resume') || 'Click to resume');
+            break;
+        case 'stopped':
+        default:
+            speechBtn.className = 'text-sm text-red-600 hover:text-red-500 transition-colors duration-200';
+            speechIcon.className = 'fas fa-microphone mr-1';
+            speechText.textContent = t('speech.dictate') || 'Dictate';
+            speechBtn.title = t('speech.start_dictation') || 'Start dictation';
+            speechStatus.classList.add('hidden');
+            document.getElementById('enhance-btn').classList.add('hidden');
+            document.getElementById('translate-speech-btn').classList.add('hidden');
+            break;
+    }
+}
+
+// Update speech language
+function updateSpeechLanguage() {
+    const select = document.getElementById('speech-language');
+    speechLanguage = select.value;
+    
+    if (recognition) {
+        recognition.lang = speechLanguage;
+    }
+    
+    showToast(`Speech language changed to ${select.options[select.selectedIndex].text}`, 'info');
+}
+
+// Append text to prompt content
+function appendToPromptContent(text) {
+    const textarea = document.getElementById('content');
+    const currentContent = textarea.value;
+    const newContent = currentContent + (currentContent ? ' ' : '') + text.trim();
+    
+    textarea.value = newContent;
+    updateCounts();
+    
+    // Auto-scroll to bottom of textarea
+    textarea.scrollTop = textarea.scrollHeight;
+}
+
+// Enhance dictated text using AI
+async function enhanceDictatedText() {
+    const textarea = document.getElementById('content');
+    const text = textarea.value.trim();
+    
+    if (!text) {
+        showToast('No text to enhance', 'warning');
+        return;
+    }
+
+    const enhanceBtn = document.getElementById('enhance-btn');
+    const originalText = enhanceBtn.innerHTML;
+    enhanceBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Enhancing...';
+    enhanceBtn.disabled = true;
+
+    try {
+        const response = await fetch('/enhance-text', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'text': text,
+                'type': 'dictation'
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            textarea.value = data.enhanced_text;
+            updateCounts();
+            showToast('Text enhanced successfully', 'success');
+        } else {
+            showToast('Enhancement failed: ' + (data.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        console.error('Enhancement error:', error);
+        showToast('Enhancement service unavailable', 'error');
+    } finally {
+        enhanceBtn.innerHTML = originalText;
+        enhanceBtn.disabled = false;
+    }
+}
+
+// Translate dictated text to English
+async function translateDictatedText() {
+    const textarea = document.getElementById('content');
+    const text = textarea.value.trim();
+    
+    if (!text) {
+        showToast('No text to translate', 'warning');
+        return;
+    }
+
+    const translateBtn = document.getElementById('translate-speech-btn');
+    const originalText = translateBtn.innerHTML;
+    translateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Translating...';
+    translateBtn.disabled = true;
+
+    try {
+        const response = await fetch('/translate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'text': text,
+                'target_lang': 'en',
+                'source_lang': speechLanguage.split('-')[0] // Extract language code
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            textarea.value = data.translated_text;
+            updateCounts();
+            showToast('Text translated to English', 'success');
+        } else {
+            showToast('Translation failed: ' + (data.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        showToast('Translation service unavailable', 'error');
+    } finally {
+        translateBtn.innerHTML = originalText;
+        translateBtn.disabled = false;
+    }
+}
+
+// Helper function for translations (fallback if i18n not available)
+function t(key) {
+    // This would normally use the application's translation system
+    const translations = {
+        'speech.dictate': 'Dictate',
+        'speech.pause': 'Pause',
+        'speech.resume': 'Resume',
+        'speech.stop': 'Stop',
+        'speech.enhance': 'Enhance',
+        'speech.translate': 'Translate',
+        'speech.listening': 'Listening',
+        'speech.paused': 'Paused',
+        'speech.speak_now': 'Speak now...',
+        'speech.click_resume': 'Click to resume',
+        'speech.start_dictation': 'Start voice dictation',
+        'speech.pause_dictation': 'Pause dictation',
+        'speech.resume_dictation': 'Resume dictation',
+        'speech.language': 'Language'
+    };
+    
+    return translations[key] || key;
+}
+
+// Initialize speech recognition when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default language based on browser locale
+    const browserLang = navigator.language || navigator.userLanguage;
+    const langSelect = document.getElementById('speech-language');
+    
+    // Try to match browser language
+    for (let option of langSelect.options) {
+        if (option.value.startsWith(browserLang.split('-')[0])) {
+            option.selected = true;
+            speechLanguage = option.value;
+            break;
+        }
+    }
+    
+    // Check if speech recognition is supported
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        document.getElementById('speech-btn').style.opacity = '0.5';
+        document.getElementById('speech-btn').title = 'Speech recognition not supported in this browser';
+    }
+});
 
 </script>
 {% endblock %}

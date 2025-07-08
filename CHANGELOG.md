@@ -1,5 +1,61 @@
 # Changelog
 
+## [0.6.0] - 2025-07-08
+
+### 🎤 Revolutionary Speech Dictation System
+
+#### **Advanced Speech-to-Text Integration**
+- **Speech Dictation**: Complete voice-to-text functionality with AI-powered enhancement
+  - **Web Speech API Integration**: Browser-based speech recognition with no external dependencies
+  - **12 Language Support**: Multi-language dictation (English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Chinese, Japanese, Korean, Arabic)
+  - **Pause/Resume Control**: Full control over dictation sessions with real-time status indicators
+  - **High Accuracy**: Optimized for technical content and AI prompt terminology
+
+#### **AI-Powered Text Enhancement**
+- **Intelligent Text Processing**: Advanced filler word removal and grammar correction
+  - **Smart Filler Removal**: Automatically removes "um", "uh", "you know", "basically", etc.
+  - **Grammar Correction**: Fixes punctuation, capitalization, and sentence structure
+  - **AI Optimization**: Uses configured AI services for advanced text enhancement
+  - **Fallback Processing**: Robust regex-based enhancement when AI services are unavailable
+  - **Context Preservation**: Maintains meaning and technical terminology during enhancement
+
+#### **Multi-Language Translation**
+- **Instant Translation**: Dictate in any supported language and translate to English
+  - **Context Awareness**: Maintains meaning and technical terminology during translation
+  - **Batch Processing**: Translate multiple prompts simultaneously
+  - **Language Detection**: Automatic detection of source language
+  - **Technical Terminology**: Preserves AI and technical terms during translation
+
+#### **Seamless UI Integration**  
+- **Form Integration**: Speech dictation controls integrated into prompt creation and editing
+  - **Modern UI Controls**: Clean, intuitive microphone button with status indicators
+  - **Language Selector**: Dropdown for choosing dictation language
+  - **Real-time Status**: Live feedback on dictation status and recognition quality
+  - **Mobile Optimized**: Touch-friendly controls optimized for mobile devices
+  - **Accessibility**: Full keyboard navigation and screen reader support
+
+#### **Technical Implementation**
+- **API Endpoints**: RESTful endpoints for text enhancement and translation
+  - `POST /enhance-text` - AI-powered text enhancement for dictated content
+  - `POST /translate` - Multi-language translation service integration
+  - **Security**: Authentication-protected endpoints with session validation
+  - **Error Handling**: Comprehensive error handling and graceful degradation
+- **Browser Compatibility**: Support for Chrome, Edge, Safari, and Firefox
+- **Privacy & Security**: Local processing with secure HTTPS transmission
+
+#### **Comprehensive Testing Coverage**
+- **Unit Tests**: 19 comprehensive unit tests for text enhancement logic
+- **Integration Tests**: 10 API integration tests covering speech endpoints
+- **E2E Tests**: 20 browser automation tests using Playwright
+- **Security Tests**: Bandit security scanning with clean results
+- **Code Quality**: Full flake8, black, isort compliance achieved
+
+#### **Performance & Reliability**
+- **Efficient Processing**: Optimized text enhancement algorithms
+- **Fallback Mechanisms**: Graceful degradation when AI services unavailable
+- **Memory Management**: Efficient handling of speech recognition data
+- **Cross-Browser**: Consistent experience across all supported browsers
+
 ## [0.5.9] - 2025-07-08
 
 ### 📚 Comprehensive Rules Management System

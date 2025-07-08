@@ -98,6 +98,7 @@ graph LR
 - **💰 Cost Control**: Real-time token estimation prevents expensive mistakes
 - **🚀 Optimization**: AI-powered improvements using LangWatch, PromptPerfect, and more
 - **🧩 Builder Interface**: Drag-and-drop prompt and rule combination
+- **🎤 Speech Dictation**: Voice-to-text with AI enhancement and multi-language support
 - **🌐 Multi-Language**: 10 languages with automatic translation
 - **🏢 Enterprise Ready**: Multi-tenant with SSO, RBAC, and audit trails
 - **🔌 Developer Friendly**: Complete REST API with comprehensive documentation
@@ -112,6 +113,7 @@ graph LR
 ### 🎯 Core Features  
 - [🤖 Enhanced AI Services Configuration](#-enhanced-ai-services-configuration) - Multi-model AI setup
 - [📝 Prompt Management](#-prompt-management) - Create, organize, and manage prompts
+- [🎤 Speech Dictation](#-speech-dictation) - Voice-to-text with AI enhancement
 - [📚 Rules Management](#-rules-management) - AI agent guidance and behavioral rules
 - [🏷️ Advanced Tagging System](#️-advanced-tagging-system) - Intelligent organization and discovery
 - [🧮 Token Calculator](#-token-calculator) - Real-time cost estimation
@@ -1311,6 +1313,180 @@ Templates integrate seamlessly with other features:
 - **🚀 AI Optimization** - Optimize templated prompts with LangWatch
 - **🧩 Prompt Builder** - Combine templated prompts for complex workflows
 - **🔌 API Access** - Access templates programmatically via REST API
+
+---
+
+## 🎤 Speech Dictation
+
+Revolutionize prompt creation with advanced speech-to-text functionality featuring AI-powered enhancement, multi-language support, and seamless integration with the prompt editor.
+
+### ⚡ Quick Start with Speech Dictation
+
+```mermaid
+graph LR
+    A[🎤 Speak] --> B[🔊 Recognize] --> C[✨ Enhance] --> D[🌐 Translate] --> E[💾 Save]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style C fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style D fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style E fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
+```
+
+### 🎯 Key Features
+
+**🎤 Advanced Speech Recognition**
+- **Web Speech API Integration**: Browser-based speech recognition with no external dependencies
+- **12 Language Support**: English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Chinese, Japanese, Korean, Arabic
+- **Pause/Resume Control**: Full control over dictation sessions with real-time status indicators
+- **High Accuracy**: Optimized for technical content and AI prompt terminology
+
+**✨ AI-Powered Text Enhancement**
+- **Intelligent Filler Removal**: Automatically removes "um", "uh", "you know", "basically", etc.
+- **Grammar Correction**: Fixes punctuation, capitalization, and sentence structure
+- **AI Optimization**: Uses configured AI services for advanced text enhancement
+- **Fallback Processing**: Robust regex-based enhancement when AI services are unavailable
+
+**🌐 Multi-Language Translation**
+- **Instant Translation**: Dictate in any supported language and translate to English
+- **Context Awareness**: Maintains meaning and technical terminology during translation
+- **Batch Processing**: Translate multiple prompts simultaneously
+
+**🔧 Seamless Integration**
+- **Form Integration**: Works directly in prompt creation and editing forms
+- **Real-time Updates**: Live character count and preview as you dictate
+- **Mobile Optimized**: Touch-friendly controls for mobile devices
+- **Accessibility**: Full keyboard navigation and screen reader support
+
+### 🚀 How to Use Speech Dictation
+
+**1. 📝 Start Dictating**
+```
+1. Navigate to Prompt Creation/Editing
+2. Click the 🎤 Dictate button
+3. Allow microphone permissions when prompted
+4. Begin speaking your prompt content
+```
+
+**2. 🎛️ Control Your Session**
+```
+• 🔴 Click to start/stop recording
+• ⏸️ Pause/Resume as needed
+• 🌐 Select your dictation language
+• 👁️ Monitor real-time status updates
+```
+
+**3. ✨ Enhance Your Text**
+```
+• Click ✨ Enhance to clean up dictated text
+• Remove filler words automatically
+• Improve grammar and punctuation
+• Apply AI-powered optimizations
+```
+
+**4. 🌐 Translate if Needed**
+```
+• Dictate in your native language
+• Click 🌐 Translate to convert to English
+• Maintain technical terminology
+• Preserve original meaning
+```
+
+### 🎯 Best Practices for Speech Dictation
+
+**📢 Speaking Techniques:**
+- **Clear Articulation**: Speak clearly and at moderate pace
+- **Technical Terms**: Spell out complex technical terms if needed
+- **Punctuation**: Say "period", "comma", "question mark" for punctuation
+- **Pause Management**: Use natural pauses between sentences
+
+**🎛️ Session Management:**
+- **Short Segments**: Dictate in 1-2 minute segments for best accuracy
+- **Review Before Enhancement**: Check raw transcription before AI processing
+- **Language Consistency**: Stick to one language per dictation session
+- **Environment**: Use in quiet environments for optimal recognition
+
+**✨ Enhancement Tips:**
+- **AI Enhancement**: Use for complex technical content
+- **Basic Enhancement**: Use for simple filler word removal
+- **Review Results**: Always review enhanced text before saving
+- **Iterative Process**: Enhance multiple times if needed
+
+### 🔧 Technical Implementation
+
+**Browser Compatibility:**
+- ✅ Chrome/Chromium (Recommended)
+- ✅ Edge (Windows)
+- ✅ Safari (macOS/iOS)
+- ⚠️ Firefox (Limited support)
+
+**API Endpoints:**
+```bash
+# Text Enhancement
+POST /enhance-text
+Content-Type: application/x-www-form-urlencoded
+text=dictated_content&type=dictation
+
+# Translation
+POST /translate
+Content-Type: application/x-www-form-urlencoded
+text=content&target_lang=en
+```
+
+**Security & Privacy:**
+- 🔒 **No Data Storage**: Speech processing happens in browser
+- 🛡️ **Secure Transmission**: All API calls use HTTPS
+- 🔐 **Authentication**: Requires valid user session
+- 📱 **Local Processing**: Web Speech API processes audio locally
+
+### 🧪 Testing Coverage
+
+The speech dictation system includes comprehensive testing:
+
+- **📋 Unit Tests**: 19 tests covering text enhancement logic
+- **🔗 Integration Tests**: 10 tests for API endpoints and workflows
+- **🎭 E2E Tests**: 20 browser automation tests with Playwright
+- **🔒 Security Tests**: Bandit security scanning passed
+- **✅ Code Quality**: Full flake8, black, isort compliance
+
+### 🎨 UI Components
+
+**🎤 Dictation Controls:**
+```html
+<!-- Modern speech controls integrated into forms -->
+<button id="speech-btn" class="speech-dictation-btn">
+  🎤 Dictate
+</button>
+<select id="speech-language">
+  <option value="en-US">English (US)</option>
+  <option value="es-ES">Español</option>
+  <!-- 10 more languages -->
+</select>
+```
+
+**✨ Enhancement Interface:**
+- Clean, intuitive buttons for enhancement and translation
+- Real-time status indicators and progress feedback
+- Mobile-responsive design with touch-friendly controls
+- Accessibility features for keyboard navigation
+
+### 🌐 Multi-Language Support
+
+**Supported Dictation Languages:**
+```
+🇺🇸 English (US/UK)     🇪🇸 Spanish (ES/MX)
+🇫🇷 French (FR/CA)      🇩🇪 German (DE)
+🇮🇹 Italian (IT)        🇵🇹 Portuguese (PT/BR)
+🇳🇱 Dutch (NL)          🇷🇺 Russian (RU)
+🇨🇳 Chinese (ZH)        🇯🇵 Japanese (JA)
+🇰🇷 Korean (KO)         🇸🇦 Arabic (AR)
+```
+
+**Translation Features:**
+- Automatic language detection
+- Context-aware translation for AI prompts
+- Technical terminology preservation
+- Bulk translation capabilities
 
 ---
 

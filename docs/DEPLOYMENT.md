@@ -111,6 +111,7 @@ docker run -p 7860:7860 -p 7861:7861 -e ENABLE_API=true ghcr.io/makercorn/ai-pro
 - API Server: Port 7861
 - Interactive API docs at `/docs`
 - Token-based authentication
+- Speech dictation API endpoints (`/enhance-text`, `/translate`)
 
 ## 🌍 Environment Configuration
 
@@ -135,6 +136,9 @@ SESSION_TIMEOUT=3600          # Session timeout in seconds (default: 3600)
 DB_TYPE=sqlite                # sqlite or postgres (default: sqlite)
 DB_PATH=prompts.db            # SQLite path (default: prompts.db)
 POSTGRES_DSN=postgresql://user:pass@host:port/db  # PostgreSQL connection
+
+# Speech Dictation Configuration
+SPEECH_DICTATION_ENABLED=true  # Enable speech dictation functionality (default: true)
 ```
 
 ### AI Service Integration
@@ -179,6 +183,19 @@ SSO_AUTHORITY=https://your-adfs-server/adfs
 ```
 
 ## 🐳 Docker Deployment
+
+### 🎤 Speech Dictation Requirements
+
+**Browser Compatibility for Speech Dictation:**
+- **Chrome/Chromium**: Full support (recommended)
+- **Microsoft Edge**: Full support
+- **Safari**: Good support (macOS/iOS)
+- **Firefox**: Limited support
+
+**HTTPS Requirement:**
+- Speech dictation requires HTTPS in production
+- Use reverse proxy (Nginx) or load balancer with SSL
+- Self-signed certificates not recommended
 
 ### Single Container Deployment
 
@@ -627,6 +644,9 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
+        
+        # Speech dictation requires modern browser features
+        # Ensure HTTPS is properly configured for Web Speech API
     }
 
     # API
@@ -756,7 +776,48 @@ volumes:
 
 ### Common Issues
 
-**1. "Create New Prompt" Internal Server Error**
+**1. Speech Dictation Not Working**
+```bash
+# Problem: Browser doesn't support Web Speech API or HTTPS required
+# Solution: Ensure HTTPS is properly configured and use supported browser
+
+# Check browser compatibility
+curl -I https://your-domain.com/
+# Should return: HTTP/2 200 with proper SSL certificate
+
+# Test on different browsers:
+# Chrome/Chromium: Full support ✅
+# Edge: Full support ✅  
+# Safari: Good support ✅
+# Firefox: Limited support ⚠️
+```
+
+**2. Microphone Access Denied**
+```bash
+# Problem: Browser permissions not granted
+# Solution: 
+# - Ensure HTTPS is enabled (required for microphone access)
+# - Check browser security settings
+# - Clear browser cache and reload
+# - Test with different browser
+```
+
+**3. Text Enhancement/Translation Errors**
+```bash
+# Problem: AI services not configured or API endpoints failing
+# Check service configuration:
+export TRANSLATION_SERVICE=openai
+export OPENAI_API_KEY=your_key_here
+
+# Test API endpoints:
+curl -X POST \
+  -H "Authorization: Bearer your_token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "text=test&type=dictation" \
+  "https://your-domain.com/enhance-text"
+```
+
+**4. "Create New Prompt" Internal Server Error**
 ```bash
 # Problem: Dependencies not properly resolved
 # Solution: Always use Poetry environment
@@ -839,6 +900,36 @@ EOF
 export WORKERS=4
 export MAX_CONNECTIONS=100
 ```
+
+---
+
+## 🎤 Speech Dictation Deployment Notes
+
+### Production Considerations
+
+**HTTPS Requirements:**
+- Speech dictation requires HTTPS in production environments
+- Microphone access is restricted to secure contexts only
+- Use proper SSL certificates (not self-signed)
+
+**Browser Support Testing:**
+- Test speech functionality across different browsers
+- Chrome/Chromium provides the best experience
+- Consider fallback options for unsupported browsers
+- Mobile browser support varies by device and OS
+
+**Performance Optimization:**
+- Text enhancement uses server-side processing
+- Translation services may have API rate limits
+- Consider caching strategies for frequently enhanced text
+- Monitor API usage for cost optimization
+
+**Troubleshooting Speech Issues:**
+1. Verify HTTPS is properly configured
+2. Check microphone permissions in browser
+3. Test on different browsers and devices
+4. Validate API service configuration
+5. Monitor server logs for enhancement/translation errors
 
 ---
 

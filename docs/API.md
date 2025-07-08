@@ -399,6 +399,112 @@ curl -H "Authorization: Bearer apm_your_token_here" \
 
 ---
 
+## 🎤 Speech Dictation
+
+AI-powered speech-to-text functionality with text enhancement and translation capabilities.
+
+### Text Enhancement
+
+Enhance dictated text by removing filler words, correcting grammar, and improving structure.
+
+```http
+POST /enhance-text
+Authorization: Bearer {token}
+Content-Type: application/x-www-form-urlencoded
+
+text=dictated_content&type=dictation
+```
+
+**Parameters:**
+- `text` (required): The dictated text to enhance
+- `type` (optional): Type of enhancement, defaults to "dictation"
+
+**Response:**
+```json
+{
+  "success": true,
+  "enhanced_text": "Clean, enhanced version of the dictated text.",
+  "original_text": "um hello world this is a test you know"
+}
+```
+
+**Example:**
+```bash
+curl -X POST \
+  -H "Authorization: Bearer apm_your_token_here" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "text=um hello world this is a test you know&type=dictation" \
+  "http://localhost:7861/enhance-text"
+```
+
+### Text Translation
+
+Translate dictated text from any supported language to English.
+
+```http
+POST /translate
+Authorization: Bearer {token}
+Content-Type: application/x-www-form-urlencoded
+
+text=content_to_translate&target_lang=en
+```
+
+**Parameters:**
+- `text` (required): The text to translate
+- `target_lang` (optional): Target language code, defaults to "en" (English)
+
+**Response:**
+```json
+{
+  "success": true,
+  "translated_text": "Hello world, this is a test",
+  "original_text": "Bonjour le monde, ceci est un test",
+  "error": null
+}
+```
+
+**Supported Languages:**
+- English (en), Spanish (es), French (fr), German (de)
+- Italian (it), Portuguese (pt), Dutch (nl), Russian (ru)
+- Chinese (zh), Japanese (ja), Korean (ko), Arabic (ar)
+
+**Example:**
+```bash
+curl -X POST \
+  -H "Authorization: Bearer apm_your_token_here" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "text=Bonjour le monde&target_lang=en" \
+  "http://localhost:7861/translate"
+```
+
+### Speech Dictation Features
+
+**🎤 Text Enhancement Capabilities:**
+- **Filler Word Removal**: Removes "um", "uh", "you know", "basically", etc.
+- **Grammar Correction**: Fixes punctuation, capitalization, sentence structure
+- **AI Optimization**: Uses configured AI services for advanced enhancement
+- **Fallback Processing**: Regex-based enhancement when AI services unavailable
+
+**🌐 Translation Features:**
+- **Multi-Language Support**: 12+ languages supported
+- **Context Awareness**: Preserves technical terminology and meaning
+- **Automatic Detection**: Detects source language automatically
+- **Batch Processing**: Handle multiple text segments efficiently
+
+**🔒 Security & Privacy:**
+- **Authentication Required**: All endpoints require valid Bearer token
+- **Session Validation**: Ensures user session is active and valid
+- **Local Processing**: Speech recognition happens in browser
+- **Secure Transmission**: All API calls use HTTPS encryption
+
+**⚡ Performance:**
+- **Fast Processing**: Optimized text enhancement algorithms
+- **Graceful Degradation**: Fallback when AI services unavailable
+- **Error Handling**: Comprehensive error responses and logging
+- **Browser Compatibility**: Works with Chrome, Edge, Safari, Firefox
+
+---
+
 ## 📊 Response Format
 
 ### Standard API Response

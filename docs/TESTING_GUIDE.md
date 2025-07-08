@@ -30,6 +30,7 @@ The AI Prompt Manager project has **21 test files** providing comprehensive cove
 - `test_langwatch_optimizer.py` - Prompt optimization testing
 - `test_token_calculator.py` - Token calculation testing
 - `test_api_endpoints.py` - API endpoint testing
+- `test_speech_dictation.py` - Speech dictation functionality testing
 
 ## 📋 Integration Tests (10 files)
 
@@ -46,6 +47,7 @@ The AI Prompt Manager project has **21 test files** providing comprehensive cove
 ### External Service Integration
 - `test_langwatch_integration.py` - LangWatch service integration
 - `test_azure_integration.py` - Azure AI services integration
+- `test_speech_api_integration.py` - Speech dictation API integration
 
 ## 🚀 CI/CD Test Execution
 
@@ -124,6 +126,30 @@ poetry run python tests/integration/test_api_integration.py
 
 # Run new architecture tests
 poetry run python tests/integration/test_new_architecture_integration.py
+
+# Run speech dictation API integration tests
+poetry run python tests/integration/test_speech_api_integration.py
+```
+
+### End-to-End (E2E) Tests
+```bash
+# Install E2E dependencies
+poetry install --with e2e
+
+# Install browser dependencies
+poetry run playwright install chromium --with-deps
+
+# Run all E2E tests
+poetry run pytest tests/e2e/ -v -m "e2e"
+
+# Run speech dictation E2E tests specifically
+poetry run python tests/e2e/test_speech_dictation_e2e.py
+
+# Run with visible browser (for debugging)
+E2E_HEADLESS=false poetry run pytest tests/e2e/ -v -m "e2e"
+
+# Run with slow motion for observation
+E2E_SLOW_MO=500 poetry run pytest tests/e2e/ -v -m "e2e"
 ```
 
 ### Complete Test Suite
@@ -192,6 +218,34 @@ markers = [
 - Dependency injection
 - Configuration management
 - Modern architecture integration
+
+### Speech Dictation Tests
+- **Unit Tests (19 tests)**: Text enhancement logic and core functionality
+  - Filler word removal algorithms
+  - Grammar correction and capitalization
+  - Edge case handling (empty text, special characters, unicode)
+  - Performance testing with large text inputs
+- **Integration Tests (10 tests)**: API endpoints and server integration
+  - `/enhance-text` endpoint functionality
+  - `/translate` endpoint testing
+  - Authentication and error handling
+  - Performance and timeout testing
+- **E2E Tests (20 tests)**: Browser automation and user workflows
+  - Speech dictation UI component testing
+  - Microphone permission handling
+  - Language selection and switching
+  - Enhancement and translation workflows
+  - Mobile responsiveness and accessibility
+  - Cross-browser compatibility testing
+
+**Speech Dictation Test Coverage:**
+- **Text Enhancement Engine**: Comprehensive regex and AI-based enhancement
+- **Multi-Language Support**: 12 languages with translation capabilities
+- **UI Integration**: Complete form integration with real-time updates
+- **Browser Compatibility**: Chrome, Edge, Safari, Firefox testing
+- **Security**: Authentication, session validation, secure API calls
+- **Performance**: Fast text processing, graceful AI service fallback
+- **Accessibility**: Keyboard navigation, screen reader compatibility
 
 ## 📊 Test Quality Metrics
 

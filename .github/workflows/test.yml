@@ -131,7 +131,12 @@ jobs:
           poetry run python tests/integration/test_api_integration.py
           echo "✅ API integration test completed"
           
-          # Test 5: Language System Integration
+          # Test 7: Speech Dictation API Integration
+          echo "🎤 Testing speech dictation API integration..."
+          poetry run python tests/integration/test_speech_api_integration.py
+          echo "✅ Speech dictation API integration test completed"
+          
+          # Test 8: Language System Integration
           echo "🌐 Testing language system integration..."
           poetry run python tests/integration/test_language_system_integration.py
           echo "✅ Language system integration test completed"
@@ -359,6 +364,7 @@ jobs:
           echo "🎯 E2E Test Categories:"
           echo "  - Authentication Flow Tests"
           echo "  - Prompt Management Workflow Tests"
+          echo "  - Speech Dictation E2E Tests"
           echo "  - API Workflow Tests"
           echo "  - Deployment Scenario Tests"
           

@@ -94,6 +94,7 @@ class TestRulesSystemE2E(unittest.TestCase):
 
         # Get tenant ID for user creation
         import sqlite3
+
         conn = sqlite3.connect(cls.temp_db)
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM tenants WHERE subdomain = ?", ("test",))

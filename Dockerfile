@@ -2,7 +2,7 @@
 
 FROM python:3.12-slim
 
-# Set environment variables for FastAPI Web UI
+# Set environment variables for FastAPI Web UI with Speech Dictation
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     LOCAL_DEV_MODE=false \
