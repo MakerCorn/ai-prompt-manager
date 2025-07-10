@@ -5,16 +5,16 @@ This module exports all project-related repository classes.
 """
 
 from .project_repository import (
-    ProjectRepository,
     ProjectMemberRepository,
     ProjectPromptRepository,
+    ProjectRepository,
     ProjectRuleRepository,
     ProjectVersionRepository,
 )
 
 __all__ = [
     "ProjectRepository",
-    "ProjectMemberRepository", 
+    "ProjectMemberRepository",
     "ProjectPromptRepository",
     "ProjectRuleRepository",
     "ProjectVersionRepository",

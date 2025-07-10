@@ -5,23 +5,19 @@ Tests the GitHub YAML format import/export functionality.
 """
 
 import os
-
-# Add project root to path
 import sys
 import tempfile
 import unittest
 
 import yaml
 
-# test imports removed: unused MagicMock, patch
-
-
+# Add project root to path before imports
 sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from src.prompts.models.prompt import Prompt
-from src.utils.github_format import GitHubFormatHandler
+from src.prompts.models.prompt import Prompt  # noqa: E402
+from src.utils.github_format import GitHubFormatHandler  # noqa: E402
 
 
 class TestGitHubFormatHandler(unittest.TestCase):

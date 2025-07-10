@@ -195,12 +195,12 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
 
         # Verify we're on the projects page
         self.assertIn("/projects", self.page.url)
-        
+
         # Check for projects page elements
         page_content = self.page.content()
         self.assertTrue(
             "projects" in page_content.lower() or "project" in page_content.lower(),
-            "Page should contain project-related content"
+            "Page should contain project-related content",
         )
 
     def test_02_create_new_project(self):
@@ -238,7 +238,9 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
             visibility_select.select_option("private")
 
         # Submit the form - be more specific to avoid language selector buttons
-        submit_button = self.page.locator("button[type='submit']:has-text('Save'), button[type='submit']:has-text('Create')")
+        submit_button = self.page.locator(
+            "button[type='submit']:has-text('Save'), button[type='submit']:has-text('Create')"
+        )
         if submit_button.count() > 0:
             submit_button.first.click()
         else:
@@ -258,11 +260,11 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
         success_indicators = [
             "/projects" in current_url,
             "success" in self.page.content().lower(),
-            "created" in self.page.content().lower()
+            "created" in self.page.content().lower(),
         ]
         self.assertTrue(
             any(success_indicators),
-            f"Project creation should show success indicators. Current URL: {current_url}"
+            f"Project creation should show success indicators. Current URL: {current_url}",
         )
 
     def test_03_verify_project_in_list(self):
@@ -273,17 +275,19 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
 
         # Get page content and check for project
         page_content = self.page.content()
-        
+
         # More flexible check - look for project name in content
         project_found = (
-            "e2e-test-project" in page_content or
-            "E2E Test Project" in page_content or
-            "test project created during E2E" in page_content.lower()
+            "e2e-test-project" in page_content
+            or "E2E Test Project" in page_content
+            or "test project created during E2E" in page_content.lower()
         )
-        
+
         if not project_found:
             # Try searching for the project if search exists
-            search_input = self.page.locator("input[type='search'], input[placeholder*='search' i]")
+            search_input = self.page.locator(
+                "input[type='search'], input[placeholder*='search' i]"
+            )
             if search_input.is_visible():
                 search_input.fill("e2e-test-project")
                 self.page.keyboard.press("Enter")
@@ -293,7 +297,9 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
 
         # If still not found, just warn instead of failing (project feature might not be fully implemented)
         if not project_found:
-            print("⚠️ Created project not found in list - project listing may not be fully implemented")
+            print(
+                "⚠️ Created project not found in list - project listing may not be fully implemented"
+            )
         else:
             print("✅ Project found in project list")
 
@@ -311,14 +317,14 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
 
             # Verify we're on project page
             self.assertTrue(
-                "/projects/" in self.page.url,
-                "Should be on project details page"
+                "/projects/" in self.page.url, "Should be on project details page"
             )
         else:
             # If no direct link, try to find project ID from HTML and navigate
             page_content = self.page.content()
             import re
-            project_id_match = re.search(r'/projects/(\d+)', page_content)
+
+            project_id_match = re.search(r"/projects/(\d+)", page_content)
             if project_id_match:
                 project_id = project_id_match.group(1)
                 self.page.goto(f"{self.base_url}/projects/{project_id}")
@@ -333,18 +339,24 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
 
         # Look for project management interface
         # This might be in project details page or edit page
-        add_prompt_button = self.page.locator("button:has-text('Add Prompt'), a:has-text('Add Prompt')")
+        add_prompt_button = self.page.locator(
+            "button:has-text('Add Prompt'), a:has-text('Add Prompt')"
+        )
         if add_prompt_button.is_visible():
             add_prompt_button.click()
             self.page.wait_for_load_state("networkidle")
 
             # Look for prompt selection interface
-            prompt_checkbox = self.page.locator("input[type='checkbox'][value*='test-prompt-1']")
+            prompt_checkbox = self.page.locator(
+                "input[type='checkbox'][value*='test-prompt-1']"
+            )
             if prompt_checkbox.is_visible():
                 prompt_checkbox.check()
 
             # Submit prompt addition
-            save_button = self.page.locator("button:has-text('Save'), button:has-text('Add')")
+            save_button = self.page.locator(
+                "button:has-text('Save'), button:has-text('Add')"
+            )
             if save_button.is_visible():
                 save_button.click()
                 self.page.wait_for_load_state("networkidle")
@@ -356,18 +368,24 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
         self.page.wait_for_load_state("networkidle")
 
         # Look for rules management interface
-        add_rule_button = self.page.locator("button:has-text('Add Rule'), a:has-text('Add Rule')")
+        add_rule_button = self.page.locator(
+            "button:has-text('Add Rule'), a:has-text('Add Rule')"
+        )
         if add_rule_button.is_visible():
             add_rule_button.click()
             self.page.wait_for_load_state("networkidle")
 
             # Look for rule selection interface
-            rule_checkbox = self.page.locator("input[type='checkbox'][value*='test-rule-1']")
+            rule_checkbox = self.page.locator(
+                "input[type='checkbox'][value*='test-rule-1']"
+            )
             if rule_checkbox.is_visible():
                 rule_checkbox.check()
 
             # Submit rule addition
-            save_button = self.page.locator("button:has-text('Save'), button:has-text('Add')")
+            save_button = self.page.locator(
+                "button:has-text('Save'), button:has-text('Add')"
+            )
             if save_button.is_visible():
                 save_button.click()
                 self.page.wait_for_load_state("networkidle")
@@ -379,7 +397,9 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
         self.page.wait_for_load_state("networkidle")
 
         # Look for edit button or settings
-        edit_button = self.page.locator("button:has-text('Edit'), a:has-text('Edit'), a:has-text('Settings')")
+        edit_button = self.page.locator(
+            "button:has-text('Edit'), a:has-text('Edit'), a:has-text('Settings')"
+        )
         if edit_button.is_visible():
             edit_button.click()
             self.page.wait_for_load_state("networkidle")
@@ -395,7 +415,9 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
                 tags_input.fill("e2e, testing, updated, project")
 
             # Save changes
-            save_button = self.page.locator("button:has-text('Save'), input[type='submit']")
+            save_button = self.page.locator(
+                "button:has-text('Save'), input[type='submit']"
+            )
             if save_button.is_visible():
                 save_button.click()
                 self.page.wait_for_load_state("networkidle")
@@ -407,18 +429,24 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
         self.page.wait_for_load_state("networkidle")
 
         # Look for execute or run button
-        execute_button = self.page.locator("button:has-text('Execute'), button:has-text('Run'), a:has-text('Execute')")
+        execute_button = self.page.locator(
+            "button:has-text('Execute'), button:has-text('Run'), a:has-text('Execute')"
+        )
         if execute_button.is_visible():
             execute_button.click()
             self.page.wait_for_load_state("networkidle")
 
             # Fill in any variable inputs if available
-            variable_input = self.page.locator("input[name*='task_description'], input[name*='objective']")
+            variable_input = self.page.locator(
+                "input[name*='task_description'], input[name*='objective']"
+            )
             if variable_input.is_visible():
                 variable_input.first.fill("Test execution task")
 
             # Run execution if there's a run button
-            run_button = self.page.locator("button:has-text('Run'), button:has-text('Execute')")
+            run_button = self.page.locator(
+                "button:has-text('Run'), button:has-text('Execute')"
+            )
             if run_button.is_visible():
                 run_button.click()
                 self.page.wait_for_load_state("networkidle")
@@ -430,7 +458,9 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
         self.page.wait_for_load_state("networkidle")
 
         # Test search functionality if available
-        search_input = self.page.locator("input[type='search'], input[placeholder*='search' i]")
+        search_input = self.page.locator(
+            "input[type='search'], input[placeholder*='search' i]"
+        )
         if search_input.is_visible():
             search_input.fill("e2e-test")
             self.page.keyboard.press("Enter")
@@ -451,7 +481,9 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
             print("⚠️ Search functionality not available")
 
         # Test filtering by project type if available
-        filter_select = self.page.locator("select[name*='type'], select[name*='filter']")
+        filter_select = self.page.locator(
+            "select[name*='type'], select[name*='filter']"
+        )
         if filter_select.is_visible():
             filter_select.select_option("general")
             self.page.wait_for_load_state("networkidle")
@@ -466,12 +498,16 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
         self.page.wait_for_load_state("networkidle")
 
         # Look for delete button or menu
-        delete_button = self.page.locator("button:has-text('Delete'), a:has-text('Delete')")
+        delete_button = self.page.locator(
+            "button:has-text('Delete'), a:has-text('Delete')"
+        )
         if delete_button.is_visible():
             delete_button.click()
 
             # Handle confirmation dialog
-            confirm_button = self.page.locator("button:has-text('Confirm'), button:has-text('Yes'), button:has-text('Delete')")
+            confirm_button = self.page.locator(
+                "button:has-text('Confirm'), button:has-text('Yes'), button:has-text('Delete')"
+            )
             if confirm_button.is_visible():
                 confirm_button.click()
                 self.page.wait_for_load_state("networkidle")
@@ -480,7 +516,7 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
                 self.assertNotIn(
                     "e2e-test-project",
                     self.page.content(),
-                    "Deleted project should not appear in list"
+                    "Deleted project should not appear in list",
                 )
 
     def test_11_project_permissions_workflow(self):
@@ -510,7 +546,9 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
             self.page.wait_for_load_state("networkidle")
 
         # Look for sharing/permissions interface
-        share_button = self.page.locator("button:has-text('Share'), a:has-text('Share'), button:has-text('Permissions')")
+        share_button = self.page.locator(
+            "button:has-text('Share'), a:has-text('Share'), button:has-text('Permissions')"
+        )
         if share_button.is_visible():
             share_button.click()
             self.page.wait_for_load_state("networkidle")
@@ -522,15 +560,18 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
         self.page.wait_for_load_state("networkidle")
 
         # Look for analytics or reporting features
-        analytics_button = self.page.locator("button:has-text('Analytics'), a:has-text('Report'), button:has-text('Stats')")
+        analytics_button = self.page.locator(
+            "button:has-text('Analytics'), a:has-text('Report'), button:has-text('Stats')"
+        )
         if analytics_button.is_visible():
             analytics_button.click()
             self.page.wait_for_load_state("networkidle")
 
             # Verify analytics page loads
             self.assertTrue(
-                "analytics" in self.page.url.lower() or "report" in self.page.url.lower(),
-                "Should navigate to analytics page"
+                "analytics" in self.page.url.lower()
+                or "report" in self.page.url.lower(),
+                "Should navigate to analytics page",
             )
 
 
@@ -551,12 +592,12 @@ def run_tests():
 
 if __name__ == "__main__":
     import sys
-    
+
     print("🚀 Starting Project Workflows E2E Tests...")
     print("=" * 60)
-    
+
     success = run_tests()
-    
+
     if success:
         print("\n✅ Project Workflows E2E tests completed successfully!")
         sys.exit(0)

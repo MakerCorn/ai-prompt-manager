@@ -1325,10 +1325,10 @@ Enhanced text:"""
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id="default", user_id="default"
                 )
-                
+
                 # Get projects using data manager
                 projects = data_manager.get_projects()
-                
+
                 return self.templates.TemplateResponse(
                     "projects/list.html",
                     self.get_template_context(
@@ -1341,19 +1341,19 @@ Enhanced text:"""
                         current_user_id="default",
                     ),
                 )
-            
+
             # Multi-tenant mode
             user = await self.get_current_user(request)
             if not user:
                 return RedirectResponse(url="/login", status_code=302)
-            
+
             data_manager = PromptDataManager(
                 db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
             )
-            
+
             # Get projects using data manager
             projects = data_manager.get_projects()
-            
+
             return self.templates.TemplateResponse(
                 "projects/list.html",
                 self.get_template_context(
@@ -1381,11 +1381,11 @@ Enhanced text:"""
                         is_multi_tenant_mode=False,
                     ),
                 )
-            
+
             user = await self.get_current_user(request)
             if not user:
                 return RedirectResponse(url="/login", status_code=302)
-            
+
             return self.templates.TemplateResponse(
                 "projects/form.html",
                 self.get_template_context(
@@ -1420,11 +1420,11 @@ Enhanced text:"""
                 user = await self.get_current_user(request)
                 if not user:
                     return RedirectResponse(url="/login", status_code=302)
-                
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Create project using data manager
             result = data_manager.add_project(
                 name=name,
@@ -1434,9 +1434,9 @@ Enhanced text:"""
                 visibility=visibility,
                 shared_with_tenant=shared_with_tenant,
             )
-            
+
             if result.startswith("Success"):
-                # Extract project ID from success message and redirect to project dashboard
+                # Extract project ID from success message
                 # For now, redirect to projects list since we need project ID
                 return RedirectResponse(url="/projects", status_code=302)
             else:
@@ -1472,16 +1472,19 @@ Enhanced text:"""
                 user = await self.get_current_user(request)
                 if not user:
                     return RedirectResponse(url="/login", status_code=302)
-                
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Get comprehensive dashboard data
             dashboard_data = data_manager.get_project_dashboard_data(project_id)
             if not dashboard_data.get("success"):
-                raise HTTPException(status_code=404, detail=dashboard_data.get("error", "Project not found"))
-            
+                raise HTTPException(
+                    status_code=404,
+                    detail=dashboard_data.get("error", "Project not found"),
+                )
+
             # Extract data for template
             project = dashboard_data["project"]
             project_stats = dashboard_data["project_stats"]
@@ -1490,18 +1493,18 @@ Enhanced text:"""
             members = dashboard_data["members"]
             can_edit = dashboard_data["can_edit"]
             can_manage = dashboard_data["can_manage"]
-            
+
             # Choose template based on project type
-            project_type = project.get('project_type', 'general')
+            project_type = project.get("project_type", "general")
             template_map = {
-                'sequenced': 'projects/sequenced_dashboard.html',
-                'llm_comparison': 'projects/llm_comparison_dashboard.html', 
-                'developer': 'projects/developer_dashboard.html',
-                'general': 'projects/dashboard.html'
+                "sequenced": "projects/sequenced_dashboard.html",
+                "llm_comparison": "projects/llm_comparison_dashboard.html",
+                "developer": "projects/developer_dashboard.html",
+                "general": "projects/dashboard.html",
             }
-            
-            template_name = template_map.get(project_type, 'projects/dashboard.html')
-            
+
+            template_name = template_map.get(project_type, "projects/dashboard.html")
+
             return self.templates.TemplateResponse(
                 template_name,
                 self.get_template_context(
@@ -1514,7 +1517,7 @@ Enhanced text:"""
                     members=members,
                     can_edit=can_edit,
                     can_manage=can_manage,
-                    page_title=project.get('title', 'Project'),
+                    page_title=project.get("title", "Project"),
                     single_user_mode=self.single_user_mode,
                     is_multi_tenant_mode=not self.single_user_mode,
                 ),
@@ -1532,16 +1535,16 @@ Enhanced text:"""
                 user = await self.get_current_user(request)
                 if not user:
                     return RedirectResponse(url="/login", status_code=302)
-                
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Get project
             project = data_manager.get_project_by_id(project_id)
             if not project:
                 raise HTTPException(status_code=404, detail="Project not found")
-            
+
             return self.templates.TemplateResponse(
                 "projects/form.html",
                 self.get_template_context(
@@ -1551,12 +1554,12 @@ Enhanced text:"""
                     page_title=t("projects.edit"),
                     action="edit",
                     project_id=project_id,
-                    name=project.get('name', ''),
-                    title=project.get('title', ''),
-                    description=project.get('description', ''),
-                    project_type=project.get('project_type', 'general'),
-                    visibility=project.get('visibility', 'private'),
-                    shared_with_tenant=project.get('shared_with_tenant', False),
+                    name=project.get("name", ""),
+                    title=project.get("title", ""),
+                    description=project.get("description", ""),
+                    project_type=project.get("project_type", "general"),
+                    visibility=project.get("visibility", "private"),
+                    shared_with_tenant=project.get("shared_with_tenant", False),
                     single_user_mode=self.single_user_mode,
                     is_multi_tenant_mode=not self.single_user_mode,
                 ),
@@ -1583,11 +1586,11 @@ Enhanced text:"""
                 user = await self.get_current_user(request)
                 if not user:
                     return RedirectResponse(url="/login", status_code=302)
-                
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Update project using data manager
             result = data_manager.update_project(
                 project_id=project_id,
@@ -1597,7 +1600,7 @@ Enhanced text:"""
                 visibility=visibility,
                 shared_with_tenant=shared_with_tenant,
             )
-            
+
             if result.startswith("Success"):
                 return RedirectResponse(url=f"/projects/{project_id}", status_code=302)
             else:
@@ -1632,15 +1635,17 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Delete project using data manager
             result = data_manager.delete_project(project_id)
-            
+
             if result.startswith("Success"):
                 return {"success": True, "message": "Project deleted successfully"}
             else:
@@ -1657,15 +1662,17 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Enhanced search projects with proper filtering
             projects = data_manager.search_projects(search_term=search, limit=50)
-            
+
             return self.templates.TemplateResponse(
                 "projects/_list_partial.html",
                 self.get_template_context(
@@ -1694,19 +1701,21 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Enhanced filtering using data manager with proper query optimization
             projects = data_manager.search_projects(
                 project_type=type if type else "",
-                visibility=visibility if visibility else "",
-                limit=50
+                visibility=access if access else "",
+                limit=50,
             )
-            
+
             return self.templates.TemplateResponse(
                 "projects/_list_partial.html",
                 self.get_template_context(
@@ -1732,43 +1741,56 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Get project to determine type
             project = data_manager.get_project_by_id(project_id)
             if not project:
                 raise HTTPException(status_code=404, detail="Project not found")
-            
+
             result = None
-            project_type = project.get('project_type', 'general')
-            
-            if project_type == 'sequenced':
+            project_type = project.get("project_type", "general")
+
+            if project_type == "sequenced":
                 # Execute sequenced project
                 result = data_manager.execute_sequenced_project(project_id)
-            elif project_type == 'llm_comparison':
+            elif project_type == "llm_comparison":
                 # Get test inputs from form data
                 form_data = await request.form()
-                test_inputs = form_data.get('test_inputs', '').split('\n')
+                test_inputs = form_data.get("test_inputs", "").split("\n")
                 test_inputs = [inp.strip() for inp in test_inputs if inp.strip()]
-                
+
                 if not test_inputs:
                     result = {"success": False, "error": "No test inputs provided"}
                 else:
                     result = data_manager.run_llm_comparison(project_id, test_inputs)
-            elif project_type == 'developer':
+            elif project_type == "developer":
                 # Get developer tools
                 result = data_manager.get_developer_tools(project_id)
             else:
-                result = {"success": False, "error": f"Execution not supported for {project_type} projects"}
-            
-            if result and result.get('success'):
-                return {"success": True, "result": result, "message": f"{project_type.title()} project executed successfully"}
+                result = {
+                    "success": False,
+                    "error": f"Execution not supported for {project_type} projects",
+                }
+
+            if result and result.get("success"):
+                return {
+                    "success": True,
+                    "result": result,
+                    "message": f"{project_type.title()} project executed successfully",
+                }
             else:
-                error_msg = result.get('error', 'Unknown error') if result else 'Execution failed'
+                error_msg = (
+                    result.get("error", "Unknown error")
+                    if result
+                    else "Execution failed"
+                )
                 raise HTTPException(status_code=400, detail=error_msg)
 
         @self.app.get("/projects/{project_id}/execution-history")
@@ -1782,18 +1804,23 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             result = data_manager.get_project_execution_history(project_id)
-            
-            if result.get('success'):
+
+            if result.get("success"):
                 return result
             else:
-                raise HTTPException(status_code=400, detail=result.get('error', 'Failed to get execution history'))
+                raise HTTPException(
+                    status_code=400,
+                    detail=result.get("error", "Failed to get execution history"),
+                )
 
         @self.app.post("/projects/{project_id}/setup-llm-comparison")
         async def setup_llm_comparison(request: Request, project_id: int):
@@ -1806,24 +1833,28 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Get configuration from form data
             form_data = await request.form()
             comparison_config = {
-                "models": form_data.get('models', '').split(','),
-                "criteria": form_data.get('criteria', '').split(','),
-                "test_categories": form_data.get('test_categories', '').split(','),
-                "scoring_method": form_data.get('scoring_method', 'manual'),
-                "setup_by": user.id if user else "default"
+                "models": form_data.get("models", "").split(","),
+                "criteria": form_data.get("criteria", "").split(","),
+                "test_categories": form_data.get("test_categories", "").split(","),
+                "scoring_method": form_data.get("scoring_method", "manual"),
+                "setup_by": user.id if user else "default",
             }
-            
-            result = data_manager.setup_llm_comparison_project(project_id, comparison_config)
-            
+
+            result = data_manager.setup_llm_comparison_project(
+                project_id, comparison_config
+            )
+
             if result.startswith("LLM comparison configuration"):
                 return {"success": True, "message": result}
             else:
@@ -1840,31 +1871,37 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Get configuration from form data
             form_data = await request.form()
             workflow_config = {
-                "workflow_type": form_data.get('workflow_type', 'general'),
-                "team_size": form_data.get('team_size', '1'),
-                "coding_standards": form_data.get('coding_standards', '').split(','),
-                "review_requirements": form_data.get('review_requirements', '').split(','),
-                "setup_by": user.id if user else "default"
+                "workflow_type": form_data.get("workflow_type", "general"),
+                "team_size": form_data.get("team_size", "1"),
+                "coding_standards": form_data.get("coding_standards", "").split(","),
+                "review_requirements": form_data.get("review_requirements", "").split(
+                    ","
+                ),
+                "setup_by": user.id if user else "default",
             }
-            
+
             result = data_manager.setup_developer_workflow(project_id, workflow_config)
-            
+
             if result.startswith("Developer workflow configured"):
                 return {"success": True, "message": result}
             else:
                 raise HTTPException(status_code=400, detail=result)
 
         @self.app.get("/projects/{project_id}/developer-tools")
-        async def get_developer_tools(request: Request, project_id: int, category: str = ""):
+        async def get_developer_tools(
+            request: Request, project_id: int, category: str = ""
+        ):
             """Get developer tools organized by category"""
             if self.single_user_mode:
                 data_manager = PromptDataManager(
@@ -1874,21 +1911,28 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
-            result = data_manager.get_developer_tools(project_id, category if category else None)
-            
-            if result.get('success'):
+
+            result = data_manager.get_developer_tools(
+                project_id, category if category else None
+            )
+
+            if result.get("success"):
                 return result
             else:
-                raise HTTPException(status_code=400, detail=result.get('error', 'Failed to get developer tools'))
+                raise HTTPException(
+                    status_code=400,
+                    detail=result.get("error", "Failed to get developer tools"),
+                )
 
         # Project Management Routes
-        
+
         @self.app.get("/projects/{project_id}/prompts", response_class=HTMLResponse)
         async def project_prompts(request: Request, project_id: int):
             """Display project prompts page"""
@@ -1901,18 +1945,18 @@ Enhanced text:"""
                 user = await self.get_current_user(request)
                 if not user:
                     return RedirectResponse(url="/login", status_code=302)
-                
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Get project and its prompts
             project = data_manager.get_project_by_id(project_id)
             if not project:
                 raise HTTPException(status_code=404, detail="Project not found")
-            
+
             project_prompts = data_manager.get_project_prompts(project_id)
-            
+
             return self.templates.TemplateResponse(
                 "projects/prompts.html",
                 self.get_template_context(
@@ -1925,8 +1969,8 @@ Enhanced text:"""
                     is_multi_tenant_mode=not self.single_user_mode,
                 ),
             )
-        
-        @self.app.get("/projects/{project_id}/rules", response_class=HTMLResponse)  
+
+        @self.app.get("/projects/{project_id}/rules", response_class=HTMLResponse)
         async def project_rules(request: Request, project_id: int):
             """Display project rules page"""
             if self.single_user_mode:
@@ -1938,18 +1982,18 @@ Enhanced text:"""
                 user = await self.get_current_user(request)
                 if not user:
                     return RedirectResponse(url="/login", status_code=302)
-                
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Get project and its rules
             project = data_manager.get_project_by_id(project_id)
             if not project:
                 raise HTTPException(status_code=404, detail="Project not found")
-            
+
             project_rules = data_manager.get_project_rules(project_id)
-            
+
             return self.templates.TemplateResponse(
                 "projects/rules.html",
                 self.get_template_context(
@@ -1962,7 +2006,7 @@ Enhanced text:"""
                     is_multi_tenant_mode=not self.single_user_mode,
                 ),
             )
-        
+
         @self.app.get("/projects/{project_id}/members", response_class=HTMLResponse)
         async def project_members(request: Request, project_id: int):
             """Display project members page"""
@@ -1975,18 +2019,18 @@ Enhanced text:"""
                 user = await self.get_current_user(request)
                 if not user:
                     return RedirectResponse(url="/login", status_code=302)
-                
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Get project and its members
             project = data_manager.get_project_by_id(project_id)
             if not project:
                 raise HTTPException(status_code=404, detail="Project not found")
-            
+
             members = data_manager.get_project_members(project_id)
-            
+
             return self.templates.TemplateResponse(
                 "projects/members.html",
                 self.get_template_context(
@@ -1999,7 +2043,7 @@ Enhanced text:"""
                     is_multi_tenant_mode=not self.single_user_mode,
                 ),
             )
-        
+
         @self.app.get("/projects/{project_id}/versions", response_class=HTMLResponse)
         async def project_versions(request: Request, project_id: int):
             """Display project version history"""
@@ -2012,19 +2056,19 @@ Enhanced text:"""
                 user = await self.get_current_user(request)
                 if not user:
                     return RedirectResponse(url="/login", status_code=302)
-                
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             # Get project and its version history
             project = data_manager.get_project_by_id(project_id)
             if not project:
                 raise HTTPException(status_code=404, detail="Project not found")
-            
+
             versions = data_manager.get_project_versions(project_id)
             change_log = data_manager.get_project_change_log(project_id)
-            
+
             return self.templates.TemplateResponse(
                 "projects/versions.html",
                 self.get_template_context(
@@ -2038,12 +2082,10 @@ Enhanced text:"""
                     is_multi_tenant_mode=not self.single_user_mode,
                 ),
             )
-            
+
         @self.app.post("/projects/{project_id}/snapshot")
         async def create_project_snapshot_route(
-            request: Request, 
-            project_id: int,
-            description: str = Form(default="")
+            request: Request, project_id: int, description: str = Form(default="")
         ):
             """Create a new project snapshot"""
             if self.single_user_mode:
@@ -2053,25 +2095,27 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             result = data_manager.create_project_snapshot(project_id, description)
-            
+
             if result.startswith("Project snapshot"):
                 return {"success": True, "message": result}
             else:
                 raise HTTPException(status_code=400, detail=result)
-                
+
         @self.app.post("/projects/{project_id}/restore")
         async def restore_project_version_route(
             request: Request,
             project_id: int,
             version_number: int = Form(...),
-            restore_mode: str = Form(default="full")
+            restore_mode: str = Form(default="full"),
         ):
             """Restore project to a previous version"""
             if self.single_user_mode:
@@ -2081,14 +2125,18 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
-            result = data_manager.restore_project_version(project_id, version_number, restore_mode)
-            
+
+            result = data_manager.restore_project_version(
+                project_id, version_number, restore_mode
+            )
+
             if result.startswith("Project restored"):
                 return {"success": True, "message": result}
             else:
@@ -2100,84 +2148,103 @@ Enhanced text:"""
             request: Request,
             project_id: int,
             email: str = Form(...),
-            role: str = Form(default="member")
+            role: str = Form(default="member"),
         ):
             """Invite a user to a project"""
             if self.single_user_mode:
-                raise HTTPException(status_code=403, detail="Not available in single-user mode")
-            
+                raise HTTPException(
+                    status_code=403, detail="Not available in single-user mode"
+                )
+
             user = await self.get_current_user(request)
             if not user:
                 raise HTTPException(status_code=401, detail="Authentication required")
-            
+
             data_manager = PromptDataManager(
                 db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
             )
-            
+
             result = data_manager.invite_project_member(project_id, email, role)
-            
+
             if result.get("success"):
-                return {"success": True, "message": result.get("message", "Member invited successfully")}
+                return {
+                    "success": True,
+                    "message": result.get("message", "Member invited successfully"),
+                }
             else:
-                raise HTTPException(status_code=400, detail=result.get("error", "Failed to invite member"))
+                raise HTTPException(
+                    status_code=400,
+                    detail=result.get("error", "Failed to invite member"),
+                )
 
         @self.app.put("/api/projects/{project_id}/members/{member_id}/role")
         async def change_member_role_api(
-            request: Request,
-            project_id: int,
-            member_id: int,
-            role: str = Form(...)
+            request: Request, project_id: int, member_id: int, role: str = Form(...)
         ):
             """Change a project member's role"""
             if self.single_user_mode:
-                raise HTTPException(status_code=403, detail="Not available in single-user mode")
-            
+                raise HTTPException(
+                    status_code=403, detail="Not available in single-user mode"
+                )
+
             user = await self.get_current_user(request)
             if not user:
                 raise HTTPException(status_code=401, detail="Authentication required")
-            
+
             data_manager = PromptDataManager(
                 db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
             )
-            
-            result = data_manager.change_project_member_role(project_id, member_id, role)
-            
+
+            result = data_manager.change_project_member_role(
+                project_id, member_id, role
+            )
+
             if result.get("success"):
-                return {"success": True, "message": result.get("message", "Member role updated successfully")}
+                return {
+                    "success": True,
+                    "message": result.get(
+                        "message", "Member role updated successfully"
+                    ),
+                }
             else:
-                raise HTTPException(status_code=400, detail=result.get("error", "Failed to update member role"))
+                raise HTTPException(
+                    status_code=400,
+                    detail=result.get("error", "Failed to update member role"),
+                )
 
         @self.app.delete("/api/projects/{project_id}/members/{member_id}")
         async def remove_project_member_api(
-            request: Request,
-            project_id: int,
-            member_id: int
+            request: Request, project_id: int, member_id: int
         ):
             """Remove a member from a project"""
             if self.single_user_mode:
-                raise HTTPException(status_code=403, detail="Not available in single-user mode")
-            
+                raise HTTPException(
+                    status_code=403, detail="Not available in single-user mode"
+                )
+
             user = await self.get_current_user(request)
             if not user:
                 raise HTTPException(status_code=401, detail="Authentication required")
-            
+
             data_manager = PromptDataManager(
                 db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
             )
-            
-            # Use the change_project_member_role method with role="removed" to remove member
-            result = data_manager.change_project_member_role(project_id, member_id, "removed")
-            
+
+            # Remove member using change_project_member_role method
+            result = data_manager.change_project_member_role(
+                project_id, member_id, "removed"
+            )
+
             if result.get("success"):
                 return {"success": True, "message": "Member removed successfully"}
             else:
-                raise HTTPException(status_code=400, detail=result.get("error", "Failed to remove member"))
+                raise HTTPException(
+                    status_code=400,
+                    detail=result.get("error", "Failed to remove member"),
+                )
 
         @self.app.get("/api/projects/{project_id}/permissions")
-        async def get_project_permissions_api(
-            request: Request,
-            project_id: int
-        ):
+        async def get_project_permissions_api(request: Request, project_id: int):
             """Get current user's permissions for a project"""
             if self.single_user_mode:
                 # In single-user mode, user has all permissions
@@ -2185,26 +2252,24 @@ Enhanced text:"""
                     "can_view": True,
                     "can_edit": True,
                     "can_manage": True,
-                    "role": "owner"
+                    "role": "owner",
                 }
-            
+
             user = await self.get_current_user(request)
             if not user:
                 raise HTTPException(status_code=401, detail="Authentication required")
-            
+
             data_manager = PromptDataManager(
                 db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
             )
-            
+
             permissions = data_manager.get_user_project_permissions(project_id)
             return permissions
 
         # Project rule assignment API endpoints
         @self.app.post("/api/projects/{project_id}/rules/{rule_id}/assign")
         async def assign_rule_to_project_api(
-            request: Request,
-            project_id: int,
-            rule_id: int
+            request: Request, project_id: int, rule_id: int
         ):
             """Assign a rule to a project"""
             if self.single_user_mode:
@@ -2214,24 +2279,29 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             result = data_manager.assign_rule_to_project(project_id, rule_id)
-            
+
             if result.get("success"):
-                return {"success": True, "message": result.get("message", "Rule assigned successfully")}
+                return {
+                    "success": True,
+                    "message": result.get("message", "Rule assigned successfully"),
+                }
             else:
-                raise HTTPException(status_code=400, detail=result.get("error", "Failed to assign rule"))
+                raise HTTPException(
+                    status_code=400, detail=result.get("error", "Failed to assign rule")
+                )
 
         @self.app.delete("/api/projects/{project_id}/rules/{rule_id}/unassign")
         async def unassign_rule_from_project_api(
-            request: Request,
-            project_id: int,
-            rule_id: int
+            request: Request, project_id: int, rule_id: int
         ):
             """Remove a rule assignment from a project"""
             if self.single_user_mode:
@@ -2241,24 +2311,30 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             result = data_manager.unassign_rule_from_project(project_id, rule_id)
-            
+
             if result.get("success"):
-                return {"success": True, "message": result.get("message", "Rule unassigned successfully")}
+                return {
+                    "success": True,
+                    "message": result.get("message", "Rule unassigned successfully"),
+                }
             else:
-                raise HTTPException(status_code=400, detail=result.get("error", "Failed to unassign rule"))
+                raise HTTPException(
+                    status_code=400,
+                    detail=result.get("error", "Failed to unassign rule"),
+                )
 
         @self.app.get("/api/projects/{project_id}/rules")
         async def get_project_rules_api(
-            request: Request,
-            project_id: int,
-            limit: int = 50
+            request: Request, project_id: int, limit: int = 50
         ):
             """Get all rules assigned to a project"""
             if self.single_user_mode:
@@ -2268,21 +2344,20 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             rules = data_manager.get_project_rules(project_id, limit)
             return {"rules": rules}
 
         @self.app.get("/api/projects/{project_id}/rules/available")
         async def get_available_rules_for_project_api(
-            request: Request,
-            project_id: int,
-            search: str = "",
-            category: str = ""
+            request: Request, project_id: int, search: str = "", category: str = ""
         ):
             """Get rules that can be assigned to a project"""
             if self.single_user_mode:
@@ -2292,47 +2367,58 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
-            rules = data_manager.get_available_rules_for_project(project_id, search, category)
+
+            rules = data_manager.get_available_rules_for_project(
+                project_id, search, category
+            )
             return {"rules": rules}
 
         # Project ownership transfer API endpoint
         @self.app.post("/api/projects/{project_id}/transfer-ownership")
         async def transfer_project_ownership_api(
-            request: Request,
-            project_id: int,
-            new_owner_user_id: str = Form(...)
+            request: Request, project_id: int, new_owner_user_id: str = Form(...)
         ):
             """Transfer project ownership to another member"""
             if self.single_user_mode:
-                raise HTTPException(status_code=403, detail="Not available in single-user mode")
-            
+                raise HTTPException(
+                    status_code=403, detail="Not available in single-user mode"
+                )
+
             user = await self.get_current_user(request)
             if not user:
                 raise HTTPException(status_code=401, detail="Authentication required")
-            
+
             data_manager = PromptDataManager(
                 db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
             )
-            
-            result = data_manager.transfer_project_ownership(project_id, new_owner_user_id)
-            
+
+            result = data_manager.transfer_project_ownership(
+                project_id, new_owner_user_id
+            )
+
             if result.get("success"):
-                return {"success": True, "message": result.get("message", "Ownership transferred successfully")}
+                return {
+                    "success": True,
+                    "message": result.get(
+                        "message", "Ownership transferred successfully"
+                    ),
+                }
             else:
-                raise HTTPException(status_code=400, detail=result.get("error", "Failed to transfer ownership"))
+                raise HTTPException(
+                    status_code=400,
+                    detail=result.get("error", "Failed to transfer ownership"),
+                )
 
         # Project token cost calculation API endpoint
         @self.app.get("/api/projects/{project_id}/token-cost")
-        async def get_project_token_cost_api(
-            request: Request,
-            project_id: int
-        ):
+        async def get_project_token_cost_api(request: Request, project_id: int):
             """Get project token cost calculation"""
             if self.single_user_mode:
                 data_manager = PromptDataManager(
@@ -2341,21 +2427,20 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             result = data_manager.calculate_project_token_cost(project_id)
             return result
 
         # Project tags API endpoints
         @self.app.get("/api/projects/{project_id}/tags")
-        async def get_project_tags_api(
-            request: Request,
-            project_id: int
-        ):
+        async def get_project_tags_api(request: Request, project_id: int):
             """Get project tags (both specific and aggregate)"""
             if self.single_user_mode:
                 data_manager = PromptDataManager(
@@ -2364,30 +2449,34 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             project = data_manager.get_project_by_id(project_id)
             if not project:
                 raise HTTPException(status_code=404, detail="Project not found")
-            
+
             aggregate_tags = data_manager.get_project_aggregate_tags(project_id)
-            project_tags = [tag.strip() for tag in project["tags"].split(",") if tag.strip()] if project["tags"] else []
-            
+            project_tags = (
+                [tag.strip() for tag in project["tags"].split(",") if tag.strip()]
+                if project["tags"]
+                else []
+            )
+
             return {
                 "project_tags": project_tags,
                 "aggregate_tags": aggregate_tags,
-                "all_tags": sorted(list(set(project_tags + aggregate_tags)))
+                "all_tags": sorted(list(set(project_tags + aggregate_tags))),
             }
 
         @self.app.put("/api/projects/{project_id}/tags")
         async def update_project_tags_api(
-            request: Request,
-            project_id: int,
-            tags: str = Form(...)
+            request: Request, project_id: int, tags: str = Form(...)
         ):
             """Update project-specific tags"""
             if self.single_user_mode:
@@ -2397,18 +2486,25 @@ Enhanced text:"""
             else:
                 user = await self.get_current_user(request)
                 if not user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
-                
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+
                 data_manager = PromptDataManager(
                     db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
                 )
-            
+
             result = data_manager.update_project_tags(project_id, tags)
-            
+
             if result.get("success"):
-                return {"success": True, "message": result.get("message", "Tags updated successfully")}
+                return {
+                    "success": True,
+                    "message": result.get("message", "Tags updated successfully"),
+                }
             else:
-                raise HTTPException(status_code=400, detail=result.get("error", "Failed to update tags"))
+                raise HTTPException(
+                    status_code=400, detail=result.get("error", "Failed to update tags")
+                )
 
         # Settings routes
         @self.app.get("/settings", response_class=HTMLResponse)

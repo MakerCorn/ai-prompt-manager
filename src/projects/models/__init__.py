@@ -6,22 +6,22 @@ This module exports all project-related data models and enums.
 
 from .project import (
     Project,
-    ProjectType,
-    ProjectVisibility,
     ProjectMember,
     ProjectMemberRole,
     ProjectPrompt,
     ProjectRule,
+    ProjectType,
     ProjectVersion,
+    ProjectVisibility,
 )
 
 __all__ = [
     "Project",
-    "ProjectType", 
+    "ProjectType",
     "ProjectVisibility",
     "ProjectMember",
     "ProjectMemberRole",
     "ProjectPrompt",
-    "ProjectRule", 
+    "ProjectRule",
     "ProjectVersion",
 ]
