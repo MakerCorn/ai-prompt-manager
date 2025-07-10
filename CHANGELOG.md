@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.5.14] - 2025-07-10
+## [0.6.0] - 2025-07-10
 
 ### 📁 Project Management System - Complete Implementation
 
