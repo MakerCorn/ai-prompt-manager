@@ -27,7 +27,8 @@
     "tokens": "Tokens",
     "services": "Serviços",
     "settings": "Configurações",
-    "admin": "Admin"
+    "admin": "Admin",
+    "projects": "Projetos"
   },
   "auth": {
     "login": "Entrar",
@@ -87,7 +88,13 @@
     "tip3_title": "Teste e Itere",
     "tip3_desc": "Experimente diferentes variações para encontrar o que funciona melhor",
     "tip4_title": "Organize e Marque",
-    "tip4_desc": "Mantenha seus prompts organizados com categorias e tags"
+    "tip4_desc": "Mantenha seus prompts organizados com categorias e tags",
+    "projects_new_desc": "Crie coleções organizadas de prompts e regras",
+    "create": "Criar",
+    "projects_browse_desc": "Gerencie suas coleções de projetos e fluxos de trabalho",
+    "recent_projects": "Projetos Recentes",
+    "no_projects": "Ainda não há projetos",
+    "no_projects_desc": "Crie seu primeiro projeto para organizar seu trabalho"
   },
   "prompts": {
     "title": "Gerenciamento de Prompts",

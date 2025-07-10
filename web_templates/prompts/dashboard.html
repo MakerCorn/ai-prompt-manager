@@ -130,6 +130,42 @@
             </div>
         </a>
 
+        <!-- Create New Project -->
+        <a href="/projects/new" class="group block">
+            <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-teal-200 hover:shadow-lg">
+                <div class="card-body text-center flex flex-col h-full">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-teal-400 to-teal-600 flex items-center justify-center">
+                        <i class="fas fa-folder-plus text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary);">{{ t('projects.new') }}</h3>
+                    <p class="text-sm flex-grow" style="color: var(--text-secondary);">{{ t('dashboard.projects_new_desc') }}</p>
+                    <div class="mt-4 flex justify-center">
+                        <span class="btn btn-sm text-white" style="background: linear-gradient(to right, rgb(45 212 191), rgb(20 184 166));">
+                            <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.create') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Browse Projects -->
+        <a href="/projects" class="group block">
+            <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-cyan-200 hover:shadow-lg">
+                <div class="card-body text-center flex flex-col h-full">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-cyan-400 to-cyan-600 flex items-center justify-center">
+                        <i class="fas fa-folder-open text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary);">{{ t('nav.projects') }}</h3>
+                    <p class="text-sm flex-grow" style="color: var(--text-secondary);">{{ t('dashboard.projects_browse_desc') }}</p>
+                    <div class="mt-4 flex justify-center">
+                        <span class="btn btn-sm text-white" style="background: linear-gradient(to right, rgb(34 211 238), rgb(6 182 212));">
+                            <i class="fas fa-arrow-right mr-2"></i>{{ t('dashboard.browse') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
         <!-- Settings -->
         <a href="/settings" class="group block">
             <div class="card h-full border-2 border-transparent transition-all duration-200 hover:border-gray-200 hover:shadow-lg">
@@ -254,6 +290,105 @@
                     <a href="/prompts/new" class="btn-primary">
                         <i class="fas fa-plus mr-2"></i>
                         {{ t('prompts.create_first') }}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent projects -->
+    <div class="card">
+        <div class="card-header">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg leading-6 font-medium text-primary">
+                    <i class="fas fa-folder mr-2 text-tertiary"></i>
+                    {{ t('dashboard.recent_projects') }}
+                </h3>
+                <a href="/projects" class="text-sm font-medium text-primary-600 hover:text-primary-500">
+                    {{ t('dashboard.view_all') }} <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if recent_projects %}
+                <div class="space-y-4">
+                    {% for project in recent_projects %}
+                        <div class="flex items-center justify-between p-4 border border-light rounded-lg hover:bg-secondary transition-colors duration-200">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <h4 class="text-sm font-medium text-primary">
+                                        {{ project.title }}
+                                    </h4>
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        {% if project.project_type == 'general' %}bg-gray-100 text-gray-800
+                                        {% elif project.project_type == 'sequenced' %}bg-blue-100 text-blue-800
+                                        {% elif project.project_type == 'llm_comparison' %}bg-purple-100 text-purple-800
+                                        {% elif project.project_type == 'developer' %}bg-green-100 text-green-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {% if project.project_type == 'general' %}<i class="fas fa-layer-group mr-1"></i>{{ t('projects.type_general') }}
+                                        {% elif project.project_type == 'sequenced' %}<i class="fas fa-list-ol mr-1"></i>{{ t('projects.type_sequenced') }}
+                                        {% elif project.project_type == 'llm_comparison' %}<i class="fas fa-balance-scale mr-1"></i>{{ t('projects.type_llm_comparison') }}
+                                        {% elif project.project_type == 'developer' %}<i class="fas fa-code mr-1"></i>{{ t('projects.type_developer') }}
+                                        {% else %}<i class="fas fa-folder mr-1"></i>{{ project.project_type }}{% endif %}
+                                    </span>
+                                    {% if project.visibility == 'public' %}
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-globe mr-1"></i>{{ t('projects.visibility_public') }}
+                                    </span>
+                                    {% else %}
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-lock mr-1"></i>{{ t('projects.visibility_private') }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <p class="mt-1 text-sm text-slate-500 truncate">
+                                    {{ project.description or t('projects.no_description') }}
+                                </p>
+                                <div class="mt-2 flex items-center text-xs text-slate-400">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    {{ t('projects.recently_updated') }}
+                                    <span class="ml-2">
+                                        <i class="fas fa-file-text mr-1"></i>
+                                        {{ project.prompt_count or 0 }} {{ t('projects.prompts') }}
+                                    </span>
+                                    <span class="ml-2">
+                                        <i class="fas fa-rules mr-1"></i>
+                                        {{ project.rule_count or 0 }} {{ t('projects.rules') }}
+                                    </span>
+                                    {% if project.token_count and project.token_count > 0 %}
+                                    <span class="ml-2">
+                                        <i class="fas fa-coins mr-1"></i>
+                                        {{ project.token_count }} {{ t('projects.tokens') }}
+                                        {% if project.token_cost and project.token_cost > 0 %}
+                                        (~${{ "%.4f"|format(project.token_cost) }})
+                                        {% endif %}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <a href="/projects/{{ project.id }}/edit" 
+                                   class="text-slate-400 hover:text-primary-600 transition-colors duration-200"
+                                   title="{{ t('common.edit') }}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="/projects/{{ project.id }}" 
+                                   class="text-slate-400 hover:text-teal-600 transition-colors duration-200"
+                                   title="{{ t('common.open') }}">
+                                    <i class="fas fa-folder-open"></i>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-folder text-4xl text-gray-300 mb-4"></i>
+                    <h3 class="text-lg font-medium text-slate-800 mb-2">{{ t('dashboard.no_projects') }}</h3>
+                    <p class="text-slate-500 mb-6">{{ t('dashboard.no_projects_desc') }}</p>
+                    <a href="/projects/new" class="btn-primary">
+                        <i class="fas fa-plus mr-2"></i>
+                        {{ t('projects.create_first') }}
                     </a>
                 </div>
             {% endif %}

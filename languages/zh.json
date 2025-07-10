@@ -27,7 +27,8 @@
     "tokens": "令牌",
     "services": "服务",
     "settings": "设置",
-    "admin": "管理"
+    "admin": "管理",
+    "projects": "项目"
   },
   "dashboard": {
     "welcome": "欢迎使用AI提示管理器",
@@ -63,7 +64,13 @@
     "tip3_title": "测试和迭代",
     "tip3_desc": "尝试不同的变化来找到最有效的方法",
     "tip4_title": "组织和标记",
-    "tip4_desc": "使用类别和标签保持提示的有序组织"
+    "tip4_desc": "使用类别和标签保持提示的有序组织",
+    "projects_new_desc": "创建有组织的提示和规则集合",
+    "create": "创建",
+    "projects_browse_desc": "管理您的项目集合和工作流程",
+    "recent_projects": "最近项目",
+    "no_projects": "还没有项目",
+    "no_projects_desc": "创建您的第一个项目来组织您的工作"
   },
   "auth": {
     "login": "登录",

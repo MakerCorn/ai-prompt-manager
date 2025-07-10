@@ -27,7 +27,8 @@
     "tokens": "トークン",
     "services": "サービス",
     "settings": "設定",
-    "admin": "管理"
+    "admin": "管理",
+    "projects": "プロジェクト"
   },
   "dashboard": {
     "welcome": "AIプロンプトマネージャーへようこそ",
@@ -63,7 +64,13 @@
     "tip3_title": "テストと反復",
     "tip3_desc": "最適な結果を見つけるためにさまざまなバリエーションを試す",
     "tip4_title": "整理とタグ付け",
-    "tip4_desc": "カテゴリとタグでプロンプトを整理しておく"
+    "tip4_desc": "カテゴリとタグでプロンプトを整理しておく",
+    "projects_new_desc": "プロンプトとルールの組織化されたコレクションを作成",
+    "create": "作成",
+    "projects_browse_desc": "プロジェクトコレクションとワークフローを管理",
+    "recent_projects": "最近のプロジェクト",
+    "no_projects": "プロジェクトがまだありません",
+    "no_projects_desc": "作業を整理するために最初のプロジェクトを作成してください"
   },
   "auth": {
     "login": "ログイン",

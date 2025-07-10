@@ -95,6 +95,7 @@ graph LR
 
 ### Why Instruere?
 - **📚 Rules Management**: Structured AI agent guidance with visual combination builder
+- **📁 Project Management**: Organize workflows, collaborate with teams, and track costs
 - **💰 Cost Control**: Real-time token estimation prevents expensive mistakes
 - **🚀 Optimization**: AI-powered improvements using LangWatch, PromptPerfect, and more
 - **🧩 Builder Interface**: Drag-and-drop prompt and rule combination
@@ -115,6 +116,7 @@ graph LR
 - [📝 Prompt Management](#-prompt-management) - Create, organize, and manage prompts
 - [🎤 Speech Dictation](#-speech-dictation) - Voice-to-text with AI enhancement
 - [📚 Rules Management](#-rules-management) - AI agent guidance and behavioral rules
+- [📁 Project Management](#-project-management) - Organize workflows and collaborate on AI projects
 - [🏷️ Advanced Tagging System](#️-advanced-tagging-system) - Intelligent organization and discovery
 - [🧮 Token Calculator](#-token-calculator) - Real-time cost estimation
 - [🚀 AI-Powered Optimization](#-ai-powered-optimization) - Improve prompt quality
@@ -2175,6 +2177,203 @@ The Prompt Builder is fully localized in all 10 supported languages:
 - Combined prompts are saved like regular prompts
 - Access via API endpoints once saved
 - Include in automated workflows and integrations
+
+---
+
+## 📁 Project Management
+
+**Organize and orchestrate your AI workflows** with the comprehensive Project Management system. Projects allow you to group related prompts, rules, and resources together while providing advanced features for collaboration, cost tracking, and execution management.
+
+### 🎯 What are Projects?
+
+Projects are **containers for organizing AI workflows** that bring together:
+- **📝 Prompts**: Instructions and templates for AI interactions
+- **📚 Rules**: Guidelines and constraints for AI behavior
+- **👥 Team Members**: Collaborative access and permissions
+- **📊 Analytics**: Token usage, cost tracking, and performance metrics
+- **🔄 Workflows**: Sequenced execution and automation
+
+```mermaid
+graph TB
+    A[📁 Project Container] --> B[📝 Prompts Collection]
+    A --> C[📚 Rules Library]
+    A --> D[👥 Team Access]
+    A --> E[📊 Cost Analytics]
+    A --> F[🔄 Execution Engine]
+    
+    B --> G[🚀 Unified Workflow]
+    C --> G
+    D --> G
+    E --> G
+    F --> G
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:3px,color:#000
+    style G fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+```
+
+### 🏗️ Project Types
+
+Choose the project type that matches your workflow:
+
+#### **🎯 General Projects**
+- **Best for**: Mixed workflows, research, general AI tasks
+- **Structure**: Flexible organization with custom prompt/rule combinations
+- **Use cases**: Content creation, analysis, brainstorming
+
+#### **📋 Sequenced Projects**  
+- **Best for**: Multi-step processes, complex workflows
+- **Structure**: Ordered execution with dependencies
+- **Use cases**: Document generation, data processing pipelines
+
+#### **🔀 LLM Comparison Projects**
+- **Best for**: Testing different AI models, A/B testing
+- **Structure**: Parallel execution across multiple models
+- **Use cases**: Quality assessment, model evaluation
+
+#### **💻 Developer Projects**
+- **Best for**: Code generation, technical documentation
+- **Structure**: Developer-focused templates and rules
+- **Use cases**: API documentation, code review, testing
+
+### 🚀 Core Features
+
+#### **📝 Project Creation**
+```bash
+# Access project creation through the web interface
+http://localhost:7860/projects/new
+```
+
+**Required Information:**
+- **Name**: Unique identifier for the project
+- **Title**: Human-readable display name
+- **Description**: Project purpose and scope
+- **Type**: Project structure and behavior
+- **Visibility**: Private or shared access
+
+#### **👥 Team Collaboration**
+- **🔑 Ownership Transfer**: Change project ownership seamlessly
+- **👤 Member Management**: Add/remove team members with role-based access
+- **🔒 Permission Control**: Fine-grained access control (owner, editor, viewer)
+- **📊 Activity Tracking**: Monitor member contributions and changes
+
+#### **🏷️ Advanced Tagging**
+- **🏷️ Project Tags**: Organize projects by category, client, or purpose
+- **🔄 Aggregate Tags**: Automatically collect tags from all project content
+- **🔍 Smart Search**: Find projects by tags, content, or metadata
+- **📊 Tag Analytics**: Discover popular tags and usage patterns
+
+#### **💰 Cost Management**
+- **🧮 Token Calculation**: Real-time cost estimation for project content
+- **📈 Usage Analytics**: Track token consumption over time
+- **💵 Budget Tracking**: Monitor costs per project and team member
+- **📊 Cost Optimization**: Identify expensive prompts and optimize
+
+### 🔧 Project Operations
+
+#### **Creating a Project**
+1. **Navigate to Projects**: Click "Projects" in the main navigation
+2. **Create New**: Click "New Project" or "Create Project"
+3. **Fill Details**: Enter name, title, description, and select type
+4. **Set Permissions**: Choose visibility and initial team members
+5. **Save**: Create the project and start adding content
+
+#### **Managing Content**
+```mermaid
+graph LR
+    A[📁 Project] --> B[➕ Add Prompts]
+    A --> C[➕ Add Rules]
+    A --> D[🏷️ Update Tags]
+    A --> E[⚙️ Project Settings]
+    
+    B --> F[✅ Content Library]
+    C --> F
+    D --> F
+    E --> F
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style F fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+```
+
+#### **Project Execution**
+- **🔄 Sequential Workflow**: Execute prompts in defined order
+- **⚡ Parallel Processing**: Run multiple prompts simultaneously
+- **🔧 Variable Substitution**: Dynamic content with project-specific variables
+- **📊 Result Aggregation**: Combine outputs from multiple prompts
+
+### 🛠️ Advanced Features
+
+#### **🔄 Ownership Transfer**
+Transfer project ownership while maintaining data integrity:
+
+```bash
+# Via web interface at project settings
+# Or through API endpoint
+POST /api/projects/{id}/transfer-ownership
+{
+    "new_owner_user_id": "target-user-id"
+}
+```
+
+**Features:**
+- **✅ Seamless Transfer**: No data loss or permission disruption
+- **🔒 Security Validation**: Only owners can transfer ownership
+- **📝 Audit Trail**: Track ownership changes with timestamps
+- **👥 Member Updates**: Automatic role adjustments for all members
+
+#### **📊 Analytics Dashboard**
+- **📈 Token Usage**: Track consumption patterns and trends
+- **💰 Cost Analysis**: Detailed breakdowns by prompt, rule, and time period
+- **👥 Team Performance**: Member contribution statistics
+- **🏷️ Tag Distribution**: Popular tags and categorization insights
+
+#### **🔌 API Integration**
+Full REST API support for project management:
+
+```bash
+# Get project details
+GET /api/projects/{id}
+
+# Update project tags
+PUT /api/projects/{id}/tags
+{"tags": "production,ai-agent,optimization"}
+
+# Calculate project costs
+GET /api/projects/{id}/token-cost
+
+# Get project permissions
+GET /api/projects/{id}/permissions
+```
+
+### 💡 Best Practices
+
+#### **🎯 Project Organization**
+- **📁 Logical Grouping**: Group related prompts and rules together
+- **🏷️ Consistent Tagging**: Use standardized tags across projects
+- **📝 Clear Naming**: Use descriptive names and titles
+- **👥 Appropriate Access**: Set correct permissions from the start
+
+#### **💰 Cost Optimization**
+- **📊 Regular Monitoring**: Check token usage and costs frequently
+- **🎯 Targeted Prompts**: Keep prompts focused and specific
+- **🔄 Template Reuse**: Share common patterns across projects
+- **📈 Performance Tracking**: Monitor and improve prompt efficiency
+
+#### **👥 Team Collaboration**
+- **🔑 Role Clarity**: Assign appropriate roles (owner, editor, viewer)
+- **📝 Documentation**: Keep project descriptions up-to-date
+- **🔄 Regular Reviews**: Periodically review project content and permissions
+- **📊 Activity Monitoring**: Track team contributions and engagement
+
+### 🚀 Getting Started
+
+1. **Navigate to Projects**: Go to `/projects` in the web interface
+2. **Create Your First Project**: Click "New Project" and fill out the form
+3. **Add Content**: Include relevant prompts and rules
+4. **Invite Team Members**: Add collaborators with appropriate permissions
+5. **Execute Workflows**: Use the project execution interface to run your workflows
+6. **Monitor Performance**: Check analytics and optimize based on usage patterns
+
+The Project Management system transforms individual prompts and rules into powerful, collaborative AI workflows that scale with your organization's needs.
 
 ---
 
