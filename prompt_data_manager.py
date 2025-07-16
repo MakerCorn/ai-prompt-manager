@@ -215,7 +215,7 @@ class PromptDataManager:
                         WHERE table_name='prompts' AND column_name='visibility'
                     ) THEN
                         ALTER TABLE prompts ADD COLUMN visibility TEXT DEFAULT 'private';
-                        ALTER TABLE prompts ADD CONSTRAINT prompts_visibility_check 
+                        ALTER TABLE prompts ADD CONSTRAINT prompts_visibility_check
                             CHECK (visibility IN ('private', 'public'));
                     END IF;
                 END $$;
@@ -261,7 +261,7 @@ class PromptDataManager:
                         WHERE table_name='templates' AND column_name='visibility'
                     ) THEN
                         ALTER TABLE templates ADD COLUMN visibility TEXT DEFAULT 'private';
-                        ALTER TABLE templates ADD CONSTRAINT templates_visibility_check 
+                        ALTER TABLE templates ADD CONSTRAINT templates_visibility_check
                             CHECK (visibility IN ('private', 'public'));
                     END IF;
                 END $$;

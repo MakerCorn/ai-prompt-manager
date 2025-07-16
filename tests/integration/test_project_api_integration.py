@@ -5,13 +5,12 @@ Tests the complete project API functionality including CRUD operations,
 ownership transfer, tags, and token cost calculations
 """
 
-import json
 import os
 import random
 import subprocess
 import sys
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import requests
 

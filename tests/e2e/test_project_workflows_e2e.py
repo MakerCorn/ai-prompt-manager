@@ -396,10 +396,10 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
         self.page.goto(f"{self.base_url}/projects")
         self.page.wait_for_load_state("networkidle")
 
-        # Look for edit button or settings
+        # Look for project-specific edit button (more specific locator)
         edit_button = self.page.locator(
-            "button:has-text('Edit'), a:has-text('Edit'), a:has-text('Settings')"
-        )
+            "a[href*='/projects/'][href*='/edit']:has-text('Edit')"
+        ).first
         if edit_button.is_visible():
             edit_button.click()
             self.page.wait_for_load_state("networkidle")
@@ -539,8 +539,10 @@ class TestProjectWorkflowsE2E(unittest.TestCase):
         if visibility_select.is_visible():
             visibility_select.select_option("public")
 
-        # Submit form
-        submit_button = self.page.locator("button[type='submit'], input[type='submit']")
+        # Submit form (use more specific locator for project save button)
+        submit_button = self.page.locator(
+            "button[type='submit']:has-text('Save'), button.btn-primary[type='submit']"
+        ).first
         if submit_button.is_visible():
             submit_button.click()
             self.page.wait_for_load_state("networkidle")

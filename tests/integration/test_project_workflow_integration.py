@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import requests
 from requests.sessions import Session
@@ -114,7 +114,7 @@ def extract_project_id_from_html(html_content: str, project_name: str) -> Option
             return int(matches[0])  # Return first found ID
 
         return None
-    except:
+    except Exception:
         return None
 
 

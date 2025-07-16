@@ -16,54 +16,9 @@ graph LR
     style D fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
-## 🎯 What is AI Prompt Management?
+## 🎯 What is Instruere?
 
-**Prompts** are instructions you give to AI systems like ChatGPT or Claude - the quality of your prompts directly impacts the quality of AI responses and your costs.
-
-### 📚 Rules Management: The Foundation of Autonomous AI Agents
-
-In today's rapidly evolving AI landscape, **Rules Management** has become the cornerstone of successful autonomous agent systems. As AI agents increasingly handle complex, multi-step tasks independently, having structured guidelines becomes critical for consistent, reliable outcomes.
-
-**Rules** are structured Markdown documents that define guidelines, constraints, and behavioral expectations for AI agents. Unlike prompts that request specific outputs, rules establish the *framework* within which agents operate - ensuring they work together harmoniously while maintaining quality standards.
-
-#### 🤖 Why Rules Matter in the Age of AI Agents
-
-```mermaid
-graph TB
-    subgraph "AI Agent Ecosystem"
-        A[Agent 1: Code Review] --> C[Shared Rules Engine]
-        B[Agent 2: Documentation] --> C
-        D[Agent 3: Testing] --> C
-        E[Agent 4: Deployment] --> C
-    end
-    
-    C --> F[Consistent Quality]
-    C --> G[Reliable Outcomes]
-    C --> H[Predictable Behavior]
-    
-    style C fill:#e3f2fd,stroke:#1976d2,stroke-width:3px,color:#000
-    style F fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
-    style G fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
-    style H fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
-```
-
-#### 🎯 The Power of Combined Prompts + Rules
-
-Modern AI workflows require both **prompts** (what to do) and **rules** (how to do it):
-
-- **Prompts**: Define specific tasks and desired outputs
-- **Rules**: Establish quality standards, constraints, and behavioral guidelines
-- **Together**: Create autonomous agents that deliver consistent, high-quality results
-
-#### 🌍 Real-World Applications
-
-**Agentic Coding Systems** like Claude Projects, Amazon Q, and VS Code Copilot rely on rules for:
-- **Code Quality**: Enforcing style guides, security practices, and architecture patterns
-- **Documentation Standards**: Ensuring consistent, comprehensive documentation
-- **Testing Requirements**: Maintaining coverage and quality thresholds
-- **Collaboration Guidelines**: Defining how multiple agents coordinate work
-
-The combination of intelligent prompts and structured rules enables teams to scale AI assistance while maintaining the quality and consistency that enterprise environments demand.
+**Instruere** transforms how you work with AI by providing a centralized platform to manage, optimize, and scale your AI prompts and rules. Whether you're a developer, content creator, or enterprise team, Instruere helps you get consistent, high-quality results from AI systems.
 
 ### The Challenge vs Solution
 
@@ -93,98 +48,79 @@ graph LR
     style S3 fill:#fff,stroke:#388e3c,color:#000
 ```
 
-### Why Instruere?
-- **📚 Rules Management**: Structured AI agent guidance with visual combination builder
-- **📁 Project Management**: Organize workflows, collaborate with teams, and track costs
-- **💰 Cost Control**: Real-time token estimation prevents expensive mistakes
-- **🚀 Optimization**: AI-powered improvements using LangWatch, PromptPerfect, and more
-- **🧩 Builder Interface**: Drag-and-drop prompt and rule combination
-- **🎤 Speech Dictation**: Voice-to-text with AI enhancement and multi-language support
+### 🌟 Key Features
+
+- **📚 Smart Prompt Management**: Organize, search, and reuse your best prompts
+- **💰 Real-time Cost Control**: See token costs before you spend
+- **🚀 AI-Powered Optimization**: Improve prompts with LangWatch, PromptPerfect, and more
+- **🧩 Visual Builder**: Drag-and-drop prompt and rule combination
+- **🎤 Speech Dictation**: Voice-to-text with AI enhancement
 - **🌐 Multi-Language**: 10 languages with automatic translation
 - **🏢 Enterprise Ready**: Multi-tenant with SSO, RBAC, and audit trails
 - **🔌 Developer Friendly**: Complete REST API with comprehensive documentation
+
+### 📚 Rules Management: The Foundation of AI Agents
+
+**Rules** are structured guidelines that define how AI agents should behave and work together. Unlike prompts that request specific outputs, rules establish the framework for consistent, reliable AI operations.
+
+```mermaid
+graph TB
+    subgraph "AI Agent Ecosystem"
+        A[Agent 1: Code Review] --> C[Shared Rules Engine]
+        B[Agent 2: Documentation] --> C
+        D[Agent 3: Testing] --> C
+        E[Agent 4: Deployment] --> C
+    end
+    
+    C --> F[Consistent Quality]
+    C --> G[Reliable Outcomes]
+    C --> H[Predictable Behavior]
+    
+    style C fill:#e3f2fd,stroke:#1976d2,stroke-width:3px,color:#000
+    style F fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style G fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    style H fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+```
+
+**Real-World Applications:**
+- **Code Quality**: Enforcing style guides, security practices, and architecture patterns
+- **Documentation Standards**: Ensuring consistent, comprehensive documentation
+- **Testing Requirements**: Maintaining coverage and quality thresholds
+- **Collaboration Guidelines**: Defining how multiple agents coordinate work
 
 ## 📋 Table of Contents
 
 ### 🚀 Getting Started
 - [⚡ Quick Start](#-quick-start) - Get up and running in 5 minutes
-- [🏗️ System Architecture](#️-system-architecture) - Understanding the design
 - [⚙️ Configuration](#️-configuration) - Setup and customization
+- [✅ Verify Installation](#-verify-installation) - Test your setup
 
 ### 🎯 Core Features  
-- [🤖 Enhanced AI Services Configuration](#-enhanced-ai-services-configuration) - Multi-model AI setup
 - [📝 Prompt Management](#-prompt-management) - Create, organize, and manage prompts
-- [🎤 Speech Dictation](#-speech-dictation) - Voice-to-text with AI enhancement
-- [📚 Rules Management](#-rules-management) - AI agent guidance and behavioral rules
-- [📁 Project Management](#-project-management) - Organize workflows and collaborate on AI projects
-- [🏷️ Advanced Tagging System](#️-advanced-tagging-system) - Intelligent organization and discovery
-- [🧮 Token Calculator](#-token-calculator) - Real-time cost estimation
+- [💰 Token Calculator](#-token-calculator) - Real-time cost estimation
 - [🚀 AI-Powered Optimization](#-ai-powered-optimization) - Improve prompt quality
 - [🧩 Prompt Builder](#-prompt-builder) - Drag-and-drop prompt combination
+- [🎤 Speech Dictation](#-speech-dictation) - Voice-to-text with AI enhancement
 
 ### 🌐 Advanced Features
+- [🤖 Enhanced AI Services](#-enhanced-ai-services-configuration) - Multi-model AI setup
 - [🌍 Multi-Language Support](#-multi-language-support) - 10 languages with translation
-- [🔑 API Access](#-api-access) - REST API for developers
-- [🔵 Azure AI Integration](#-azure-ai-integration) - Enterprise AI services
+- [📚 Rules Management](#-rules-management) - AI agent guidance and behavioral rules
+- [🏷️ Advanced Tagging System](#️-advanced-tagging-system) - Intelligent organization
 
 ### 🏢 Enterprise & Deployment
+- [🔑 API Access](#-api-access) - REST API for developers
 - [🏢 Multi-Tenant Features](#-multi-tenant-features) - Organization management
 - [🔒 Production Deployment](#-production-deployment) - Scale and security
 - [🛠️ Development](#️-development) - Contributing and extending
 
-### 📚 Documentation & Resources
-- [📚 Documentation](#-documentation) - Comprehensive guides and references
+### 📚 Resources
+- [🏗️ System Architecture](#️-system-architecture) - Understanding the design
 - [🚀 Quick Reference](#-quick-reference) - Commands and shortcuts
 - [🔧 Troubleshooting](#-troubleshooting) - Common issues and solutions
 - [📄 License](#-license) - Usage terms
 
-## 🌟 Modern Web Interface
 
-**Instruere features a completely redesigned modern web interface** - a responsive, enterprise-ready web application built from the ground up:
-
-### ✨ What's New
-
-| Feature | Modern Web UI | Previous Version |
-|---------|---------------|-----------------|
-| **🎨 Design** | Responsive Tailwind CSS, mobile-optimized | Fixed desktop layout |
-| **⚡ Performance** | FastAPI + HTMX real-time updates | Page refreshes required |
-| **🔐 Security** | Session-based auth, CSRF protection | Basic authentication |
-| **🌐 I18n** | 10 languages, dynamic switching | English only |
-| **📱 Mobile** | Full mobile support | Desktop only |
-| **🔧 API** | Integrated REST API | External API server |
-| **🎯 UX** | Modern components, drag-drop | Basic forms |
-| **🔄 Navigation** | Clickable app title, improved UX | Static title |
-| **🎨 Buttons** | Modern styled buttons with zoom support | Basic unstyled buttons |
-
-### 🆕 Recent Improvements
-
-**Translation System Enhancements:**
-- Fixed critical translation function availability in single-user mode
-- Unified all translation calls to use consistent `t()` function
-- Enhanced navigation translation compatibility across all modes
-
-**User Interface Improvements:**
-- Made app title clickable for quick dashboard navigation
-- Comprehensive button styling overhaul with modern CSS framework
-- Added zoom scaling support for accessibility compliance
-- Enhanced keyboard navigation and screen reader support
-
-**Code Quality & Testing:**
-- Executed comprehensive test validation (96 unit tests + integration tests)
-- Applied code formatting and security validation
-- Fixed template syntax errors and improved HTML quality
-
-### 🚀 Key Advantages
-
-- **⚡ Real-time Updates**: HTMX-powered dynamic interactions without page reloads
-- **📱 Mobile-First**: Responsive design that works on all devices
-- **🎨 Modern UI**: Clean, intuitive interface with consistent styling
-- **🔒 Enterprise Security**: Session management, CSRF protection, secure authentication
-- **🌍 Internationalization**: Full 10-language support with instant switching
-- **🔌 API Integration**: Built-in REST API for developer access
-- **♿ Accessibility**: Screen reader support, keyboard navigation, ARIA labels
-
-**The modern web UI is now the default and only interface!** Experience a complete enterprise-ready web application with all the benefits listed above.
 
 ## 🏗️ System Architecture
 
@@ -1080,14 +1016,6 @@ curl -X POST http://localhost:7860/api/ai-models/import \
 
 Create, organize, and manage your AI prompts with powerful tools for optimization and collaboration.
 
-### 🆕 Recent Enhancements
-
-- **🔍 Visibility Control**: Public/private prompt sharing with granular access control
-- **🎨 Enhanced Dashboard**: Redesigned dashboard with clean actions and better organization  
-- **🏷️ Advanced Tagging**: Smart tag management with auto-complete and analytics
-- **📊 Real-time Updates**: HTMX-powered interface for seamless user experience
-- **🌐 Multi-language UI**: Full internationalization with 10 language support
-
 ### 🚀 Quick Start Workflow
 
 ```mermaid
@@ -1103,20 +1031,20 @@ graph LR
 
 ### ✍️ Creating Prompts
 
-**Step-by-step process:**
-
 1. **📂 Navigate** to the Prompt Management tab
-2. **📝 Fill in details:**
-   ```
-   Name: unique-prompt-name (required)
-   Title: Descriptive title for humans
-   Category: Writing, Analysis, Code, etc.
-   Content: Your actual AI prompt text
-   Tags: comma, separated, keywords
-   ```
+2. **📝 Fill in details:** Name, title, category, content, and tags
 3. **🧮 Check costs** with the built-in Token Calculator
 4. **🚀 Optimize** using AI-powered suggestions (optional)
 5. **💾 Save** your prompt to the library
+
+### 🌟 Key Features
+
+- **🔍 Smart Search**: Find prompts by name, content, or tags
+- **🏷️ Advanced Tagging**: Auto-complete and intelligent organization
+- **⭐ Favorites System**: Quick access to your most-used prompts
+- **📊 Usage Analytics**: See which prompts perform best
+- **🔄 Version History**: Track prompt evolution over time
+- **🔐 Visibility Control**: Public/private prompt sharing
 
 ### 🏷️ Advanced Tagging System
 
@@ -1219,8 +1147,6 @@ graph LR
 
 ### 📚 Prompt Library & Organization
 
-**Smart Organization System:**
-
 ```mermaid
 graph LR
     A[📁 Library] --> B[📝 Writing<br/>35 prompts]
@@ -1233,7 +1159,7 @@ graph LR
     style D fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
-**Features:**
+**Smart Organization Features:**
 - **🔍 Smart search** - Find prompts by name, content, or tags
 - **🏷️ Category filtering** - Organize by type and purpose  
 - **⭐ Favorites system** - Quick access to your most-used prompts
@@ -1382,94 +1308,30 @@ graph LR
 
 ### 🚀 How to Use Speech Dictation
 
-**1. 📝 Start Dictating**
-```
-1. Navigate to Prompt Creation/Editing
-2. Click the 🎤 Dictate button
-3. Allow microphone permissions when prompted
-4. Begin speaking your prompt content
-```
+**Quick Start:**
+1. **📝 Navigate** to Prompt Creation/Editing
+2. **🎤 Click** the Dictate button and allow microphone permissions
+3. **🗣️ Speak** your prompt content clearly
+4. **✨ Enhance** to clean up text and remove filler words
+5. **🌐 Translate** if dictating in non-English language
 
-**2. 🎛️ Control Your Session**
-```
-• 🔴 Click to start/stop recording
-• ⏸️ Pause/Resume as needed
-• 🌐 Select your dictation language
-• 👁️ Monitor real-time status updates
-```
+### 🎯 Best Practices
 
-**3. ✨ Enhance Your Text**
-```
-• Click ✨ Enhance to clean up dictated text
-• Remove filler words automatically
-• Improve grammar and punctuation
-• Apply AI-powered optimizations
-```
+- **🗣️ Speaking**: Clear articulation, moderate pace, spell technical terms
+- **⏱️ Sessions**: Keep segments to 1-2 minutes for best accuracy
+- **🔍 Review**: Check transcription before enhancement
+- **🌍 Environment**: Use in quiet spaces for optimal recognition
 
-**4. 🌐 Translate if Needed**
-```
-• Dictate in your native language
-• Click 🌐 Translate to convert to English
-• Maintain technical terminology
-• Preserve original meaning
-```
+### 🔧 Technical Details
 
-### 🎯 Best Practices for Speech Dictation
-
-**📢 Speaking Techniques:**
-- **Clear Articulation**: Speak clearly and at moderate pace
-- **Technical Terms**: Spell out complex technical terms if needed
-- **Punctuation**: Say "period", "comma", "question mark" for punctuation
-- **Pause Management**: Use natural pauses between sentences
-
-**🎛️ Session Management:**
-- **Short Segments**: Dictate in 1-2 minute segments for best accuracy
-- **Review Before Enhancement**: Check raw transcription before AI processing
-- **Language Consistency**: Stick to one language per dictation session
-- **Environment**: Use in quiet environments for optimal recognition
-
-**✨ Enhancement Tips:**
-- **AI Enhancement**: Use for complex technical content
-- **Basic Enhancement**: Use for simple filler word removal
-- **Review Results**: Always review enhanced text before saving
-- **Iterative Process**: Enhance multiple times if needed
-
-### 🔧 Technical Implementation
-
-**Browser Compatibility:**
-- ✅ Chrome/Chromium (Recommended)
-- ✅ Edge (Windows)
-- ✅ Safari (macOS/iOS)
-- ⚠️ Firefox (Limited support)
-
-**API Endpoints:**
-```bash
-# Text Enhancement
-POST /enhance-text
-Content-Type: application/x-www-form-urlencoded
-text=dictated_content&type=dictation
-
-# Translation
-POST /translate
-Content-Type: application/x-www-form-urlencoded
-text=content&target_lang=en
-```
+**Browser Support:** Chrome/Chromium (recommended), Edge, Safari, Firefox (limited)
 
 **Security & Privacy:**
-- 🔒 **No Data Storage**: Speech processing happens in browser
-- 🛡️ **Secure Transmission**: All API calls use HTTPS
-- 🔐 **Authentication**: Requires valid user session
-- 📱 **Local Processing**: Web Speech API processes audio locally
+- 🔒 Speech processing happens in browser (no data storage)
+- 🛡️ Secure HTTPS transmission with user authentication
+- 📱 Local Web Speech API processing
 
-### 🧪 Testing Coverage
-
-The speech dictation system includes comprehensive testing:
-
-- **📋 Unit Tests**: 19 tests covering text enhancement logic
-- **🔗 Integration Tests**: 10 tests for API endpoints and workflows
-- **🎭 E2E Tests**: 20 browser automation tests with Playwright
-- **🔒 Security Tests**: Bandit security scanning passed
-- **✅ Code Quality**: Full flake8, black, isort compliance
+**Testing:** Comprehensive coverage with 49 tests (unit, integration, E2E)
 
 ### 🎨 UI Components
 

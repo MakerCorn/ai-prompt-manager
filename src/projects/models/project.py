@@ -8,7 +8,7 @@ project management functionality with proper validation and serialization.
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 
 class ProjectType(Enum):

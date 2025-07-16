@@ -223,8 +223,9 @@ class ReleaseSystemE2ETest(unittest.TestCase):
         self.page.fill('input[name="password"]', "testpass123")
         self.page.fill('input[name="subdomain"]', "test")
 
-        # Submit form
-        self.page.click('button[type="submit"]')
+        # Submit form (use more specific locator for login button)
+        login_button = self.page.locator('form button[type="submit"]').last
+        login_button.click()
 
         # Wait for redirect to dashboard
         self.page.wait_for_url(f"{self.base_url}/")

@@ -4,13 +4,12 @@ Simplified Project API Integration Tests
 Tests the project-specific API endpoints that we know exist
 """
 
-import json
 import os
 import random
 import subprocess
 import sys
 import time
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import requests
 
@@ -148,7 +147,7 @@ def test_project_ownership_transfer_api(api_url: str) -> bool:
                     print("✅ API returns proper error structure")
                 else:
                     print("⚠️  API error structure unclear")
-            except:
+            except (ValueError, KeyError):
                 print("⚠️  API response not JSON")
         else:
             print(f"⚠️  Ownership transfer API response unclear: {response.status_code}")
@@ -184,7 +183,7 @@ def test_project_tags_api(api_url: str) -> bool:
                 error_data = response.json()
                 if "success" in error_data and not error_data["success"]:
                     print("✅ Tags GET API returns proper error structure")
-            except:
+            except (ValueError, KeyError):
                 print("⚠️  Tags GET API response not JSON")
         else:
             print(f"⚠️  Tags GET API response unclear: {response.status_code}")
@@ -201,7 +200,7 @@ def test_project_tags_api(api_url: str) -> bool:
                 error_data = response.json()
                 if "success" in error_data and not error_data["success"]:
                     print("✅ Tags PUT API returns proper error structure")
-            except:
+            except (ValueError, KeyError):
                 print("⚠️  Tags PUT API response not JSON")
         else:
             print(f"⚠️  Tags PUT API response unclear: {response.status_code}")
@@ -229,7 +228,7 @@ def test_project_token_cost_api(api_url: str) -> bool:
                     print("✅ Token cost API returns proper error structure")
                     if "error" in error_data:
                         print(f"   Error message: {error_data['error']}")
-            except:
+            except (ValueError, KeyError):
                 print("⚠️  Token cost API response not JSON")
         else:
             print(f"⚠️  Token cost API response unclear: {response.status_code}")
@@ -360,7 +359,7 @@ def test_project_permissions_api(api_url: str) -> bool:
                 error_data = response.json()
                 if "success" in error_data and not error_data["success"]:
                     print("✅ Permissions API returns proper error structure")
-            except:
+            except (ValueError, KeyError):
                 print("⚠️  Permissions API response not JSON")
         else:
             print(f"⚠️  Permissions API response unclear: {response.status_code}")

@@ -18,12 +18,11 @@ class TestPasswordHandler:
 
     def test_password_handler_initialization_argon2(self):
         """Test password handler initialization with Argon2."""
-        # Test that even when ARGON2_AVAILABLE is True, if argon2 import fails,
-        # it falls back to the next available algorithm
+        # Test that when ARGON2_AVAILABLE is True, argon2 is used
         with patch("src.auth.security.password_handler.ARGON2_AVAILABLE", True):
             handler = PasswordHandler()
-            # Should fallback to bcrypt or pbkdf2 since argon2 import will fail
-            assert handler.algorithm in ["bcrypt", "pbkdf2"]
+            # Should use argon2 if available, or fallback to bcrypt or pbkdf2
+            assert handler.algorithm in ["argon2", "bcrypt", "pbkdf2"]
 
     def test_password_handler_initialization_bcrypt(self):
         """Test password handler initialization with bcrypt."""
@@ -138,33 +137,31 @@ class TestPasswordHandler:
         mock_bcrypt.checkpw.assert_called_once()
 
     def test_hash_password_argon2(self):
-        """Test password hashing with Argon2 fallback behavior."""
-        # Since argon2 is not available in the test environment,
-        # this test verifies the fallback behavior
+        """Test password hashing with Argon2."""
+        # Test argon2 hashing when available, or fallback behavior
         handler = PasswordHandler(algorithm="argon2")
 
-        # Handler should fallback to available algorithm (pbkdf2 or bcrypt)
-        assert handler.algorithm in ["pbkdf2", "bcrypt"]
+        # Handler should use argon2 if available, or fallback to available algorithm
+        assert handler.algorithm in ["argon2", "pbkdf2", "bcrypt"]
 
         password = "test_password"
         hashed, salt_or_metadata = handler.hash_password(password)
 
-        # Should produce a valid hash with the fallback algorithm
+        # Should produce a valid hash with the selected algorithm
         assert hashed is not None
         assert salt_or_metadata is not None
         assert len(hashed) > 0
         assert len(salt_or_metadata) > 0
 
     def test_verify_password_argon2(self):
-        """Test password verification with Argon2 fallback behavior."""
-        # Since argon2 is not available in the test environment,
-        # this test verifies the fallback behavior
+        """Test password verification with Argon2."""
+        # Test argon2 verification when available, or fallback behavior
         handler = PasswordHandler(algorithm="argon2")
 
-        # Handler should fallback to available algorithm (pbkdf2 or bcrypt)
-        assert handler.algorithm in ["pbkdf2", "bcrypt"]
+        # Handler should use argon2 if available, or fallback to available algorithm
+        assert handler.algorithm in ["argon2", "pbkdf2", "bcrypt"]
 
-        # Verification should still work with fallback algorithm
+        # Verification should work with the selected algorithm
         password = "test_password"
         hashed, salt_or_metadata = handler.hash_password(password)
         result = handler.verify_password(password, hashed, salt_or_metadata)

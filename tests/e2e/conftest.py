@@ -16,6 +16,7 @@ from typing import Any, Dict, Generator
 
 import pytest
 import requests
+from playwright.sync_api import sync_playwright
 
 # Add project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -204,6 +205,82 @@ def api_client(test_config: Dict[str, Any], app_server) -> requests.Session:
 def admin_user_data() -> Dict[str, str]:
     """Default admin user credentials for testing."""
     return {"email": "admin@localhost", "password": "admin123", "tenant": "localhost"}
+
+
+@pytest.fixture(scope="session")
+def browser_context(test_config: Dict[str, Any]):
+    """Shared browser context for E2E tests."""
+    import asyncio
+    import threading
+
+    # Check if we're in an asyncio loop
+    try:
+        loop = asyncio.get_running_loop()
+        # If we're in an asyncio loop, run Playwright in a separate thread
+        if loop.is_running():
+            playwright_data = {}
+
+            def run_playwright():
+                playwright = sync_playwright().start()
+                browser = playwright.chromium.launch(
+                    headless=test_config["headless"], slow_mo=test_config["slow_mo"]
+                )
+                context = browser.new_context()
+                playwright_data.update(
+                    {"playwright": playwright, "browser": browser, "context": context}
+                )
+
+            thread = threading.Thread(target=run_playwright)
+            thread.start()
+            thread.join()
+
+            yield playwright_data["context"]
+
+            # Cleanup in thread
+            def cleanup():
+                playwright_data["context"].close()
+                playwright_data["browser"].close()
+                playwright_data["playwright"].stop()
+
+            cleanup_thread = threading.Thread(target=cleanup)
+            cleanup_thread.start()
+            cleanup_thread.join()
+        else:
+            # No asyncio loop, run normally
+            playwright = sync_playwright().start()
+            browser = playwright.chromium.launch(
+                headless=test_config["headless"], slow_mo=test_config["slow_mo"]
+            )
+            context = browser.new_context()
+
+            yield context
+
+            # Cleanup
+            context.close()
+            browser.close()
+            playwright.stop()
+    except RuntimeError:
+        # No asyncio loop, run normally
+        playwright = sync_playwright().start()
+        browser = playwright.chromium.launch(
+            headless=test_config["headless"], slow_mo=test_config["slow_mo"]
+        )
+        context = browser.new_context()
+
+        yield context
+
+        # Cleanup
+        context.close()
+        browser.close()
+        playwright.stop()
+
+
+@pytest.fixture
+def page(browser_context):
+    """Create a new page for each test."""
+    page = browser_context.new_page()
+    yield page
+    page.close()
 
 
 @pytest.fixture

@@ -2115,7 +2115,8 @@ class I18nManager:
                 "استخدم {content}، {name}، {title}، {category}، {tags} كعناصر نائبة"
             ),
             "builder.available_placeholders": (
-                "العناصر النائبة المتاحة: {content}، {name}، {title}، {category}، {tags}"
+                "العناصر النائبة المتاحة: {content}، {name}، {title}، "
+                "{category}، {tags}"
             ),
             # Builder Actions & Messages
             "builder.min_prompts_required": "يرجى تحديد ما لا يقل عن مطالبتين للدمج",

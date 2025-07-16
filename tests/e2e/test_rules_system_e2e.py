@@ -164,7 +164,8 @@ class TestRulesSystemE2E(unittest.TestCase):
         self.page.fill('input[name="email"]', "test@example.com")
         self.page.fill('input[name="password"]', "test123")
         self.page.fill('input[name="tenant"]', "test")
-        self.page.click('button[type="submit"]')
+        login_button = self.page.locator('form button[type="submit"]').last
+        login_button.click()
 
         # Wait for login to complete
         self.page.wait_for_url(f"{self.base_url}/")

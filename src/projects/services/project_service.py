@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 from ...core.base.database_manager import BaseDatabaseManager
 from ...core.base.service_base import ServiceResult, TenantAwareService
-from ...core.exceptions.base import ServiceException, ValidationException
+from ...core.exceptions.base import ValidationException
 from ..models.project import (
     Project,
     ProjectMember,
