@@ -1160,7 +1160,7 @@ This release transforms the AI Prompt Manager from an individual productivity to
 
 #### **Revolutionary API Integration**
 - **Dual-Server Architecture**: Implemented completely new API architecture with separate FastAPI server
-  - **Gradio UI Server**: Runs on main port (e.g., 7860) for web interface
+  - **FastAPI Web Server**: Runs on main port (e.g., 7860) for web interface
   - **FastAPI Server**: Runs on main port + 1 (e.g., 7861) for API endpoints
   - **Threading**: API server runs in separate daemon thread for optimal performance
   - **Unified Launcher**: Both servers managed by single `run.py --with-api` command
@@ -1874,7 +1874,7 @@ src/
 
 #### **Function Organization**
 - **Modular Functions**: Clean separation of test and configuration logic
-- **Event Handling**: Proper Gradio event handler implementation
+- **Event Handling**: Proper FastAPI event handler implementation
 - **Code Reuse**: Leveraged existing AI service integration
 - **Documentation**: Clear function documentation and comments
 
