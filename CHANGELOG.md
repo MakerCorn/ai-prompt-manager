@@ -63,7 +63,7 @@
 
 This release focuses on maintaining the high code quality standards of the AI Prompt Manager while ensuring all dependencies are current and secure. The comprehensive testing and quality assurance process ensures that all existing functionality continues to work perfectly while providing a solid foundation for future development.
 
-## [0.6.0] - 2025-07-10
+## [0.6.1] - 2025-07-16
 
 ### 📁 Project Management System - Complete Implementation
 
