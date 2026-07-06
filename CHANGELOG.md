@@ -2,6 +2,134 @@
 
 ## [Unreleased]
 
+### 🔒 Security & Authorization Fixes
+
+#### **Authentication & Authorization Bug Fixes**
+- **Prompt REST API authentication** (`prompt_api_endpoints.py`): the configured
+  data-manager dependency ignored the bearer token and hardcoded
+  `tenant_id`/`user_id` to `"default"`, allowing unauthenticated access and
+  breaking tenant isolation. It now validates the `Authorization` bearer token
+  and scopes the data manager to the token's tenant/user, rejecting missing or
+  invalid tokens with HTTP 401.
+- **Release REST API always returned 401** (`release_api_endpoints.py`): the
+  auth dependency bound the `Authorization` value to a lambda that always
+  returned `None`, so the header was never read and every endpoint rejected
+  valid tokens. It now reads the header via `Header(...)` and validates the
+  token, making the release API usable.
+- **Public prompt ownership** (`web_app.py`): public prompts are visible to all
+  users in a tenant, but the edit/update/delete routes located a prompt via the
+  visibility-aware listing and mutated it by name, letting any tenant user edit
+  or delete another user's public prompt. Added an ownership guard (HTTP 403)
+  to the edit form, update, and delete routes.
+- **Language-management admin gate** (`web_app.py`): the create/save/delete and
+  translate-key language routes required only authentication, so any tenant
+  user could mutate or delete application-wide translation files. Added an
+  admin-role gate (`_ensure_admin`) to these global operations.
+- **`--multi-tenant` flag precedence** (`run.py`): the launcher only wrote
+  `MULTITENANT_MODE=false` in the single-user branch, so `--multi-tenant` was
+  silently ignored when the environment already had `MULTITENANT_MODE=false`,
+  starting the app with authentication disabled. The resolved configuration is
+  now propagated unconditionally via `apply_configuration_to_environment`.
+
+#### **Cross-Database (PostgreSQL) Correctness**
+- **Row-shape portability** (`prompt_data_manager.py`): added a `_row_to_dict`
+  helper and converted 18 read methods that indexed rows positionally
+  (`row[0]`). Positional indexing raises `KeyError` on PostgreSQL, whose
+  `RealDictCursor` yields dict-like rows, so core features — prompt/rule/tag
+  listing and search, categories, project prompts/rules/members, project
+  stats, versions, snapshots, change log, and public/visibility listings —
+  were broken (crash or silent empty results) on the documented production
+  backend. This also corrected two positional off-by-one/wrong-column bugs
+  (`get_enhancement_prompts` mislabeled created_at/updated_at;
+  `get_project_change_log` stored snapshot JSON under the wrong key).
+- **Placeholder & connection portability** (`prompt_data_manager.py`): the
+  project-execution methods (`execute_sequenced_project`,
+  `setup_llm_comparison_project`, `run_llm_comparison`,
+  `setup_developer_workflow`, `get_developer_tools`,
+  `get_project_execution_history`) called `sqlite3.connect(self.db_path)`
+  directly (a `TypeError` on Postgres) and hardcoded `?` placeholders; they now
+  use `self.get_conn()` with a guarded row factory and db-aware placeholders.
+  `transfer_project_ownership`, `restore_project_version`,
+  `calculate_project_token_cost`, `get_project_aggregate_tags`, and
+  `update_project_tags` were likewise converted to db-aware placeholders.
+- **Broken rule assignment** (`prompt_data_manager.py`):
+  `assign_rule_to_project` called a non-existent `get_rule` method, and both
+  `assign_rule_to_project`/`unassign_rule_from_project` queried a non-existent
+  `project_rules.tenant_id` column, so rule assignment failed on **all**
+  backends. Rewritten to validate the rule via the tenant-scoped
+  `get_all_rules`, use the real `project_rules` schema, and use db-aware
+  placeholders.
+- **auth_manager cross-db** (`auth_manager.py`): `get_admin_stats`,
+  `get_all_users_for_tenant`, `get_tenant_by_id`, and `get_tenant_by_subdomain`
+  hardcoded `?` placeholders and positional row access, crashing the admin
+  dashboard and tenant/user lookups on Postgres; made db-aware.
+- **PostgreSQL project listing** (`project_repository.py`):
+  `find_accessible_projects` used `SELECT DISTINCT` with `ORDER BY` on a `CASE`
+  expression not in the select list (a Postgres `ProgrammingError`); the sort
+  key is now an aliased select column.
+
+#### **Data & Utility Correctness**
+- **Token cost pricing** (`token_calculator.py`): model pricing matched keys by
+  substring in insertion order, so `gpt-4-turbo` matched `gpt-4` and was billed
+  at the higher rate. Now matches the most specific (longest) key first.
+- **Ollama health-check URL** (`ai_model_manager.py`): used
+  `rstrip('/api/generate')`, which strips a character *set* and mangles hosts
+  ending in those characters. Replaced with suffix-based `_ollama_tags_url`.
+- **Constant-time hash comparison** (`auth_manager.py`,
+  `password_handler.py`): password-hash verification used `==` (a timing
+  side-channel); now uses `hmac.compare_digest`.
+- **Email validator import** (`validators.py`): imported from the non-existent
+  `email.validator` stdlib path instead of the `email_validator` package, so
+  the optional integration never activated; fixed the import and disabled
+  network DNS checks.
+- **Prompt API delete status** (`prompt_api_endpoints.py`): checked the
+  truthiness of `delete_prompt`'s status *string* (`if not success`), which is
+  always truthy, masking failures; now checks the `Error:` prefix.
+- **API token name reuse** (`api_token_manager.py`): the duplicate-name check
+  filtered `is_active` while the `UNIQUE(user_id, name)` constraint does not, so
+  reusing a revoked token's name failed with a cryptic `IntegrityError`; the
+  check now matches the constraint and returns a clean message.
+- **Translation fallbacks** (`language_manager.py`, `i18n.py`): empty-string
+  translations bypassed the default-language fallback (blank UI), and the i18n
+  fallback consulted `default_language` but never English; both now fall back
+  through default -> English before returning the raw key.
+- **GitHub import robustness** (`src/prompts/models/prompt.py`):
+  `from_github_format` crashed on messages with null (`None`) role/content
+  (`dict.get` default does not apply to present-but-None values); values are now
+  coerced defensively.
+
+#### **Correctness Fixes**
+- **Project create/update/delete success handling** (`web_app.py`): these routes
+  checked `result.startswith("Success")`, but the data manager returns messages
+  like "Project '...' created successfully!" on success and "Error: ..." on
+  failure. Successful creates/updates were therefore rendered as form errors and
+  successful deletes returned HTTP 400. Corrected to treat any non-"Error:"
+  result as success.
+- **Single-user-mode route access** (`web_app.py`): `/calculate-tokens` and the
+  prompt execute routes (`GET`/`POST /prompts/{name}/execute`) required an
+  authenticated session unconditionally, making them unreachable in single-user
+  mode (which has no login). They now use the default single-user context.
+
+#### **Test Improvements**
+- Converted the release API integration tests from ineffective
+  `patch()`-based mocks (which silently bypassed the broken auth dependency) to
+  real API-token authentication, so they now exercise and protect the real auth
+  path.
+- Added `tests/integration/test_api_auth_fixes.py`,
+  `tests/integration/test_web_app_authz.py`,
+  `tests/integration/test_web_app_project_routes.py`,
+  `tests/integration/test_web_app_single_user.py`, and
+  `tests/unit/test_run_configuration.py` covering the auth/logic fixes.
+- Added tests for the cross-database and utility fixes:
+  `tests/unit/test_row_normalization.py`,
+  `tests/unit/test_project_rule_assignment.py`,
+  `tests/unit/test_token_calculator_pricing.py`,
+  `tests/unit/test_ollama_tags_url.py`,
+  `tests/unit/test_language_fallback.py`,
+  `tests/unit/test_api_token_name_reuse.py`,
+  `tests/unit/prompts/test_prompt_github_null_content.py`, and
+  `tests/integration/test_prompt_api_delete.py`.
+
 ### 🔧 Code Quality & Dependency Updates
 
 #### **Comprehensive Code Quality Improvements**

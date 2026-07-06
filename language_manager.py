@@ -176,13 +176,17 @@ class LanguageManager:
         # Try current language first
         text = self._get_nested_value(current_translations, key)
 
-        # Fallback to default language if not found
-        if text is None and self.current_language != self.default_language:
+        # Fallback to default language if missing OR empty. An empty string is
+        # an untranslated placeholder; returning it would render blank UI, so
+        # it must trigger the same fallback as a missing key.
+        if not text and self.current_language != self.default_language:
             default_translations = self._loaded_languages.get(self.default_language, {})
-            text = self._get_nested_value(default_translations, key)
+            fallback = self._get_nested_value(default_translations, key)
+            if fallback:
+                text = fallback
 
-        # Return key if no translation found
-        if text is None:
+        # Return key if still missing or empty
+        if not text:
             text = key
 
         # Apply formatting if provided

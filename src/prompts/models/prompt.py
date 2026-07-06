@@ -468,8 +468,13 @@ class Prompt:
         # Convert messages to content string
         content_parts = []
         for message in messages:
-            role = message.get("role", "user")
-            content = message.get("content", "")
+            # Coerce role/content defensively: a JSON null yields None (the
+            # dict default only applies to absent keys), and non-string content
+            # would break .strip()/.upper() below.
+            role = message.get("role") or "user"
+            content = message.get("content") or ""
+            if not isinstance(content, str):
+                content = str(content)
             if content.strip():  # Only add non-empty content
                 content_parts.append(f"{role.upper()}: {content}")
 
@@ -482,7 +487,7 @@ class Prompt:
                 (msg for msg in messages if msg.get("role") == "user"), None
             )
             if user_message and user_message.get("content"):
-                name = " ".join(user_message["content"].split()[:5])
+                name = " ".join(str(user_message["content"]).split()[:5])
                 if len(name) > 50:
                     name = name[:47] + "..."
             else:

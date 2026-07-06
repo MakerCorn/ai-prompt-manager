@@ -22,12 +22,24 @@ sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
+from api_token_manager import APITokenManager  # noqa: E402
 from auth_manager import AuthManager  # noqa: E402
 from release_api_endpoints import (  # noqa: E402
+    _default_token_manager,
     create_admin_release_router,
     create_release_router,
 )
 from release_manager import ReleaseManager  # noqa: E402
+
+
+def _bearer(token_manager, user_id, tenant_id, name="test-token"):
+    """Create a real API token and return an Authorization header dict."""
+    ok, msg, full_token = token_manager.create_api_token(
+        user_id=user_id, tenant_id=tenant_id, name=name
+    )
+    assert ok, msg
+    return {"Authorization": f"Bearer {full_token}"}
+
 
 try:
     from fastapi.testclient import TestClient
@@ -91,19 +103,18 @@ class TestReleaseAPIIntegration(unittest.TestCase):
         self.app.include_router(release_router)
         self.app.include_router(admin_router)
 
+        # Real authentication against the test database: issue a genuine API
+        # token and point the auth dependency's token manager at this DB.
+        self.token_manager = APITokenManager(self.db_path)
+        self.app.dependency_overrides[_default_token_manager] = (
+            lambda: self.token_manager
+        )
+        self.auth_headers = _bearer(self.token_manager, self.user_id, self.tenant_id)
+
         self.client = TestClient(self.app)
-
-        # Mock authentication
-        self.auth_headers = {"Authorization": "Bearer test_token"}
-
-        # Patch authentication for testing
-        self.auth_patcher = patch("release_api_endpoints.get_current_user_context")
-        mock_auth = self.auth_patcher.start()
-        mock_auth.return_value = {"user_id": self.user_id, "tenant_id": self.tenant_id}
 
     def tearDown(self):
         """Clean up test environment"""
-        self.auth_patcher.stop()
         if os.path.exists(self.db_path):
             os.unlink(self.db_path)
 
@@ -342,23 +353,15 @@ class TestReleaseAPIIntegration(unittest.TestCase):
         self.assertEqual(response.status_code, 422)  # Validation error
 
     def test_unauthorized_access(self):
-        """Test unauthorized access handling"""
+        """Test unauthorized access handling with the real auth dependency."""
         # Test without authorization header
         response = self.client.get("/api/releases/")
         self.assertEqual(response.status_code, 401)
 
-        # Test with invalid token
-        invalid_headers = {"Authorization": "Bearer invalid_token"}
-
-        # This would normally fail, but our mock allows all tokens
-        # In real implementation, this should return 401
-        with patch("release_api_endpoints.get_current_user_context") as mock_auth:
-            mock_auth.side_effect = Exception("Invalid token")
-
-            # Recreate client to avoid cached auth
-            self.client = TestClient(self.app)
-            response = self.client.get("/api/releases/", headers=invalid_headers)
-            self.assertEqual(response.status_code, 500)  # Exception becomes 500
+        # Test with an invalid (non-existent) bearer token
+        invalid_headers = {"Authorization": "Bearer apm_invalid_token"}
+        response = self.client.get("/api/releases/", headers=invalid_headers)
+        self.assertEqual(response.status_code, 401)
 
 
 @unittest.skipUnless(FASTAPI_AVAILABLE, "FastAPI not available")
@@ -405,17 +408,18 @@ class TestAdminReleaseAPI(unittest.TestCase):
         admin_router = create_admin_release_router(self.db_path)
         self.app.include_router(admin_router)
 
-        self.client = TestClient(self.app)
-        self.auth_headers = {"Authorization": "Bearer admin_token"}
+        # Real authentication: verify_admin_user currently authorizes any
+        # authenticated user, so a genuine token for the admin user suffices.
+        self.token_manager = APITokenManager(self.db_path)
+        self.app.dependency_overrides[_default_token_manager] = (
+            lambda: self.token_manager
+        )
+        self.auth_headers = _bearer(self.token_manager, self.user_id, self.tenant_id)
 
-        # Mock admin authentication
-        self.auth_patcher = patch("release_api_endpoints.verify_admin_user")
-        mock_auth = self.auth_patcher.start()
-        mock_auth.return_value = {"user_id": self.user_id, "tenant_id": self.tenant_id}
+        self.client = TestClient(self.app)
 
     def tearDown(self):
         """Clean up test environment"""
-        self.auth_patcher.stop()
         if os.path.exists(self.db_path):
             os.unlink(self.db_path)
 
@@ -558,6 +562,18 @@ class TestMultiTenantIsolation(unittest.TestCase):
         release_router = create_release_router(self.db_path)
         self.app.include_router(release_router)
 
+        # Real per-tenant tokens against the test database.
+        self.token_manager = APITokenManager(self.db_path)
+        self.app.dependency_overrides[_default_token_manager] = (
+            lambda: self.token_manager
+        )
+        self.headers1 = _bearer(
+            self.token_manager, self.user1.id, self.tenant1.id, "token1"
+        )
+        self.headers2 = _bearer(
+            self.token_manager, self.user2.id, self.tenant2.id, "token2"
+        )
+
         self.client = TestClient(self.app)
 
     def tearDown(self):
@@ -578,20 +594,14 @@ class TestMultiTenantIsolation(unittest.TestCase):
         releases = self.release_manager.get_releases(limit=1)
         release_id = releases[0].id
 
-        # User 1 marks as viewed
-        with patch("release_api_endpoints.get_current_user_context") as mock_auth:
-            mock_auth.return_value = {
-                "user_id": self.user1.id,
-                "tenant_id": self.tenant1.id,
-            }
-
-            view_data = {"release_id": release_id, "is_dismissed": False}
-            response = self.client.post(
-                "/api/releases/mark-viewed",
-                json=view_data,
-                headers={"Authorization": "Bearer token1"},
-            )
-            self.assertEqual(response.status_code, 200)
+        # User 1 marks as viewed (authenticated as user1 via a real token)
+        view_data = {"release_id": release_id, "is_dismissed": False}
+        response = self.client.post(
+            "/api/releases/mark-viewed",
+            json=view_data,
+            headers=self.headers1,
+        )
+        self.assertEqual(response.status_code, 200)
 
         # Check unread counts
         count1 = self.release_manager.get_unread_count(self.user1.id)
@@ -610,25 +620,9 @@ class TestMultiTenantIsolation(unittest.TestCase):
             description="Available to all tenants",
         )
 
-        # Both users should see the release
-        with patch("release_api_endpoints.get_current_user_context") as mock_auth:
-            # Test user 1
-            mock_auth.return_value = {
-                "user_id": self.user1.id,
-                "tenant_id": self.tenant1.id,
-            }
-            response1 = self.client.get(
-                "/api/releases/", headers={"Authorization": "Bearer token1"}
-            )
-
-            # Test user 2
-            mock_auth.return_value = {
-                "user_id": self.user2.id,
-                "tenant_id": self.tenant2.id,
-            }
-            response2 = self.client.get(
-                "/api/releases/", headers={"Authorization": "Bearer token2"}
-            )
+        # Both users should see the release (each with their own real token)
+        response1 = self.client.get("/api/releases/", headers=self.headers1)
+        response2 = self.client.get("/api/releases/", headers=self.headers2)
 
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(response2.status_code, 200)

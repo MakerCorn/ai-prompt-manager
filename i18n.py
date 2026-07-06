@@ -91,12 +91,20 @@ class I18nManager:
         Returns:
             Translated string or key if not found
         """
-        # Get translation from current language or fallback to English
+        # Get translation from current language, then the default language,
+        # then English (the canonical complete set), then the raw key. English
+        # is always consulted last so a non-English DEFAULT_LANGUAGE that is
+        # missing keys still falls back to a real string instead of the key.
         current_trans = self.translations.get(self.current_language, {})
-        english_trans = self.translations.get(self.default_language, {})
+        default_trans = self.translations.get(self.default_language, {})
+        english_trans = self.translations.get("en", {})
 
-        # Try current language first, then English, then return key
-        text = current_trans.get(key) or english_trans.get(key) or key
+        text = (
+            current_trans.get(key)
+            or default_trans.get(key)
+            or english_trans.get(key)
+            or key
+        )
 
         # Format with provided kwargs if any
         if kwargs:

@@ -10,8 +10,11 @@ import unicodedata
 from typing import List, Optional
 
 try:
-    from email.validator import EmailNotValidError
-    from email.validator import validate_email as email_validator
+    # The optional dependency is the "email-validator" package, imported as
+    # "email_validator" (not "email.validator", which is a non-existent
+    # submodule of the stdlib email package and always ImportErrors).
+    from email_validator import EmailNotValidError
+    from email_validator import validate_email as email_validator
 
     EMAIL_VALIDATOR_AVAILABLE = True
 except ImportError:
@@ -42,8 +45,10 @@ def validate_email(email: str) -> bool:
 
     if EMAIL_VALIDATOR_AVAILABLE:
         try:
-            # Use email-validator library for comprehensive validation
-            email_validator(email)
+            # Use email-validator library for comprehensive format validation.
+            # Disable deliverability (DNS) checks to keep validation offline
+            # and free of network side effects.
+            email_validator(email, check_deliverability=False)
             return True
         except EmailNotValidError as e:
             raise ValidationException(f"Invalid email address: {str(e)}")

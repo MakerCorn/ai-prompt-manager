@@ -191,6 +191,18 @@ class ModelHealthChecker:
         # Mock implementation - replace with actual Google API call
         return True, "Mock: Healthy"
 
+    @staticmethod
+    def _ollama_tags_url(api_endpoint: str) -> str:
+        """Derive the Ollama ``/api/tags`` URL from a configured endpoint.
+
+        Uses ``removesuffix`` rather than ``rstrip('/api/generate')``: rstrip
+        strips any trailing characters belonging to that set, which mangles
+        endpoints whose host ends in one of those characters (e.g.
+        ``http://ollama-server/api/generate`` -> ``http://ollama-serv``).
+        """
+        base = api_endpoint.removesuffix("/api/generate")
+        return f"{base}/api/tags"
+
     async def _check_local_health(self, model: ModelConfig) -> Tuple[bool, str]:
         """Check local model health (Ollama, LM Studio, etc.)."""
         if not model.api_endpoint:
@@ -203,7 +215,7 @@ class ModelHealthChecker:
             async with httpx.AsyncClient() as client:
                 if model.provider == AIProvider.OLLAMA:
                     response = await client.get(
-                        f"{model.api_endpoint.rstrip('/api/generate')}/api/tags",
+                        self._ollama_tags_url(model.api_endpoint),
                         timeout=5,
                     )
                 else:

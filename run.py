@@ -204,6 +204,22 @@ def display_startup_info(config):
     print()
 
 
+def apply_configuration_to_environment(config):
+    """Propagate the resolved runtime configuration to environment variables.
+
+    The launcher's resolved configuration is the single source of truth for
+    deployment mode, so ``MULTITENANT_MODE`` is written unconditionally.
+    Previously it was only set in the single-user branch, so ``--multi-tenant``
+    was silently ignored whenever the environment already contained
+    ``MULTITENANT_MODE=false`` -- the banner claimed authentication was
+    required while the app actually started with it disabled.
+    """
+    os.environ["MULTITENANT_MODE"] = "true" if config["multitenant_mode"] else "false"
+
+    if config["local_dev_mode"]:
+        os.environ["LOCAL_DEV_MODE"] = "true"
+
+
 def main():
     """Main launcher that determines mode and runs appropriate interface"""
 
@@ -223,12 +239,10 @@ def main():
         print(f"   🌐 API Base URL: http://{config['host']}:{config['port']}/api")
         print()
 
-    # Set environment variables for the application
-    if not config["multitenant_mode"]:
-        os.environ["MULTITENANT_MODE"] = "false"
-
-    if config["local_dev_mode"]:
-        os.environ["LOCAL_DEV_MODE"] = "true"
+    # Set environment variables for the application. The resolved launcher
+    # configuration is authoritative, so this always overwrites any stale
+    # MULTITENANT_MODE value already present in the environment.
+    apply_configuration_to_environment(config)
 
     # Import and create the web interface
     try:

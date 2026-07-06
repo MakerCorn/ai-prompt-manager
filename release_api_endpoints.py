@@ -12,7 +12,7 @@ import os
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api_token_manager import APITokenManager
@@ -77,19 +77,27 @@ class ReleaseSyncRequest(BaseModel):
     force: bool = Field(False, description="Force sync even if cached")
 
 
-def get_current_user_context(
-    authorization: str = Depends(lambda: None),
-    token_manager: APITokenManager = Depends(lambda: None),
+def _default_token_manager(
     db_path: str = Depends(lambda: os.getenv("DB_PATH", "prompts.db")),
+) -> APITokenManager:
+    """Provide an API token manager bound to the configured database."""
+    return APITokenManager(db_path)
+
+
+def get_current_user_context(
+    authorization: Optional[str] = Header(None),
+    token_manager: APITokenManager = Depends(_default_token_manager),
 ) -> Dict[str, str]:
-    """Extract user context from authorization header"""
+    """Extract user context from the Authorization header's bearer token.
+
+    The previous implementation bound ``authorization`` to a lambda that
+    always returned ``None``, so the real header was never read and every
+    request was rejected with 401. Reading it via ``Header`` fixes that.
+    """
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Authorization header required")
 
-    token = authorization.replace("Bearer ", "")
-    if not token_manager:
-        token_manager = APITokenManager(db_path)
-
+    token = authorization[len("Bearer ") :]
     is_valid, user_id, tenant_id = token_manager.validate_api_token(token)
     if not is_valid:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
@@ -319,7 +327,7 @@ def create_admin_release_router(db_path: Optional[str] = None) -> APIRouter:
         return ReleaseManager(db_path)
 
     def verify_admin_user(
-        user_context: Dict[str, str] = Depends(get_current_user_context)
+        user_context: Dict[str, str] = Depends(get_current_user_context),
     ):
         """Verify user has admin privileges"""
         # TODO: Implement proper admin role checking

@@ -69,28 +69,30 @@ class ProjectRepository(TenantAwareRepository[Project]):
             # Build complex query for accessible projects
             if self.db_manager.config.db_type.value == "postgres":
                 query = """
-                    SELECT DISTINCT p.* 
+                    SELECT DISTINCT p.*,
+                        CASE WHEN p.user_id = %s AND p.visibility = 'private' THEN 0 ELSE 1 END AS sort_priority
                     FROM projects p
                     LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = %s
                     WHERE p.tenant_id = %s 
                     AND (p.user_id = %s OR pm.user_id = %s OR p.shared_with_tenant = TRUE OR p.visibility = 'public')
                     ORDER BY 
-                        CASE WHEN p.user_id = %s AND p.visibility = 'private' THEN 0 ELSE 1 END,
+                        sort_priority,
                         p.updated_at DESC
                 """
-                params = (user_id, self.current_tenant_id, user_id, user_id, user_id)
+                params = (user_id, user_id, self.current_tenant_id, user_id, user_id)
             else:
                 query = """
-                    SELECT DISTINCT p.* 
+                    SELECT DISTINCT p.*,
+                        CASE WHEN p.user_id = ? AND p.visibility = 'private' THEN 0 ELSE 1 END AS sort_priority
                     FROM projects p
                     LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
                     WHERE p.tenant_id = ? 
                     AND (p.user_id = ? OR pm.user_id = ? OR p.shared_with_tenant = 1 OR p.visibility = 'public')
                     ORDER BY 
-                        CASE WHEN p.user_id = ? AND p.visibility = 'private' THEN 0 ELSE 1 END,
+                        sort_priority,
                         p.updated_at DESC
                 """
-                params = (user_id, self.current_tenant_id, user_id, user_id, user_id)
+                params = (user_id, user_id, self.current_tenant_id, user_id, user_id)
 
             rows = self.db_manager.execute_query(query, params, fetch_all=True)
             return [self._row_to_entity(row) for row in rows]
