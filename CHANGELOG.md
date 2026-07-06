@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### 🧹 Dead Code Removal
+
+- **Duplicate `get_project_*` methods** (`prompt_data_manager.py`): removed the
+  dead/shadowed earlier definitions of `get_project_prompts`,
+  `get_project_rules` (two copies), and `get_project_members`. In Python only
+  the last definition of a same-named method is live, so the earlier ones were
+  never executed; removing them is behavior-neutral and clears four mypy
+  `no-redef` errors.
+
 ### 🔒 Security & Authorization Fixes
 
 #### **Authentication & Authorization Bug Fixes**
