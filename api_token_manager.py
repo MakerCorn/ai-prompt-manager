@@ -154,11 +154,15 @@ class APITokenManager:
         cursor = conn.cursor()
 
         try:
+            # The UNIQUE(user_id, name) constraint ignores is_active, so a
+            # revoked token still reserves its name. Check without the
+            # is_active filter to return a clean "already exists" message
+            # instead of a cryptic IntegrityError on INSERT.
             if self.db_type == "postgres":
                 cursor.execute(
                     """
                     SELECT id FROM api_tokens
-                    WHERE user_id = %s AND name = %s AND is_active = TRUE
+                    WHERE user_id = %s AND name = %s
                 """,
                     (user_id, name.strip()),
                 )
@@ -166,7 +170,7 @@ class APITokenManager:
                 cursor.execute(
                     """
                     SELECT id FROM api_tokens
-                    WHERE user_id = ? AND name = ? AND is_active = 1
+                    WHERE user_id = ? AND name = ?
                 """,
                     (user_id, name.strip()),
                 )

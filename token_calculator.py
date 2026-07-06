@@ -265,11 +265,13 @@ class TokenCalculator:
     ) -> Optional[float]:
         """Calculate estimated cost in USD"""
 
-        # Find matching pricing
+        # Find matching pricing. Match the most specific (longest) key first
+        # so e.g. "gpt-4-turbo" is not shadowed by the substring "gpt-4".
         pricing = None
-        for model_key, model_pricing in self.MODEL_PRICING.items():
-            if model_key in model.lower():
-                pricing = model_pricing
+        model_lower = model.lower()
+        for model_key in sorted(self.MODEL_PRICING, key=len, reverse=True):
+            if model_key in model_lower:
+                pricing = self.MODEL_PRICING[model_key]
                 break
 
         if not pricing:

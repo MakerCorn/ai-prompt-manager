@@ -408,6 +408,17 @@ class WebApp:
             if not prompt:
                 raise HTTPException(status_code=404, detail="Prompt not found")
 
+            # Ownership check: public prompts from other users are visible in
+            # the listing, but only the owner may edit them.
+            if (
+                not self.single_user_mode
+                and user is not None
+                and str(prompt.get("user_id")) != str(user.id)
+            ):
+                raise HTTPException(
+                    status_code=403, detail="You can only edit your own prompts"
+                )
+
             categories = data_manager.get_categories()
 
             return self.templates.TemplateResponse(
@@ -462,6 +473,17 @@ class WebApp:
             )
             if not original_prompt:
                 raise HTTPException(status_code=404, detail="Prompt not found")
+
+            # Ownership check: another user's public prompt is visible in the
+            # listing but must not be modifiable by anyone but its owner.
+            if (
+                not self.single_user_mode
+                and user is not None
+                and str(original_prompt.get("user_id")) != str(user.id)
+            ):
+                raise HTTPException(
+                    status_code=403, detail="You can only edit your own prompts"
+                )
 
             # Only pass visibility in multi-tenant mode
             if self.single_user_mode:
@@ -532,6 +554,17 @@ class WebApp:
             prompt = next((p for p in all_prompts if p["id"] == prompt_id), None)
             if not prompt:
                 raise HTTPException(status_code=404, detail="Prompt not found")
+
+            # Ownership check: another user's public prompt is visible in the
+            # listing but must not be deletable by anyone but its owner.
+            if (
+                not self.single_user_mode
+                and user is not None
+                and str(prompt.get("user_id")) != str(user.id)
+            ):
+                raise HTTPException(
+                    status_code=403, detail="You can only delete your own prompts"
+                )
 
             success = data_manager.delete_prompt(prompt["name"])
             if success:
@@ -823,8 +856,10 @@ Enhanced text:"""
             request: Request, text: str = Form(...), model: str = Form(default="gpt-4")
         ):
             """Calculate tokens and estimated cost for text"""
+            # Token calculation needs no per-user data; only require auth in
+            # multi-tenant mode so single-user mode can use it without login.
             user = await self.get_current_user(request)
-            if not user:
+            if not user and not self.single_user_mode:
                 raise HTTPException(status_code=401, detail="Authentication required")
 
             try:
@@ -981,13 +1016,18 @@ Enhanced text:"""
         # Prompt execution route
         @self.app.get("/prompts/{prompt_name}/execute", response_class=HTMLResponse)
         async def execute_prompt(request: Request, prompt_name: str):
-            user = await self.get_current_user(request)
-            if not user:
-                return RedirectResponse(url="/login", status_code=302)
-
-            data_manager = PromptDataManager(
-                db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
-            )
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+                user = None
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    return RedirectResponse(url="/login", status_code=302)
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
 
             prompt = data_manager.get_prompt_by_name(prompt_name)
             if not prompt:
@@ -1435,9 +1475,9 @@ Enhanced text:"""
                 shared_with_tenant=shared_with_tenant,
             )
 
-            if result.startswith("Success"):
-                # Extract project ID from success message
-                # For now, redirect to projects list since we need project ID
+            if not result.startswith("Error:"):
+                # add_project returns "Project '<title>' created successfully!"
+                # on success; only "Error:"-prefixed results are failures.
                 return RedirectResponse(url="/projects", status_code=302)
             else:
                 # Return form with error
@@ -1601,7 +1641,7 @@ Enhanced text:"""
                 shared_with_tenant=shared_with_tenant,
             )
 
-            if result.startswith("Success"):
+            if not result.startswith("Error:"):
                 return RedirectResponse(url=f"/projects/{project_id}", status_code=302)
             else:
                 # Return form with error
@@ -1646,7 +1686,7 @@ Enhanced text:"""
             # Delete project using data manager
             result = data_manager.delete_project(project_id)
 
-            if result.startswith("Success"):
+            if not result.startswith("Error:"):
                 return {"success": True, "message": "Project deleted successfully"}
             else:
                 raise HTTPException(status_code=400, detail=result)
@@ -2702,13 +2742,19 @@ Enhanced text:"""
         async def execute_prompt_with_ai(
             request: Request, prompt_name: str, variables: dict = Form(default={})
         ):
-            user = await self.get_current_user(request)
-            if not user:
-                raise HTTPException(status_code=401, detail="Authentication required")
-
-            data_manager = PromptDataManager(
-                db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
-            )
+            if self.single_user_mode:
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id="default", user_id="default"
+                )
+            else:
+                user = await self.get_current_user(request)
+                if not user:
+                    raise HTTPException(
+                        status_code=401, detail="Authentication required"
+                    )
+                data_manager = PromptDataManager(
+                    db_path=self.db_path, tenant_id=user.tenant_id, user_id=user.id
+                )
 
             prompt = data_manager.get_prompt_by_name(prompt_name)
             if not prompt:
@@ -3387,6 +3433,7 @@ Enhanced text:"""
             user = await self.get_current_user(request)
             if not user and not self.single_user_mode:
                 raise HTTPException(status_code=401, detail="Authentication required")
+            self._ensure_admin(user)
 
             try:
                 body = await request.json()
@@ -3459,6 +3506,7 @@ Enhanced text:"""
             user = await self.get_current_user(request)
             if not user and not self.single_user_mode:
                 raise HTTPException(status_code=401, detail="Authentication required")
+            self._ensure_admin(user)
 
             try:
                 body = await request.json()
@@ -3526,6 +3574,7 @@ Enhanced text:"""
             user = await self.get_current_user(request)
             if not user and not self.single_user_mode:
                 raise HTTPException(status_code=401, detail="Authentication required")
+            self._ensure_admin(user)
 
             try:
                 body = await request.json()
@@ -3600,6 +3649,7 @@ Enhanced text:"""
             user = await self.get_current_user(request)
             if not user and not self.single_user_mode:
                 raise HTTPException(status_code=401, detail="Authentication required")
+            self._ensure_admin(user)
 
             try:
                 body = await request.json()
@@ -3752,6 +3802,19 @@ Enhanced text:"""
             return user
 
         return None
+
+    def _ensure_admin(self, user: Optional[User]) -> None:
+        """Require an admin user for global/destructive operations.
+
+        Skipped in single-user mode (no auth). In multi-tenant mode the
+        caller must be an authenticated admin; otherwise a 403 is raised.
+        This guards operations that affect shared, application-wide state
+        (e.g. translation files) rather than a single user's data.
+        """
+        if self.single_user_mode:
+            return
+        if user is None or getattr(user, "role", None) != "admin":
+            raise HTTPException(status_code=403, detail="Admin access required")
 
     def get_template_context(
         self, request: Request, user: Optional[User] = None, **kwargs

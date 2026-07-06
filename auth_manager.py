@@ -10,6 +10,7 @@ See LICENSE file for details.
 """
 
 import hashlib
+import hmac
 import os
 import secrets
 import sqlite3
@@ -324,7 +325,8 @@ class AuthManager:
             pwdhash = hashlib.pbkdf2_hmac(
                 "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000
             )
-            return pwdhash.hex() == stored_hash
+            # Constant-time comparison to avoid a timing side-channel.
+            return hmac.compare_digest(pwdhash.hex(), stored_hash)
         except ValueError:
             return False
 
@@ -1537,30 +1539,44 @@ class AuthManager:
             cursor = conn.cursor()
 
             stats = {}
+            placeholder = "%s" if self.db_type == "postgres" else "?"
 
             # Total users
-            cursor.execute("SELECT COUNT(*) FROM users WHERE is_active = ?", (True,))
-            stats["total_users"] = cursor.fetchone()[0]
+            cursor.execute(
+                f"SELECT COUNT(*) AS c FROM users WHERE is_active = {placeholder}",
+                (True,),
+            )
+            row = cursor.fetchone()
+            stats["total_users"] = row["c"] if self.db_type == "postgres" else row[0]
 
             # Active tenants
-            cursor.execute("SELECT COUNT(*) FROM tenants WHERE is_active = ?", (True,))
-            stats["active_tenants"] = cursor.fetchone()[0]
+            cursor.execute(
+                f"SELECT COUNT(*) AS c FROM tenants WHERE is_active = {placeholder}",
+                (True,),
+            )
+            row = cursor.fetchone()
+            stats["active_tenants"] = row["c"] if self.db_type == "postgres" else row[0]
 
             # Total prompts (approximate, would need access to prompts table)
             try:
-                cursor.execute("SELECT COUNT(*) FROM prompts")
-                stats["total_prompts"] = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) AS c FROM prompts")
+                row = cursor.fetchone()
+                stats["total_prompts"] = (
+                    row["c"] if self.db_type == "postgres" else row[0]
+                )
             except sqlite3.OperationalError:
                 stats["total_prompts"] = 0
 
             # API tokens
             try:
                 cursor.execute(
-                    "SELECT COUNT(*) FROM api_tokens WHERE expires_at > ? "
+                    "SELECT COUNT(*) AS c FROM api_tokens "
+                    f"WHERE expires_at > {placeholder} "
                     "OR expires_at IS NULL",
                     (datetime.now(),),
                 )
-                stats["api_tokens"] = cursor.fetchone()[0]
+                row = cursor.fetchone()
+                stats["api_tokens"] = row["c"] if self.db_type == "postgres" else row[0]
             except sqlite3.OperationalError:
                 stats["api_tokens"] = 0
 
@@ -1570,14 +1586,15 @@ class AuthManager:
         """Get all users for a specific tenant (for admin view)"""
         with self.get_conn() as conn:
             cursor = conn.cursor()
+            placeholder = "%s" if self.db_type == "postgres" else "?"
             cursor.execute(
-                """
+                f"""
                 SELECT u.id, u.tenant_id, u.email, u.first_name, u.last_name,
                        u.role, u.is_active, u.created_at, u.last_login,
                        t.name as tenant_name
                 FROM users u
                 LEFT JOIN tenants t ON u.tenant_id = t.id
-                WHERE u.tenant_id = ?
+                WHERE u.tenant_id = {placeholder}
                 ORDER BY u.created_at DESC
             """,
                 (tenant_id,),
@@ -1585,19 +1602,34 @@ class AuthManager:
 
             users = []
             for row in cursor.fetchall():
-                user = User(
-                    id=row[0],
-                    tenant_id=row[1],
-                    email=row[2],
-                    first_name=row[3] or "",
-                    last_name=row[4] or "",
-                    role=row[5],
-                    is_active=bool(row[6]),
-                    created_at=datetime.fromisoformat(row[7]),
-                    last_login=datetime.fromisoformat(row[8]) if row[8] else None,
-                )
-                # Add tenant name as extra attribute
-                user.tenant_name = row[9]
+                if self.db_type == "postgres":
+                    user = User(
+                        id=row["id"],
+                        tenant_id=row["tenant_id"],
+                        email=row["email"],
+                        first_name=row["first_name"] or "",
+                        last_name=row["last_name"] or "",
+                        role=row["role"],
+                        is_active=bool(row["is_active"]),
+                        created_at=row["created_at"],
+                        last_login=row["last_login"],
+                    )
+                    # Add tenant name as extra attribute
+                    user.tenant_name = row["tenant_name"]
+                else:
+                    user = User(
+                        id=row[0],
+                        tenant_id=row[1],
+                        email=row[2],
+                        first_name=row[3] or "",
+                        last_name=row[4] or "",
+                        role=row[5],
+                        is_active=bool(row[6]),
+                        created_at=datetime.fromisoformat(row[7]),
+                        last_login=datetime.fromisoformat(row[8]) if row[8] else None,
+                    )
+                    # Add tenant name as extra attribute
+                    user.tenant_name = row[9]
                 users.append(user)
 
             return users
@@ -1606,30 +1638,44 @@ class AuthManager:
         """Get tenant by ID"""
         with self.get_conn() as conn:
             cursor = conn.cursor()
+            placeholder = "%s" if self.db_type == "postgres" else "?"
             cursor.execute(
-                """
+                f"""
                 SELECT id, name, subdomain, max_users, is_active, created_at,
                        (SELECT COUNT(*) FROM users WHERE tenant_id = t.id
                         AND is_active = 1) as user_count
                 FROM tenants t
-                WHERE id = ?
+                WHERE id = {placeholder}
             """,
                 (tenant_id,),
             )
 
             row = cursor.fetchone()
             if row:
-                tenant = Tenant(
-                    id=row[0],
-                    name=row[1],
-                    subdomain=row[2],
-                    max_users=row[3],
-                    is_active=bool(row[4]),
-                    created_at=(
-                        datetime.fromisoformat(row[5]) if row[5] else datetime.now()
-                    ),
-                    user_count=row[6],
-                )
+                if self.db_type == "postgres":
+                    tenant = Tenant(
+                        id=row["id"],
+                        name=row["name"],
+                        subdomain=row["subdomain"],
+                        max_users=row["max_users"],
+                        is_active=bool(row["is_active"]),
+                        created_at=(
+                            row["created_at"] if row["created_at"] else datetime.now()
+                        ),
+                        user_count=row["user_count"],
+                    )
+                else:
+                    tenant = Tenant(
+                        id=row[0],
+                        name=row[1],
+                        subdomain=row[2],
+                        max_users=row[3],
+                        is_active=bool(row[4]),
+                        created_at=(
+                            datetime.fromisoformat(row[5]) if row[5] else datetime.now()
+                        ),
+                        user_count=row[6],
+                    )
                 return tenant
 
             return None
@@ -1638,30 +1684,53 @@ class AuthManager:
         """Get tenant by subdomain"""
         with self.get_conn() as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                """
-                SELECT id, name, subdomain, max_users, is_active, created_at,
-                       (SELECT COUNT(*) FROM users WHERE tenant_id = t.id
-                        AND is_active = 1) as user_count
-                FROM tenants t
-                WHERE subdomain = ?
-            """,
-                (subdomain,),
-            )
+            if self.db_type == "postgres":
+                cursor.execute(
+                    """
+                    SELECT id, name, subdomain, max_users, is_active, created_at,
+                           (SELECT COUNT(*) FROM users WHERE tenant_id = t.id
+                            AND is_active = TRUE) as user_count
+                    FROM tenants t
+                    WHERE subdomain = %s
+                """,
+                    (subdomain,),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT id, name, subdomain, max_users, is_active, created_at,
+                           (SELECT COUNT(*) FROM users WHERE tenant_id = t.id
+                            AND is_active = 1) as user_count
+                    FROM tenants t
+                    WHERE subdomain = ?
+                """,
+                    (subdomain,),
+                )
 
             row = cursor.fetchone()
             if row:
-                tenant = Tenant(
-                    id=row[0],
-                    name=row[1],
-                    subdomain=row[2],
-                    max_users=row[3],
-                    is_active=bool(row[4]),
-                    created_at=(
-                        datetime.fromisoformat(row[5]) if row[5] else datetime.now()
-                    ),
-                    user_count=row[6],
-                )
+                if self.db_type == "postgres":
+                    tenant = Tenant(
+                        id=row["id"],
+                        name=row["name"],
+                        subdomain=row["subdomain"],
+                        max_users=row["max_users"],
+                        is_active=bool(row["is_active"]),
+                        created_at=row["created_at"] or datetime.now(),
+                        user_count=row["user_count"],
+                    )
+                else:
+                    tenant = Tenant(
+                        id=row[0],
+                        name=row[1],
+                        subdomain=row[2],
+                        max_users=row[3],
+                        is_active=bool(row[4]),
+                        created_at=(
+                            datetime.fromisoformat(row[5]) if row[5] else datetime.now()
+                        ),
+                        user_count=row[6],
+                    )
                 return tenant
 
             return None

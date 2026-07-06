@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api_token_manager import APITokenManager
@@ -107,22 +107,26 @@ def create_prompt_router(db_path: str = "prompts.db") -> APIRouter:
     router = APIRouter(prefix="/api/prompts", tags=["prompts"])
 
     # Configure dependencies with the database path
-    def get_auth_manager_configured() -> AuthManager:
-        return AuthManager(db_path)
-
     def get_api_token_manager_configured() -> APITokenManager:
         return APITokenManager(db_path)
 
     def get_data_manager_configured(
+        authorization: Optional[str] = Header(None),
         token_manager: APITokenManager = Depends(get_api_token_manager_configured),
-        auth_manager: AuthManager = Depends(get_auth_manager_configured),
     ) -> PromptDataManager:
-        """Get data manager with authenticated user context"""
-        # For now, return a basic data manager
-        # In a real implementation, this would extract user context from the token
-        return PromptDataManager(
-            tenant_id="default", user_id="default", db_path=db_path
-        )
+        """Get a data manager scoped to the authenticated bearer token.
+
+        The token's tenant/user identity drives the data manager so that
+        tenant isolation is enforced; requests without a valid token are
+        rejected instead of silently falling back to a shared account.
+        """
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Authorization header required")
+        token = authorization[len("Bearer ") :]
+        is_valid, user_id, tenant_id = token_manager.validate_api_token(token)
+        if not is_valid:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        return PromptDataManager(tenant_id=tenant_id, user_id=user_id, db_path=db_path)
 
     @router.get("/", response_model=PromptListResponse)
     async def list_prompts(
@@ -514,10 +518,13 @@ def create_prompt_router(db_path: str = "prompts.db") -> APIRouter:
             # Check if user can delete this prompt (must be owner for now)
             # In a full implementation, this would check user permissions
 
-            success = data_manager.delete_prompt(prompt["name"])
+            # delete_prompt returns a status string ("... deleted successfully!"
+            # on success, "Error: ..." on failure), not a boolean. Checking the
+            # truthiness of a non-empty string always passed, masking failures.
+            result = data_manager.delete_prompt(prompt["name"])
 
-            if not success:
-                raise HTTPException(status_code=400, detail="Failed to delete prompt")
+            if result.startswith("Error:"):
+                raise HTTPException(status_code=400, detail=result)
 
             return {
                 "success": True,

@@ -28,6 +28,7 @@ except ImportError:
 
 # Fallback to PBKDF2 if modern libraries not available
 import hashlib
+import hmac
 
 from ...core.exceptions.base import AuthenticationException
 from ...utils.logging_config import get_logger
@@ -223,7 +224,8 @@ class PasswordHandler:
         new_hash = hashlib.pbkdf2_hmac(
             "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000
         )
-        return new_hash.hex() == hashed_password
+        # Constant-time comparison to avoid a timing side-channel.
+        return hmac.compare_digest(new_hash.hex(), hashed_password)
 
     def needs_rehash(self, hashed_password: str, salt_or_metadata: str) -> bool:
         """

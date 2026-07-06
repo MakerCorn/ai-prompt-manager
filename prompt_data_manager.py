@@ -63,6 +63,29 @@ class PromptDataManager:
                 raise ValueError("Database path not set for SQLite connection")
             return sqlite3.connect(self.db_path)
 
+    @staticmethod
+    def _row_to_dict(cursor, row):
+        """Normalize a fetched row to a plain dict keyed by column name.
+
+        This keeps a single row-handling path valid across both backends:
+        psycopg2's RealDictCursor yields dict-like rows (a ``dict`` subclass),
+        while sqlite3 yields positional tuples. For tuples the column names are
+        taken from ``cursor.description``. Positional indexing (``row[0]``) is
+        not portable because RealDictRow does not support integer keys, which
+        is the root cause of the cross-backend read failures this replaces.
+        """
+        if row is None:
+            return None
+        if isinstance(row, dict):
+            return dict(row)
+        columns = [desc[0] for desc in cursor.description]
+        return dict(zip(columns, row))
+
+    @classmethod
+    def _rows_to_dicts(cls, cursor, rows):
+        """Normalize a sequence of fetched rows to plain dicts."""
+        return [cls._row_to_dict(cursor, row) for row in rows]
+
     def init_database(self):
         conn = self.get_conn()
         cursor = conn.cursor()
@@ -934,22 +957,29 @@ class PromptDataManager:
 
         prompts = []
         for row in cursor.fetchall():
+            data = self._row_to_dict(cursor, row)
             prompts.append(
                 {
-                    "id": row[0],
-                    "tenant_id": row[1],
-                    "user_id": row[2],
-                    "name": row[3],
-                    "title": row[4],
-                    "content": row[5],
-                    "category": row[6],
-                    "tags": row[7],
+                    "id": data["id"],
+                    "tenant_id": data["tenant_id"],
+                    "user_id": data["user_id"],
+                    "name": data["name"],
+                    "title": data["title"],
+                    "content": data["content"],
+                    "category": data["category"],
+                    "tags": data["tags"],
                     "is_enhancement_prompt": (
-                        bool(row[8]) if row[8] is not None else False
+                        bool(data["is_enhancement_prompt"])
+                        if data["is_enhancement_prompt"] is not None
+                        else False
                     ),
-                    "visibility": row[9] if row[9] is not None else "private",
-                    "created_at": row[10],
-                    "updated_at": row[11],
+                    "visibility": (
+                        data["visibility"]
+                        if data["visibility"] is not None
+                        else "private"
+                    ),
+                    "created_at": data["created_at"],
+                    "updated_at": data["updated_at"],
                 }
             )
         conn.close()
@@ -985,19 +1015,20 @@ class PromptDataManager:
 
         prompts = []
         for row in cursor.fetchall():
+            data = self._row_to_dict(cursor, row)
             prompts.append(
                 {
-                    "id": row[0],
-                    "tenant_id": row[1],
-                    "user_id": row[2],
-                    "name": row[3],
-                    "title": row[4],
-                    "content": row[5],
-                    "category": row[6],
-                    "tags": row[7],
-                    "is_enhancement_prompt": bool(row[8]),
-                    "created_at": row[9],
-                    "updated_at": row[10],
+                    "id": data["id"],
+                    "tenant_id": data["tenant_id"],
+                    "user_id": data["user_id"],
+                    "name": data["name"],
+                    "title": data["title"],
+                    "content": data["content"],
+                    "category": data["category"],
+                    "tags": data["tags"],
+                    "is_enhancement_prompt": bool(data["is_enhancement_prompt"]),
+                    "created_at": data["created_at"],
+                    "updated_at": data["updated_at"],
                 }
             )
         conn.close()
@@ -1023,7 +1054,9 @@ class PromptDataManager:
                 (self.tenant_id,),
             )
 
-        categories = [row[0] for row in cursor.fetchall()]
+        categories = [
+            self._row_to_dict(cursor, row)["category"] for row in cursor.fetchall()
+        ]
         conn.close()
 
         # If no categories exist yet (empty database), provide default categories
@@ -1121,22 +1154,29 @@ class PromptDataManager:
 
         prompts = []
         for row in cursor.fetchall():
+            data = self._row_to_dict(cursor, row)
             prompts.append(
                 {
-                    "id": row[0],
-                    "tenant_id": row[1],
-                    "user_id": row[2],
-                    "name": row[3],
-                    "title": row[4],
-                    "content": row[5],
-                    "category": row[6],
-                    "tags": row[7],
+                    "id": data["id"],
+                    "tenant_id": data["tenant_id"],
+                    "user_id": data["user_id"],
+                    "name": data["name"],
+                    "title": data["title"],
+                    "content": data["content"],
+                    "category": data["category"],
+                    "tags": data["tags"],
                     "is_enhancement_prompt": (
-                        bool(row[8]) if row[8] is not None else False
+                        bool(data["is_enhancement_prompt"])
+                        if data["is_enhancement_prompt"] is not None
+                        else False
                     ),
-                    "visibility": row[9] if row[9] is not None else "private",
-                    "created_at": row[10],
-                    "updated_at": row[11],
+                    "visibility": (
+                        data["visibility"]
+                        if data["visibility"] is not None
+                        else "private"
+                    ),
+                    "created_at": data["created_at"],
+                    "updated_at": data["updated_at"],
                 }
             )
         conn.close()
@@ -1200,22 +1240,29 @@ class PromptDataManager:
 
         prompts = []
         for row in cursor.fetchall():
+            row_dict = self._row_to_dict(cursor, row)
             prompts.append(
                 {
-                    "id": row[0],
-                    "tenant_id": row[1],
-                    "user_id": row[2],
-                    "name": row[3],
-                    "title": row[4],
-                    "content": row[5],
-                    "category": row[6],
-                    "tags": row[7],
+                    "id": row_dict["id"],
+                    "tenant_id": row_dict["tenant_id"],
+                    "user_id": row_dict["user_id"],
+                    "name": row_dict["name"],
+                    "title": row_dict["title"],
+                    "content": row_dict["content"],
+                    "category": row_dict["category"],
+                    "tags": row_dict["tags"],
                     "is_enhancement_prompt": (
-                        bool(row[8]) if row[8] is not None else False
+                        bool(row_dict["is_enhancement_prompt"])
+                        if row_dict["is_enhancement_prompt"] is not None
+                        else False
                     ),
-                    "visibility": row[9] if row[9] is not None else "private",
-                    "created_at": row[10],
-                    "updated_at": row[11],
+                    "visibility": (
+                        row_dict["visibility"]
+                        if row_dict["visibility"] is not None
+                        else "private"
+                    ),
+                    "created_at": row_dict["created_at"],
+                    "updated_at": row_dict["updated_at"],
                 }
             )
         conn.close()
@@ -1805,8 +1852,13 @@ class PromptDataManager:
                     )
 
                 for row in cursor.fetchall():
-                    if row[0]:
-                        tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                    row_dict = self._row_to_dict(cursor, row)
+                    if row_dict["tags"]:
+                        tags = [
+                            tag.strip()
+                            for tag in row_dict["tags"].split(",")
+                            if tag.strip()
+                        ]
                         all_tags.update(tags)
 
             # Get tags from templates
@@ -1823,8 +1875,13 @@ class PromptDataManager:
                     )
 
                 for row in cursor.fetchall():
-                    if row[0]:
-                        tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                    row_dict = self._row_to_dict(cursor, row)
+                    if row_dict["tags"]:
+                        tags = [
+                            tag.strip()
+                            for tag in row_dict["tags"].split(",")
+                            if tag.strip()
+                        ]
                         all_tags.update(tags)
 
             # Get tags from rules
@@ -1841,8 +1898,13 @@ class PromptDataManager:
                     )
 
                 for row in cursor.fetchall():
-                    if row[0]:
-                        tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                    row_dict = self._row_to_dict(cursor, row)
+                    if row_dict["tags"]:
+                        tags = [
+                            tag.strip()
+                            for tag in row_dict["tags"].split(",")
+                            if tag.strip()
+                        ]
                         all_tags.update(tags)
 
             conn.close()
@@ -1910,21 +1972,24 @@ class PromptDataManager:
                 cursor.execute(query, params)
                 results = []
                 for row in cursor.fetchall():
+                    row_dict = self._row_to_dict(cursor, row)
                     results.append(
                         {
-                            "id": row[0],
-                            "tenant_id": row[1],
-                            "user_id": row[2],
-                            "name": row[3],
-                            "title": row[4],
-                            "content": row[5],
-                            "category": row[6],
-                            "tags": row[7],
+                            "id": row_dict["id"],
+                            "tenant_id": row_dict["tenant_id"],
+                            "user_id": row_dict["user_id"],
+                            "name": row_dict["name"],
+                            "title": row_dict["title"],
+                            "content": row_dict["content"],
+                            "category": row_dict["category"],
+                            "tags": row_dict["tags"],
                             "is_enhancement_prompt": (
-                                bool(row[8]) if row[8] is not None else False
+                                bool(row_dict["is_enhancement_prompt"])
+                                if row_dict["is_enhancement_prompt"] is not None
+                                else False
                             ),
-                            "created_at": row[9],
-                            "updated_at": row[10],
+                            "created_at": row_dict["created_at"],
+                            "updated_at": row_dict["updated_at"],
                         }
                     )
 
@@ -1949,20 +2014,25 @@ class PromptDataManager:
                 cursor.execute(query, params)
                 results = []
                 for row in cursor.fetchall():
+                    row_dict = self._row_to_dict(cursor, row)
                     results.append(
                         {
-                            "id": row[0],
-                            "tenant_id": row[1],
-                            "user_id": row[2],
-                            "name": row[3],
-                            "description": row[4],
-                            "content": row[5],
-                            "category": row[6],
-                            "tags": row[7],
-                            "variables": row[8],
-                            "is_builtin": bool(row[9]) if row[9] is not None else False,
-                            "created_at": row[10],
-                            "updated_at": row[11],
+                            "id": row_dict["id"],
+                            "tenant_id": row_dict["tenant_id"],
+                            "user_id": row_dict["user_id"],
+                            "name": row_dict["name"],
+                            "description": row_dict["description"],
+                            "content": row_dict["content"],
+                            "category": row_dict["category"],
+                            "tags": row_dict["tags"],
+                            "variables": row_dict["variables"],
+                            "is_builtin": (
+                                bool(row_dict["is_builtin"])
+                                if row_dict["is_builtin"] is not None
+                                else False
+                            ),
+                            "created_at": row_dict["created_at"],
+                            "updated_at": row_dict["updated_at"],
                         }
                     )
             else:
@@ -1998,8 +2068,11 @@ class PromptDataManager:
                 )
 
             for row in cursor.fetchall():
-                if row[0]:
-                    tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                record = self._row_to_dict(cursor, row)
+                if record["tags"]:
+                    tags = [
+                        tag.strip() for tag in record["tags"].split(",") if tag.strip()
+                    ]
                     for tag in tags:
                         if tag not in tag_stats:
                             tag_stats[tag] = {
@@ -2024,8 +2097,11 @@ class PromptDataManager:
                 )
 
             for row in cursor.fetchall():
-                if row[0]:
-                    tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                record = self._row_to_dict(cursor, row)
+                if record["tags"]:
+                    tags = [
+                        tag.strip() for tag in record["tags"].split(",") if tag.strip()
+                    ]
                     for tag in tags:
                         if tag not in tag_stats:
                             tag_stats[tag] = {
@@ -2050,8 +2126,11 @@ class PromptDataManager:
                 )
 
             for row in cursor.fetchall():
-                if row[0]:
-                    tags = [tag.strip() for tag in row[0].split(",") if tag.strip()]
+                record = self._row_to_dict(cursor, row)
+                if record["tags"]:
+                    tags = [
+                        tag.strip() for tag in record["tags"].split(",") if tag.strip()
+                    ]
                     for tag in tags:
                         if tag not in tag_stats:
                             tag_stats[tag] = {
@@ -3158,22 +3237,29 @@ class PromptDataManager:
 
         prompts = []
         for row in cursor.fetchall():
+            data = self._row_to_dict(cursor, row)
             prompts.append(
                 {
-                    "id": row[0],
-                    "tenant_id": row[1],
-                    "user_id": row[2],
-                    "name": row[3],
-                    "title": row[4],
-                    "content": row[5],
-                    "category": row[6],
-                    "tags": row[7],
+                    "id": data["id"],
+                    "tenant_id": data["tenant_id"],
+                    "user_id": data["user_id"],
+                    "name": data["name"],
+                    "title": data["title"],
+                    "content": data["content"],
+                    "category": data["category"],
+                    "tags": data["tags"],
                     "is_enhancement_prompt": (
-                        bool(row[8]) if row[8] is not None else False
+                        bool(data["is_enhancement_prompt"])
+                        if data["is_enhancement_prompt"] is not None
+                        else False
                     ),
-                    "visibility": row[9] if row[9] is not None else "private",
-                    "created_at": row[10],
-                    "updated_at": row[11],
+                    "visibility": (
+                        data["visibility"]
+                        if data["visibility"] is not None
+                        else "private"
+                    ),
+                    "created_at": data["created_at"],
+                    "updated_at": data["updated_at"],
                 }
             )
         conn.close()
@@ -3240,22 +3326,29 @@ class PromptDataManager:
 
         prompts = []
         for row in cursor.fetchall():
+            data = self._row_to_dict(cursor, row)
             prompts.append(
                 {
-                    "id": row[0],
-                    "tenant_id": row[1],
-                    "user_id": row[2],
-                    "name": row[3],
-                    "title": row[4],
-                    "content": row[5],
-                    "category": row[6],
-                    "tags": row[7],
+                    "id": data["id"],
+                    "tenant_id": data["tenant_id"],
+                    "user_id": data["user_id"],
+                    "name": data["name"],
+                    "title": data["title"],
+                    "content": data["content"],
+                    "category": data["category"],
+                    "tags": data["tags"],
                     "is_enhancement_prompt": (
-                        bool(row[8]) if row[8] is not None else False
+                        bool(data["is_enhancement_prompt"])
+                        if data["is_enhancement_prompt"] is not None
+                        else False
                     ),
-                    "visibility": row[9] if row[9] is not None else "private",
-                    "created_at": row[10],
-                    "updated_at": row[11],
+                    "visibility": (
+                        data["visibility"]
+                        if data["visibility"] is not None
+                        else "private"
+                    ),
+                    "created_at": data["created_at"],
+                    "updated_at": data["updated_at"],
                 }
             )
         conn.close()
@@ -4584,13 +4677,14 @@ class PromptDataManager:
         # Verify new owner is a member of the project
         conn = self.get_conn()
         cursor = conn.cursor()
+        placeholder = "%s" if self.db_type == "postgres" else "?"
 
         try:
             # Check if new owner is a project member
             cursor.execute(
-                """
+                f"""
                 SELECT role FROM project_members 
-                WHERE project_id = ? AND user_id = ?
+                WHERE project_id = {placeholder} AND user_id = {placeholder}
             """,
                 (project_id, new_owner_user_id),
             )
@@ -4605,10 +4699,10 @@ class PromptDataManager:
             # Start transaction for ownership transfer
             # 1. Update project owner
             cursor.execute(
-                """
+                f"""
                 UPDATE projects 
-                SET user_id = ?, updated_at = ?
-                WHERE id = ? AND tenant_id = ?
+                SET user_id = {placeholder}, updated_at = {placeholder}
+                WHERE id = {placeholder} AND tenant_id = {placeholder}
             """,
                 (
                     new_owner_user_id,
@@ -4620,20 +4714,20 @@ class PromptDataManager:
 
             # 2. Update new owner role to "owner" in members table
             cursor.execute(
-                """
+                f"""
                 UPDATE project_members 
                 SET role = 'owner' 
-                WHERE project_id = ? AND user_id = ?
+                WHERE project_id = {placeholder} AND user_id = {placeholder}
             """,
                 (project_id, new_owner_user_id),
             )
 
             # 3. Update old owner role to "member" (they're already in the table as owner)
             cursor.execute(
-                """
+                f"""
                 UPDATE project_members 
                 SET role = 'member' 
-                WHERE project_id = ? AND user_id = ?
+                WHERE project_id = {placeholder} AND user_id = {placeholder}
             """,
                 (project_id, self.user_id),
             )
@@ -4683,16 +4777,17 @@ class PromptDataManager:
                 "total_cost": 0.0,
             }
 
+        placeholder = "%s" if self.db_type == "postgres" else "?"
         conn = self.get_conn()
         cursor = conn.cursor()
 
         try:
             # Get all prompts in the project and calculate their tokens
             cursor.execute(
-                """
+                f"""
                 SELECT p.content FROM prompts p
                 JOIN project_prompts pp ON p.id = pp.prompt_id
-                WHERE pp.project_id = ? AND p.tenant_id = ?
+                WHERE pp.project_id = {placeholder} AND p.tenant_id = {placeholder}
             """,
                 (project_id, self.tenant_id),
             )
@@ -4701,10 +4796,10 @@ class PromptDataManager:
 
             # Get all rules in the project and calculate their tokens
             cursor.execute(
-                """
+                f"""
                 SELECT r.content FROM rules r
                 JOIN project_rules pr ON r.id = pr.rule_id
-                WHERE pr.project_id = ? AND r.tenant_id = ?
+                WHERE pr.project_id = {placeholder} AND r.tenant_id = {placeholder}
             """,
                 (project_id, self.tenant_id),
             )
@@ -4717,11 +4812,13 @@ class PromptDataManager:
             rule_tokens = 0
 
             for content_tuple in prompt_contents:
-                content = content_tuple[0] if content_tuple[0] else ""
+                row = self._row_to_dict(cursor, content_tuple)
+                content = row["content"] if row["content"] else ""
                 prompt_tokens += len(content) // 4
 
             for content_tuple in rule_contents:
-                content = content_tuple[0] if content_tuple[0] else ""
+                row = self._row_to_dict(cursor, content_tuple)
+                content = row["content"] if row["content"] else ""
                 rule_tokens += len(content) // 4
 
             total_tokens = prompt_tokens + rule_tokens
@@ -4767,6 +4864,7 @@ class PromptDataManager:
         if not permissions.get("can_view"):
             return []
 
+        placeholder = "%s" if self.db_type == "postgres" else "?"
         conn = self.get_conn()
         cursor = conn.cursor()
 
@@ -4775,32 +4873,32 @@ class PromptDataManager:
 
             # Get tags from all prompts in the project
             cursor.execute(
-                """
+                f"""
                 SELECT p.tags FROM prompts p
                 JOIN project_prompts pp ON p.id = pp.prompt_id
-                WHERE pp.project_id = ? AND p.tenant_id = ? AND p.tags IS NOT NULL
+                WHERE pp.project_id = {placeholder} AND p.tenant_id = {placeholder} AND p.tags IS NOT NULL
             """,
                 (project_id, self.tenant_id),
             )
 
             for tags_tuple in cursor.fetchall():
-                tags_str = tags_tuple[0]
+                tags_str = self._row_to_dict(cursor, tags_tuple)["tags"]
                 if tags_str:
                     tags = [tag.strip() for tag in tags_str.split(",") if tag.strip()]
                     all_tags.update(tags)
 
             # Get tags from all rules in the project
             cursor.execute(
-                """
+                f"""
                 SELECT r.tags FROM rules r
                 JOIN project_rules pr ON r.id = pr.rule_id
-                WHERE pr.project_id = ? AND r.tenant_id = ? AND r.tags IS NOT NULL
+                WHERE pr.project_id = {placeholder} AND r.tenant_id = {placeholder} AND r.tags IS NOT NULL
             """,
                 (project_id, self.tenant_id),
             )
 
             for tags_tuple in cursor.fetchall():
-                tags_str = tags_tuple[0]
+                tags_str = self._row_to_dict(cursor, tags_tuple)["tags"]
                 if tags_str:
                     tags = [tag.strip() for tag in tags_str.split(",") if tag.strip()]
                     all_tags.update(tags)
@@ -4834,15 +4932,16 @@ class PromptDataManager:
                 "error": "Permission denied: Cannot edit this project",
             }
 
+        placeholder = "%s" if self.db_type == "postgres" else "?"
         conn = self.get_conn()
         cursor = conn.cursor()
 
         try:
             cursor.execute(
-                """
+                f"""
                 UPDATE projects 
-                SET tags = ?, updated_at = ?
-                WHERE id = ? AND tenant_id = ?
+                SET tags = {placeholder}, updated_at = {placeholder}
+                WHERE id = {placeholder} AND tenant_id = {placeholder}
             """,
                 (tags, datetime.now().isoformat(), project_id, self.tenant_id),
             )
@@ -4881,22 +4980,23 @@ class PromptDataManager:
                 "error": "Permission denied: Cannot edit this project",
             }
 
-        # Verify rule exists and user has access
-        rule = self.get_rule(rule_id)
-        if not rule:
+        # Verify the rule exists within the tenant. get_all_rules is
+        # tenant-scoped, so this both checks existence and enforces isolation.
+        if rule_id not in {r["id"] for r in self.get_all_rules()}:
             return {"success": False, "error": "Rule not found"}
 
+        placeholder = "%s" if self.db_type == "postgres" else "?"
         conn = self.get_conn()
         cursor = conn.cursor()
 
         try:
-            # Check if assignment already exists
+            # Check if assignment already exists. project_rules has no
+            # tenant_id column; tenant scoping is enforced by the rule and
+            # project-permission checks above.
             cursor.execute(
-                """
-                SELECT id FROM project_rules 
-                WHERE project_id = ? AND rule_id = ? AND tenant_id = ?
-            """,
-                (project_id, rule_id, self.tenant_id),
+                f"SELECT id FROM project_rules "
+                f"WHERE project_id = {placeholder} AND rule_id = {placeholder}",
+                (project_id, rule_id),
             )
 
             if cursor.fetchone():
@@ -4905,19 +5005,11 @@ class PromptDataManager:
                     "error": "Rule is already assigned to this project",
                 }
 
-            # Create the assignment
+            # Create the assignment (added_at uses its column default).
             cursor.execute(
-                """
-                INSERT INTO project_rules (project_id, rule_id, tenant_id, user_id, created_at)
-                VALUES (?, ?, ?, ?, ?)
-            """,
-                (
-                    project_id,
-                    rule_id,
-                    self.tenant_id,
-                    self.user_id,
-                    datetime.now().isoformat(),
-                ),
+                f"INSERT INTO project_rules (project_id, rule_id) "
+                f"VALUES ({placeholder}, {placeholder})",
+                (project_id, rule_id),
             )
 
             conn.commit()
@@ -4954,13 +5046,14 @@ class PromptDataManager:
         conn = self.get_conn()
         cursor = conn.cursor()
 
+        placeholder = "%s" if self.db_type == "postgres" else "?"
         try:
+            # project_rules has no tenant_id column; tenant scoping is enforced
+            # by the project-permission check above.
             cursor.execute(
-                """
-                DELETE FROM project_rules 
-                WHERE project_id = ? AND rule_id = ? AND tenant_id = ?
-            """,
-                (project_id, rule_id, self.tenant_id),
+                f"DELETE FROM project_rules "
+                f"WHERE project_id = {placeholder} AND rule_id = {placeholder}",
+                (project_id, rule_id),
             )
 
             if cursor.rowcount == 0:
@@ -5239,14 +5332,15 @@ class PromptDataManager:
 
         versions = []
         for row in cursor.fetchall():
+            row_dict = self._row_to_dict(cursor, row)
             versions.append(
                 {
-                    "id": row[0],
-                    "project_id": row[1],
-                    "version_number": row[2],
-                    "changes_description": row[3],
-                    "created_by": row[4],
-                    "created_at": row[5],
+                    "id": row_dict["id"],
+                    "project_id": row_dict["project_id"],
+                    "version_number": row_dict["version_number"],
+                    "changes_description": row_dict["changes_description"],
+                    "created_by": row_dict["created_by"],
+                    "created_at": row_dict["created_at"],
                 }
             )
         conn.close()
@@ -5270,8 +5364,10 @@ class PromptDataManager:
         if not self.tenant_id:
             return {"success": False, "error": "Tenant ID is required"}
 
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
+        placeholder = "%s" if self.db_type == "postgres" else "?"
+        conn = self.get_conn()
+        if self.db_type != "postgres":
+            conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         try:
@@ -5285,11 +5381,11 @@ class PromptDataManager:
 
             # Get project prompts in sequence order
             cursor.execute(
-                """
+                f"""
                 SELECT pp.prompt_id, pp.sequence_order, p.name, p.title, p.content
                 FROM project_prompts pp
                 JOIN prompts p ON pp.prompt_id = p.id
-                WHERE pp.project_id = ? AND p.tenant_id = ?
+                WHERE pp.project_id = {placeholder} AND p.tenant_id = {placeholder}
                 ORDER BY pp.sequence_order ASC, pp.added_at ASC
             """,
                 (project_id, self.tenant_id),
@@ -5307,12 +5403,13 @@ class PromptDataManager:
             execution_context = execution_params or {}
 
             for prompt_row in prompts:
+                row_dict = self._row_to_dict(cursor, prompt_row)
                 prompt_result = {
-                    "prompt_id": prompt_row[0],
-                    "sequence_order": prompt_row[1],
-                    "name": prompt_row[2],
-                    "title": prompt_row[3],
-                    "content": prompt_row[4],
+                    "prompt_id": row_dict["prompt_id"],
+                    "sequence_order": row_dict["sequence_order"],
+                    "name": row_dict["name"],
+                    "title": row_dict["title"],
+                    "content": row_dict["content"],
                     "executed_at": datetime.now().isoformat(),
                     "status": "ready",
                     "output": None,
@@ -5325,10 +5422,10 @@ class PromptDataManager:
 
             # Log execution
             cursor.execute(
-                """
+                f"""
                 INSERT INTO project_versions (project_id, version_number, changes_description, created_by, created_at)
-                VALUES (?, (SELECT COALESCE(MAX(version_number), 0) + 1 FROM project_versions WHERE project_id = ?), 
-                        ?, ?, ?)
+                VALUES ({placeholder}, (SELECT COALESCE(MAX(version_number), 0) + 1 FROM project_versions WHERE project_id = {placeholder}),
+                        {placeholder}, {placeholder}, {placeholder})
             """,
                 (
                     project_id,
@@ -5376,7 +5473,7 @@ class PromptDataManager:
         if not self.tenant_id:
             return "Error: Tenant ID is required"
 
-        conn = sqlite3.connect(self.db_path)
+        conn = self.get_conn()
         cursor = conn.cursor()
 
         try:
@@ -5391,16 +5488,17 @@ class PromptDataManager:
             config_json = json.dumps(comparison_config)
 
             # Update project with comparison configuration
+            placeholder = "%s" if self.db_type == "postgres" else "?"
             cursor.execute(
-                """
+                f"""
                 UPDATE projects 
                 SET description = CASE 
                     WHEN description IS NULL OR description = '' 
-                    THEN 'LLM Comparison Configuration: ' || ?
-                    ELSE description || ' | LLM Config: ' || ?
+                    THEN 'LLM Comparison Configuration: ' || {placeholder}
+                    ELSE description || ' | LLM Config: ' || {placeholder}
                 END,
-                updated_at = ?
-                WHERE id = ? AND tenant_id = ?
+                updated_at = {placeholder}
+                WHERE id = {placeholder} AND tenant_id = {placeholder}
             """,
                 (
                     config_json,
@@ -5439,9 +5537,12 @@ class PromptDataManager:
         if not self.tenant_id:
             return {"success": False, "error": "Tenant ID is required"}
 
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
+        conn = self.get_conn()
+        if self.db_type != "postgres":
+            conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+
+        placeholder = "%s" if self.db_type == "postgres" else "?"
 
         try:
             # Get project details
@@ -5454,11 +5555,11 @@ class PromptDataManager:
 
             # Get project prompts for comparison
             cursor.execute(
-                """
+                f"""
                 SELECT p.id, p.name, p.title, p.content
                 FROM project_prompts pp
                 JOIN prompts p ON pp.prompt_id = p.id
-                WHERE pp.project_id = ? AND p.tenant_id = ?
+                WHERE pp.project_id = {placeholder} AND p.tenant_id = {placeholder}
                 ORDER BY pp.added_at ASC
             """,
                 (project_id, self.tenant_id),
@@ -5490,10 +5591,10 @@ class PromptDataManager:
 
                 for prompt_row in prompts:
                     prompt_result = {
-                        "prompt_id": prompt_row[0],
-                        "prompt_name": prompt_row[1],
-                        "prompt_title": prompt_row[2],
-                        "prompt_content": prompt_row[3],
+                        "prompt_id": prompt_row["id"],
+                        "prompt_name": prompt_row["name"],
+                        "prompt_title": prompt_row["title"],
+                        "prompt_content": prompt_row["content"],
                         "status": "ready_for_testing",
                         "output": None,
                         "metrics": {
@@ -5519,10 +5620,10 @@ class PromptDataManager:
 
             # Log comparison setup
             cursor.execute(
-                """
+                f"""
                 INSERT INTO project_versions (project_id, version_number, changes_description, created_by, created_at)
-                VALUES (?, (SELECT COALESCE(MAX(version_number), 0) + 1 FROM project_versions WHERE project_id = ?), 
-                        ?, ?, ?)
+                VALUES ({placeholder}, (SELECT COALESCE(MAX(version_number), 0) + 1 FROM project_versions WHERE project_id = {placeholder}), 
+                        {placeholder}, {placeholder}, {placeholder})
             """,
                 (
                     project_id,
@@ -5560,7 +5661,7 @@ class PromptDataManager:
         if not self.tenant_id:
             return "Error: Tenant ID is required"
 
-        conn = sqlite3.connect(self.db_path)
+        conn = self.get_conn()
         cursor = conn.cursor()
 
         try:
@@ -5593,16 +5694,17 @@ class PromptDataManager:
             )
 
             # Update project with developer workflow configuration
+            placeholder = "%s" if self.db_type == "postgres" else "?"
             cursor.execute(
-                """
+                f"""
                 UPDATE projects 
                 SET description = CASE 
                     WHEN description IS NULL OR description = '' 
-                    THEN 'Developer Workflow: ' || ?
-                    ELSE description || ' | Workflow: ' || ?
+                    THEN 'Developer Workflow: ' || {placeholder}
+                    ELSE description || ' | Workflow: ' || {placeholder}
                 END,
-                updated_at = ?
-                WHERE id = ? AND tenant_id = ?
+                updated_at = {placeholder}
+                WHERE id = {placeholder} AND tenant_id = {placeholder}
             """,
                 (
                     config_json,
@@ -5641,8 +5743,9 @@ class PromptDataManager:
         if not self.tenant_id:
             return {"success": False, "error": "Tenant ID is required"}
 
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
+        conn = self.get_conn()
+        if self.db_type != "postgres":
+            conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         try:
@@ -5655,31 +5758,33 @@ class PromptDataManager:
                 }
 
             # Get project prompts and rules
-            query = """
+            placeholder = "%s" if self.db_type == "postgres" else "?"
+
+            query = f"""
                 SELECT p.id, p.name, p.title, p.content, p.category, p.tags,
                        'prompt' as type, pp.added_at
                 FROM project_prompts pp
                 JOIN prompts p ON pp.prompt_id = p.id
-                WHERE pp.project_id = ? AND p.tenant_id = ?
+                WHERE pp.project_id = {placeholder} AND p.tenant_id = {placeholder}
             """
             params = [project_id, self.tenant_id]
 
             if category:
-                query += " AND p.category = ?"
+                query += f" AND p.category = {placeholder}"
                 params.append(category)
 
-            query += """
+            query += f"""
                 UNION ALL
                 SELECT r.id, r.name, r.title, r.content, r.category, r.tags,
                        'rule' as type, pr.added_at
                 FROM project_rules pr
                 JOIN rules r ON pr.rule_id = r.id
-                WHERE pr.project_id = ? AND r.tenant_id = ?
+                WHERE pr.project_id = {placeholder} AND r.tenant_id = {placeholder}
             """
             params.extend([project_id, self.tenant_id])
 
             if category:
-                query += " AND r.category = ?"
+                query += f" AND r.category = {placeholder}"
                 params.append(category)
 
             query += " ORDER BY type, category, added_at DESC"
@@ -5699,7 +5804,8 @@ class PromptDataManager:
             }
 
             for tool in tools:
-                tool_category = tool[4] or "General"
+                tool = self._row_to_dict(cursor, tool)
+                tool_category = tool["category"] or "General"
                 if tool_category not in organized_tools["categories"]:
                     organized_tools["categories"][tool_category] = {
                         "prompts": [],
@@ -5708,15 +5814,19 @@ class PromptDataManager:
                     }
 
                 tool_data = {
-                    "id": tool[0],
-                    "name": tool[1],
-                    "title": tool[2],
-                    "content": tool[3][:200] + "..." if len(tool[3]) > 200 else tool[3],
-                    "tags": tool[5],
-                    "added_at": tool[7],
+                    "id": tool["id"],
+                    "name": tool["name"],
+                    "title": tool["title"],
+                    "content": (
+                        tool["content"][:200] + "..."
+                        if len(tool["content"]) > 200
+                        else tool["content"]
+                    ),
+                    "tags": tool["tags"],
+                    "added_at": tool["added_at"],
                 }
 
-                tool_type = tool[6]
+                tool_type = tool["type"]
                 organized_tools["categories"][tool_category][f"{tool_type}s"].append(
                     tool_data
                 )
@@ -5746,8 +5856,9 @@ class PromptDataManager:
         if not self.tenant_id:
             return {"success": False, "error": "Tenant ID is required"}
 
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
+        conn = self.get_conn()
+        if self.db_type != "postgres":
+            conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         try:
@@ -5757,30 +5868,32 @@ class PromptDataManager:
                 return {"success": False, "error": "Project not found"}
 
             # Get execution history from project versions
+            placeholder = "%s" if self.db_type == "postgres" else "?"
             cursor.execute(
-                """
-                SELECT pv.id, pv.version_number, pv.changes_description, 
+                f"""
+                SELECT pv.id, pv.version_number, pv.changes_description,
                        pv.created_by, pv.created_at, p.title as project_title,
                        p.project_type
                 FROM project_versions pv
                 JOIN projects p ON pv.project_id = p.id
-                WHERE pv.project_id = ? AND p.tenant_id = ?
+                WHERE pv.project_id = {placeholder} AND p.tenant_id = {placeholder}
                 ORDER BY pv.created_at DESC
-                LIMIT ?
+                LIMIT {placeholder}
             """,
                 (project_id, self.tenant_id, limit),
             )
 
             history_entries = []
             for row in cursor.fetchall():
+                row_dict = self._row_to_dict(cursor, row)
                 entry = {
-                    "id": row[0],
-                    "version_number": row[1],
-                    "description": row[2],
-                    "executed_by": row[3],
-                    "executed_at": row[4],
-                    "project_title": row[5],
-                    "project_type": row[6],
+                    "id": row_dict["id"],
+                    "version_number": row_dict["version_number"],
+                    "description": row_dict["changes_description"],
+                    "executed_by": row_dict["created_by"],
+                    "executed_at": row_dict["created_at"],
+                    "project_title": row_dict["project_title"],
+                    "project_type": row_dict["project_type"],
                 }
                 history_entries.append(entry)
 
@@ -5880,7 +5993,7 @@ class PromptDataManager:
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT COUNT(*) FROM project_prompts pp
+                    SELECT COUNT(*) AS cnt FROM project_prompts pp
                     JOIN prompts p ON pp.prompt_id = p.id
                     WHERE pp.project_id = %s AND p.tenant_id = %s
                 """,
@@ -5889,20 +6002,21 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT COUNT(*) FROM project_prompts pp
+                    SELECT COUNT(*) AS cnt FROM project_prompts pp
                     JOIN prompts p ON pp.prompt_id = p.id
                     WHERE pp.project_id = ? AND p.tenant_id = ?
                 """,
                     (project_id, self.tenant_id),
                 )
 
-            stats["prompt_count"] = cursor.fetchone()[0]
+            row = self._row_to_dict(cursor, cursor.fetchone())
+            stats["prompt_count"] = row["cnt"]
 
             # Get rule count
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT COUNT(*) FROM project_rules pr
+                    SELECT COUNT(*) AS cnt FROM project_rules pr
                     JOIN rules r ON pr.rule_id = r.id
                     WHERE pr.project_id = %s AND r.tenant_id = %s
                 """,
@@ -5911,20 +6025,21 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT COUNT(*) FROM project_rules pr
+                    SELECT COUNT(*) AS cnt FROM project_rules pr
                     JOIN rules r ON pr.rule_id = r.id
                     WHERE pr.project_id = ? AND r.tenant_id = ?
                 """,
                     (project_id, self.tenant_id),
                 )
 
-            stats["rule_count"] = cursor.fetchone()[0]
+            row = self._row_to_dict(cursor, cursor.fetchone())
+            stats["rule_count"] = row["cnt"]
 
             # Get member count
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT COUNT(*) FROM project_members
+                    SELECT COUNT(*) AS cnt FROM project_members
                     WHERE project_id = %s
                 """,
                     (project_id,),
@@ -5932,19 +6047,20 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT COUNT(*) FROM project_members
+                    SELECT COUNT(*) AS cnt FROM project_members
                     WHERE project_id = ?
                 """,
                     (project_id,),
                 )
 
-            stats["member_count"] = cursor.fetchone()[0] or 1
+            row = self._row_to_dict(cursor, cursor.fetchone())
+            stats["member_count"] = row["cnt"] or 1
 
             # Get latest version
             if self.db_type == "postgres":
                 cursor.execute(
                     """
-                    SELECT COALESCE(MAX(version_number), 1) FROM project_versions
+                    SELECT COALESCE(MAX(version_number), 1) AS version FROM project_versions
                     WHERE project_id = %s
                 """,
                     (project_id,),
@@ -5952,13 +6068,14 @@ class PromptDataManager:
             else:
                 cursor.execute(
                     """
-                    SELECT COALESCE(MAX(version_number), 1) FROM project_versions
+                    SELECT COALESCE(MAX(version_number), 1) AS version FROM project_versions
                     WHERE project_id = ?
                 """,
                     (project_id,),
                 )
 
-            stats["version"] = cursor.fetchone()[0]
+            row = self._row_to_dict(cursor, cursor.fetchone())
+            stats["version"] = row["version"]
 
             return stats
 
@@ -6009,17 +6126,18 @@ class PromptDataManager:
 
             prompts = []
             for row in cursor.fetchall():
+                data = self._row_to_dict(cursor, row)
                 prompt = {
-                    "id": row[0],
-                    "name": row[1],
-                    "title": row[2],
-                    "content": row[3],
-                    "category": row[4],
-                    "tags": row[5],
-                    "created_at": row[6],
-                    "updated_at": row[7],
-                    "sequence_order": row[8],
-                    "added_to_project_at": row[9],
+                    "id": data["id"],
+                    "name": data["name"],
+                    "title": data["title"],
+                    "content": data["content"],
+                    "category": data["category"],
+                    "tags": data["tags"],
+                    "created_at": data["created_at"],
+                    "updated_at": data["updated_at"],
+                    "sequence_order": data["sequence_order"],
+                    "added_to_project_at": data["added_to_project_at"],
                 }
                 prompts.append(prompt)
 
@@ -6072,17 +6190,18 @@ class PromptDataManager:
 
             rules = []
             for row in cursor.fetchall():
+                data = self._row_to_dict(cursor, row)
                 rule = {
-                    "id": row[0],
-                    "name": row[1],
-                    "title": row[2],
-                    "content": row[3],
-                    "category": row[4],
-                    "tags": row[5],
-                    "created_at": row[6],
-                    "updated_at": row[7],
-                    "rule_set_name": row[8],
-                    "added_to_project_at": row[9],
+                    "id": data["id"],
+                    "name": data["name"],
+                    "title": data["title"],
+                    "content": data["content"],
+                    "category": data["category"],
+                    "tags": data["tags"],
+                    "created_at": data["created_at"],
+                    "updated_at": data["updated_at"],
+                    "rule_set_name": data["rule_set_name"],
+                    "added_to_project_at": data["added_to_project_at"],
                 }
                 rules.append(rule)
 
@@ -6124,11 +6243,14 @@ class PromptDataManager:
 
             members = []
             for row in cursor.fetchall():
+                data = self._row_to_dict(cursor, row)
                 member = {
-                    "user_id": row[0],
-                    "user_name": row[0],  # TODO: Get actual user name from users table
-                    "role": row[1],
-                    "added_at": row[2],
+                    "user_id": data["user_id"],
+                    "user_name": data[
+                        "user_id"
+                    ],  # TODO: Get actual user name from users table
+                    "role": data["role"],
+                    "added_at": data["added_at"],
                 }
                 members.append(member)
 
@@ -6190,7 +6312,7 @@ class PromptDataManager:
                 """,
                     (project_id,),
                 )
-            next_version = cursor.fetchone()[0]
+            next_version = self._row_to_dict(cursor, cursor.fetchone())["next_version"]
 
             # Collect project snapshot data
             snapshot_data = {
@@ -6233,18 +6355,21 @@ class PromptDataManager:
                 )
 
             for row in cursor.fetchall():
+                row_dict = self._row_to_dict(cursor, row)
                 prompt_data = {
-                    "prompt_id": row[0],
-                    "sequence_order": row[1],
-                    "name": row[2],
-                    "title": row[3],
+                    "prompt_id": row_dict["prompt_id"],
+                    "sequence_order": row_dict["sequence_order"],
+                    "name": row_dict["name"],
+                    "title": row_dict["title"],
                     "content": (
-                        row[4] if include_content else f"[{len(row[4])} characters]"
+                        row_dict["content"]
+                        if include_content
+                        else f"[{len(row_dict['content'])} characters]"
                     ),
-                    "category": row[5],
-                    "tags": row[6],
-                    "visibility": row[7],
-                    "added_at": row[8],
+                    "category": row_dict["category"],
+                    "tags": row_dict["tags"],
+                    "visibility": row_dict["visibility"],
+                    "added_at": row_dict["added_at"],
                 }
                 snapshot_data["prompts"].append(prompt_data)
 
@@ -6275,17 +6400,20 @@ class PromptDataManager:
                 )
 
             for row in cursor.fetchall():
+                row_dict = self._row_to_dict(cursor, row)
                 rule_data = {
-                    "rule_id": row[0],
-                    "rule_set_name": row[1],
-                    "name": row[2],
-                    "title": row[3],
+                    "rule_id": row_dict["rule_id"],
+                    "rule_set_name": row_dict["rule_set_name"],
+                    "name": row_dict["name"],
+                    "title": row_dict["title"],
                     "content": (
-                        row[4] if include_content else f"[{len(row[4])} characters]"
+                        row_dict["content"]
+                        if include_content
+                        else f"[{len(row_dict['content'])} characters]"
                     ),
-                    "category": row[5],
-                    "tags": row[6],
-                    "added_at": row[7],
+                    "category": row_dict["category"],
+                    "tags": row_dict["tags"],
+                    "added_at": row_dict["added_at"],
                 }
                 snapshot_data["rules"].append(rule_data)
 
@@ -6312,7 +6440,12 @@ class PromptDataManager:
                 )
 
             for row in cursor.fetchall():
-                member_data = {"user_id": row[0], "role": row[1], "added_at": row[2]}
+                row_dict = self._row_to_dict(cursor, row)
+                member_data = {
+                    "user_id": row_dict["user_id"],
+                    "role": row_dict["role"],
+                    "added_at": row_dict["added_at"],
+                }
                 snapshot_data["members"].append(member_data)
 
             # Store snapshot as JSON in project_versions
@@ -6409,15 +6542,23 @@ class PromptDataManager:
                     (project_id, version1, version2),
                 )
 
-            versions = cursor.fetchall()
+            versions = self._rows_to_dicts(cursor, cursor.fetchall())
             if len(versions) != 2:
                 return {"success": False, "error": "One or both versions not found"}
 
             import json
 
             # Parse snapshot data
-            v1_data = json.loads(versions[0][1]) if versions[0][1] else {}
-            v2_data = json.loads(versions[1][1]) if versions[1][1] else {}
+            v1_data = (
+                json.loads(versions[0]["snapshot_data"])
+                if versions[0]["snapshot_data"]
+                else {}
+            )
+            v2_data = (
+                json.loads(versions[1]["snapshot_data"])
+                if versions[1]["snapshot_data"]
+                else {}
+            )
 
             # Compare project settings
             project_changes = []
@@ -6523,14 +6664,14 @@ class PromptDataManager:
                 "success": True,
                 "project_id": project_id,
                 "version1": {
-                    "number": versions[0][0],
-                    "description": versions[0][2],
-                    "created_at": versions[0][3],
+                    "number": versions[0]["version_number"],
+                    "description": versions[0]["changes_description"],
+                    "created_at": versions[0]["created_at"],
                 },
                 "version2": {
-                    "number": versions[1][0],
-                    "description": versions[1][2],
-                    "created_at": versions[1][3],
+                    "number": versions[1]["version_number"],
+                    "description": versions[1]["changes_description"],
+                    "created_at": versions[1]["created_at"],
                 },
                 "changes": {
                     "project": project_changes,
@@ -6582,6 +6723,7 @@ class PromptDataManager:
 
         conn = self.get_conn()
         cursor = conn.cursor()
+        placeholder = "%s" if self.db_type == "postgres" else "?"
 
         try:
             # Get the version to restore
@@ -6605,12 +6747,16 @@ class PromptDataManager:
                 )
 
             version_row = cursor.fetchone()
-            if not version_row or not version_row[0]:
+            if not version_row:
+                return "Error: Version not found or no snapshot data available"
+
+            version_data = self._row_to_dict(cursor, version_row)
+            if not version_data["snapshot_data"]:
                 return "Error: Version not found or no snapshot data available"
 
             import json
 
-            snapshot_data = json.loads(version_row[0])
+            snapshot_data = json.loads(version_data["snapshot_data"])
 
             # Create a backup snapshot before restoring
             backup_result = self.create_project_snapshot(
@@ -6628,11 +6774,12 @@ class PromptDataManager:
                 project_data = snapshot_data.get("project", {})
                 if project_data:
                     cursor.execute(
-                        """
-                        UPDATE projects 
-                        SET title = ?, description = ?, project_type = ?, 
-                            visibility = ?, shared_with_tenant = ?, updated_at = ?
-                        WHERE id = ? AND tenant_id = ?
+                        f"""
+                        UPDATE projects
+                        SET title = {placeholder}, description = {placeholder},
+                            project_type = {placeholder}, visibility = {placeholder},
+                            shared_with_tenant = {placeholder}, updated_at = {placeholder}
+                        WHERE id = {placeholder} AND tenant_id = {placeholder}
                     """,
                         (
                             project_data.get("title"),
@@ -6649,24 +6796,25 @@ class PromptDataManager:
             if restore_mode in ["full", "prompts_only"]:
                 # Restore prompts - remove all current prompts and add from snapshot
                 cursor.execute(
-                    "DELETE FROM project_prompts WHERE project_id = ?", (project_id,)
+                    f"DELETE FROM project_prompts WHERE project_id = {placeholder}",
+                    (project_id,),
                 )
 
                 for prompt_data in snapshot_data.get("prompts", []):
                     # Check if prompt still exists
                     cursor.execute(
-                        """
-                        SELECT id FROM prompts 
-                        WHERE id = ? AND tenant_id = ?
+                        f"""
+                        SELECT id FROM prompts
+                        WHERE id = {placeholder} AND tenant_id = {placeholder}
                     """,
                         (prompt_data["prompt_id"], self.tenant_id),
                     )
 
                     if cursor.fetchone():
                         cursor.execute(
-                            """
+                            f"""
                             INSERT INTO project_prompts (project_id, prompt_id, sequence_order, added_by, added_at)
-                            VALUES (?, ?, ?, ?, ?)
+                            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
                         """,
                             (
                                 project_id,
@@ -6680,24 +6828,25 @@ class PromptDataManager:
             if restore_mode in ["full", "rules_only"]:
                 # Restore rules - remove all current rules and add from snapshot
                 cursor.execute(
-                    "DELETE FROM project_rules WHERE project_id = ?", (project_id,)
+                    f"DELETE FROM project_rules WHERE project_id = {placeholder}",
+                    (project_id,),
                 )
 
                 for rule_data in snapshot_data.get("rules", []):
                     # Check if rule still exists
                     cursor.execute(
-                        """
-                        SELECT id FROM rules 
-                        WHERE id = ? AND tenant_id = ?
+                        f"""
+                        SELECT id FROM rules
+                        WHERE id = {placeholder} AND tenant_id = {placeholder}
                     """,
                         (rule_data["rule_id"], self.tenant_id),
                     )
 
                     if cursor.fetchone():
                         cursor.execute(
-                            """
+                            f"""
                             INSERT INTO project_rules (project_id, rule_id, rule_set_name, added_by, added_at)
-                            VALUES (?, ?, ?, ?, ?)
+                            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
                         """,
                             (
                                 project_id,
@@ -6711,14 +6860,15 @@ class PromptDataManager:
             if restore_mode == "full":
                 # Restore members (only if full restore)
                 cursor.execute(
-                    "DELETE FROM project_members WHERE project_id = ?", (project_id,)
+                    f"DELETE FROM project_members WHERE project_id = {placeholder}",
+                    (project_id,),
                 )
 
                 for member_data in snapshot_data.get("members", []):
                     cursor.execute(
-                        """
+                        f"""
                         INSERT INTO project_members (project_id, user_id, role, added_by, added_at)
-                        VALUES (?, ?, ?, ?, ?)
+                        VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
                     """,
                         (
                             project_id,
@@ -6731,15 +6881,15 @@ class PromptDataManager:
 
             # Log the restore operation
             cursor.execute(
-                """
+                f"""
                 INSERT INTO project_versions (project_id, version_number, changes_description, created_by, created_at)
-                VALUES (?, (SELECT COALESCE(MAX(version_number), 0) + 1 FROM project_versions WHERE project_id = ?), 
-                        ?, ?, ?)
+                VALUES ({placeholder}, (SELECT COALESCE(MAX(version_number), 0) + 1 FROM project_versions WHERE project_id = {placeholder}),
+                        {placeholder}, {placeholder}, {placeholder})
             """,
                 (
                     project_id,
                     project_id,
-                    f"Restored to version {version_number} ({restore_mode} mode): {version_row[1]}",
+                    f"Restored to version {version_number} ({restore_mode} mode): {version_data['changes_description']}",
                     self.user_id,
                     datetime.now().isoformat(),
                 ),
@@ -6822,12 +6972,14 @@ class PromptDataManager:
             prev_snapshot = None
 
             for row in cursor.fetchall():
+                row_dict = self._row_to_dict(cursor, row)
+                snapshot_data = row_dict["snapshot_data"]
                 entry = {
-                    "id": row[0],
-                    "version_number": row[1],
-                    "description": row[2],
-                    "created_by": row[4],
-                    "created_at": row[3],
+                    "id": row_dict["id"],
+                    "version_number": row_dict["version_number"],
+                    "description": row_dict["changes_description"],
+                    "created_by": row_dict["created_by"],
+                    "created_at": row_dict["created_at"],
                     "changes": [],
                     "stats": {
                         "prompts_changed": 0,
@@ -6838,11 +6990,11 @@ class PromptDataManager:
                 }
 
                 # Parse snapshot data if available
-                if row[3]:  # snapshot_data
+                if snapshot_data:  # snapshot_data
                     try:
                         import json
 
-                        current_snapshot = json.loads(row[3])
+                        current_snapshot = json.loads(snapshot_data)
 
                         if prev_snapshot:
                             # Analyze changes between versions
