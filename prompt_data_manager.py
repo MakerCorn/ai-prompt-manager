@@ -4029,71 +4029,6 @@ class PromptDataManager:
         conn.close()
         return "Prompt removed from project successfully!"
 
-    def get_project_prompts(self, project_id: int) -> List[Dict]:
-        """Get all prompts in a project."""
-        if not self.tenant_id:
-            return []
-
-        # Check project access
-        project = self.get_project_by_id(project_id)
-        if not project:
-            return []
-
-        conn = self.get_conn()
-        cursor = conn.cursor()
-
-        if self.db_type == "postgres":
-            cursor.execute(
-                """
-                SELECT p.id, p.tenant_id, p.user_id, p.name, p.title, p.content, p.category,
-                       p.tags, p.is_enhancement_prompt, p.visibility, p.created_at, p.updated_at,
-                       pp.sequence_order, pp.added_at
-                FROM prompts p
-                JOIN project_prompts pp ON p.id = pp.prompt_id
-                WHERE pp.project_id = %s
-                ORDER BY pp.sequence_order, pp.added_at
-            """,
-                (project_id,),
-            )
-        else:
-            cursor.execute(
-                """
-                SELECT p.id, p.tenant_id, p.user_id, p.name, p.title, p.content, p.category,
-                       p.tags, p.is_enhancement_prompt, p.visibility, p.created_at, p.updated_at,
-                       pp.sequence_order, pp.added_at
-                FROM prompts p
-                JOIN project_prompts pp ON p.id = pp.prompt_id
-                WHERE pp.project_id = ?
-                ORDER BY pp.sequence_order, pp.added_at
-            """,
-                (project_id,),
-            )
-
-        prompts = []
-        for row in cursor.fetchall():
-            prompts.append(
-                {
-                    "id": row[0],
-                    "tenant_id": row[1],
-                    "user_id": row[2],
-                    "name": row[3],
-                    "title": row[4],
-                    "content": row[5],
-                    "category": row[6],
-                    "tags": row[7],
-                    "is_enhancement_prompt": (
-                        bool(row[8]) if row[8] is not None else False
-                    ),
-                    "visibility": row[9] if row[9] is not None else "private",
-                    "created_at": row[10],
-                    "updated_at": row[11],
-                    "sequence_order": row[12],
-                    "added_to_project_at": row[13],
-                }
-            )
-        conn.close()
-        return prompts
-
     def add_rule_to_project(
         self, project_id: int, rule_id: int, rule_set_name: Optional[str] = None
     ) -> str:
@@ -4215,69 +4150,6 @@ class PromptDataManager:
         conn.close()
         return "Rule removed from project successfully!"
 
-    def get_project_rules(self, project_id: int) -> List[Dict]:
-        """Get all rules in a project."""
-        if not self.tenant_id:
-            return []
-
-        # Check project access
-        project = self.get_project_by_id(project_id)
-        if not project:
-            return []
-
-        conn = self.get_conn()
-        cursor = conn.cursor()
-
-        if self.db_type == "postgres":
-            cursor.execute(
-                """
-                SELECT r.id, r.tenant_id, r.user_id, r.name, r.title, r.content, r.category,
-                       r.tags, r.description, r.is_builtin, r.created_at, r.updated_at,
-                       pr.rule_set_name, pr.added_at
-                FROM rules r
-                JOIN project_rules pr ON r.id = pr.rule_id
-                WHERE pr.project_id = %s
-                ORDER BY pr.rule_set_name, pr.added_at
-            """,
-                (project_id,),
-            )
-        else:
-            cursor.execute(
-                """
-                SELECT r.id, r.tenant_id, r.user_id, r.name, r.title, r.content, r.category,
-                       r.tags, r.description, r.is_builtin, r.created_at, r.updated_at,
-                       pr.rule_set_name, pr.added_at
-                FROM rules r
-                JOIN project_rules pr ON r.id = pr.rule_id
-                WHERE pr.project_id = ?
-                ORDER BY pr.rule_set_name, pr.added_at
-            """,
-                (project_id,),
-            )
-
-        rules = []
-        for row in cursor.fetchall():
-            rules.append(
-                {
-                    "id": row[0],
-                    "tenant_id": row[1],
-                    "user_id": row[2],
-                    "name": row[3],
-                    "title": row[4],
-                    "content": row[5],
-                    "category": row[6],
-                    "tags": row[7],
-                    "description": row[8],
-                    "is_builtin": bool(row[9]) if row[9] is not None else False,
-                    "created_at": row[10],
-                    "updated_at": row[11],
-                    "rule_set_name": row[12],
-                    "added_to_project_at": row[13],
-                }
-            )
-        conn.close()
-        return rules
-
     def add_project_member(
         self, project_id: int, user_id: str, role: str = "member"
     ) -> str:
@@ -4375,66 +4247,6 @@ class PromptDataManager:
         conn.commit()
         conn.close()
         return "User removed from project successfully!"
-
-    def get_project_members(self, project_id: int) -> List[Dict]:
-        """Get all members of a project."""
-        if not self.tenant_id:
-            return []
-
-        # Check project access
-        project = self.get_project_by_id(project_id)
-        if not project:
-            return []
-
-        conn = self.get_conn()
-        cursor = conn.cursor()
-
-        if self.db_type == "postgres":
-            cursor.execute(
-                """
-                SELECT pm.id, pm.project_id, pm.user_id, pm.role, pm.added_at
-                FROM project_members pm
-                WHERE pm.project_id = %s
-                ORDER BY 
-                    CASE pm.role 
-                        WHEN 'owner' THEN 0 
-                        WHEN 'member' THEN 1 
-                        WHEN 'viewer' THEN 2 
-                    END,
-                    pm.added_at
-            """,
-                (project_id,),
-            )
-        else:
-            cursor.execute(
-                """
-                SELECT pm.id, pm.project_id, pm.user_id, pm.role, pm.added_at
-                FROM project_members pm
-                WHERE pm.project_id = ?
-                ORDER BY 
-                    CASE pm.role 
-                        WHEN 'owner' THEN 0 
-                        WHEN 'member' THEN 1 
-                        WHEN 'viewer' THEN 2 
-                    END,
-                    pm.added_at
-            """,
-                (project_id,),
-            )
-
-        members = []
-        for row in cursor.fetchall():
-            members.append(
-                {
-                    "id": row[0],
-                    "project_id": row[1],
-                    "user_id": row[2],
-                    "role": row[3],
-                    "added_at": row[4],
-                }
-            )
-        conn.close()
-        return members
 
     def change_project_member_role(
         self, project_id: int, user_id: str, new_role: str
@@ -5068,67 +4880,6 @@ class PromptDataManager:
         except Exception as e:
             conn.rollback()
             return {"success": False, "error": f"Failed to unassign rule: {str(e)}"}
-        finally:
-            conn.close()
-
-    def get_project_rules(self, project_id: int, limit: int = 50) -> List[Dict]:
-        """
-        Get all rules assigned to a project.
-
-        Args:
-            project_id: The project ID
-            limit: Maximum number of rules to return
-
-        Returns:
-            List of rule dictionaries
-        """
-        if not self.tenant_id:
-            return []
-
-        # Check permissions - user must be able to view the project
-        permissions = self.get_user_project_permissions(project_id)
-        if not permissions.get("can_view"):
-            return []
-
-        conn = self.get_conn()
-        cursor = conn.cursor()
-
-        try:
-            cursor.execute(
-                """
-                SELECT r.id, r.name, r.title, r.content, r.category, r.tags, 
-                       r.description, r.is_builtin, r.created_at, r.updated_at,
-                       pr.created_at as assigned_at
-                FROM rules r
-                JOIN project_rules pr ON r.id = pr.rule_id
-                WHERE pr.project_id = ? AND r.tenant_id = ?
-                ORDER BY pr.created_at DESC
-                LIMIT ?
-            """,
-                (project_id, self.tenant_id, limit),
-            )
-
-            rules = []
-            for row in cursor.fetchall():
-                rule = {
-                    "id": row[0],
-                    "name": row[1],
-                    "title": row[2],
-                    "content": row[3],
-                    "category": row[4],
-                    "tags": row[5].split(",") if row[5] else [],
-                    "description": row[6],
-                    "is_builtin": bool(row[7]),
-                    "created_at": row[8],
-                    "updated_at": row[9],
-                    "assigned_at": row[10],
-                }
-                rules.append(rule)
-
-            return rules
-
-        except Exception as e:
-            return []
         finally:
             conn.close()
 
